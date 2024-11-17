@@ -42,7 +42,7 @@ Document::Mode Document::mode() const
     return m_mode;
 }
 
-std::shared_ptr<Element> Document::create_element(std::string const &local_name,
+std::shared_ptr<Element> Document::create_element(std::string const& local_name,
     std::optional<std::string> namespace_, std::optional<std::string> prefix,
     std::optional<std::string> is, bool synchronous_custom_elements)
 {
@@ -143,6 +143,9 @@ std::shared_ptr<Element> Document::create_element(std::string const &local_name,
         // - 3. If namespace is the HTML namespace, and either localName is a
         // valid custom element name or is is non-null, then set result’s custom
         // element state to "undefined".
+        LOG_TODO << "If namespace is the HTML namespace, and either localName "
+                    "is a valid custom element name or is is non-null, then "
+                    "set result’s custom element state to 'undefined'.";
     }
     // 8. Return result.
     assert(result);
