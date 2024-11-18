@@ -19,7 +19,7 @@ struct Source_Location {
 #define CURRENT_SOURCE_LOCATION                                                \
     ::yw::Source_Location                                                      \
     {                                                                          \
-        __LINE__, __FILE__, __func__                                           \
+        __LINE__, __FILE__, static_cast<char const*>(__func__)                 \
     }
 
 } // namespace yw
