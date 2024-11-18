@@ -7,6 +7,10 @@
 namespace yw {
 
 template <typename T>
-using Error = std::optional<T>;
+class [[nodiscard]] Error: public std::optional<T> {
+public:
+    Error() = default;
+    explicit constexpr Error(T const &val): std::optional<T>(val) {}
+};
 
 } // namespace yw

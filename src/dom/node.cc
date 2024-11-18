@@ -10,7 +10,6 @@
 #include "shadowroot.hh"
 
 #include <cassert>
-#include <cmath>
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -329,19 +328,21 @@ Error<idl::DOM_Exception> Node::ensure_pre_insertion_validity(
     case Type::ELEMENT:
         break;
     default:
-        return DOM_EXCEPTION("", idl::DOM_Exception::HIERARCHY_REQUEST_ERROR);
+        return Error(
+            DOM_EXCEPTION("", idl::DOM_Exception::HIERARCHY_REQUEST_ERROR));
     }
 
     // 2. If node is a host-including inclusive ancestor of parent, then throw a
     // "HierarchyRequestError" DOMException.
     if (host_including_inclusive_ancestor_of(parent)) {
-        return DOM_EXCEPTION("", idl::DOM_Exception::HIERARCHY_REQUEST_ERROR);
+        return Error(
+            DOM_EXCEPTION("", idl::DOM_Exception::HIERARCHY_REQUEST_ERROR));
     }
 
     // 3. If child is non-null and its parent is not parent, then throw a
     // "NotFoundError" DOMException.
     if (before_child && before_child->parent_node() != parent) {
-        return DOM_EXCEPTION("", idl::DOM_Exception::NOT_FOUND_ERROR);
+        return Error(DOM_EXCEPTION("", idl::DOM_Exception::NOT_FOUND_ERROR));
     }
 
     // 4. If node is not a DocumentFragment, DocumentType, Element, or
@@ -357,7 +358,8 @@ Error<idl::DOM_Exception> Node::ensure_pre_insertion_validity(
         break;
     // End of CharacterData nodes
     default:
-        return DOM_EXCEPTION("", idl::DOM_Exception::HIERARCHY_REQUEST_ERROR);
+        return Error(
+            DOM_EXCEPTION("", idl::DOM_Exception::HIERARCHY_REQUEST_ERROR));
     }
 
     // 5. If either node is a Text node and parent is a document, or node is a
@@ -366,7 +368,8 @@ Error<idl::DOM_Exception> Node::ensure_pre_insertion_validity(
     if (((node_type() == Type::TEXT) && (parent->node_type() == Type::DOCUMENT))
         || ((node_type() == Type::DOCUMENT_TYPE)
             && (parent->node_type() != Type::DOCUMENT))) {
-        return DOM_EXCEPTION("", idl::DOM_Exception::HIERARCHY_REQUEST_ERROR);
+        return Error(
+            DOM_EXCEPTION("", idl::DOM_Exception::HIERARCHY_REQUEST_ERROR));
     }
 
     // 6. If parent is a document, and any of the statements below, switched on
@@ -418,8 +421,8 @@ Error<idl::DOM_Exception> Node::ensure_pre_insertion_validity(
             break;
         }
         if (die) {
-            return DOM_EXCEPTION(
-                "", idl::DOM_Exception::HIERARCHY_REQUEST_ERROR);
+            return Error(
+                DOM_EXCEPTION("", idl::DOM_Exception::HIERARCHY_REQUEST_ERROR));
         }
     }
 
