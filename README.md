@@ -13,12 +13,20 @@ Note that `main.cc`, containing the `main` function, is mostly playground for tr
 For a while this would be my main focus, since parsing HTML requires working DOM.
 
 ```c++
-std::shared_ptr<dom::Document> document = dom::Document::_create("Document");
+std::shared_ptr<dom::Document> document
+    = dom::Document::_create("Document", dom::Document::Type::HTML,
+        dom::Document::Mode::NO_QUIRKS, "application/xhtml+xml");
 std::shared_ptr<dom::Node> html = document->create_element("html");
-html->append(document);
+document->append_child(html).should_not_fail();
+std::shared_ptr<dom::Node> head = document->create_element("head");
+document->append_child(head).should_not_fail();
+std::shared_ptr<dom::Node> body = document->create_element("body");
+document->append_child(body).should_not_fail();
+
+head->remove();
 ```
 
-Currently creating and inserting nodes, and creating elements are supported. Some internal functions for removing nodes are also there though.
+Currently creating, inserting and removing nodes, and creating elements are supported.
 
 ## Would this evolve to a full browser?
 
