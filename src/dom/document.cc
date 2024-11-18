@@ -192,6 +192,7 @@ std::shared_ptr<Document> Document::_create(
 {
     std::shared_ptr<Document> node = std::make_shared<Document>(
         Constructor_Badge {}, debug_name, type, mode, content_type);
+    node->_set_node_document(node);
     return node;
 }
 

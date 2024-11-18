@@ -312,7 +312,7 @@ public:
 protected:
     static Constructor_Badge _constructor_badge();
 
-    void set_node_document(std::shared_ptr<Document> const& document);
+    void _set_node_document(std::shared_ptr<Document> const& document);
 
 private:
     std::weak_ptr<Node> m_parent;

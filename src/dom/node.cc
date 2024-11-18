@@ -601,7 +601,7 @@ std::shared_ptr<Node> Node::next_sibling() const
 
 //--------------------------------------------------------------------------
 
-void Node::set_node_document(std::shared_ptr<Document> const& document)
+void Node::_set_node_document(std::shared_ptr<Document> const& document)
 {
     m_document = document;
 }
