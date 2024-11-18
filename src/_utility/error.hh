@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: BSD-3-Clause
 #pragma once
+#include <cassert>
 #include <optional>
 
 namespace yw {
@@ -11,6 +12,12 @@ class [[nodiscard]] Error: public std::optional<T> {
 public:
     Error() = default;
     explicit constexpr Error(T const &val): std::optional<T>(val) {}
+
+    void should_not_fail() {
+        if (*this) {
+            assert(false);
+        }
+    }
 };
 
 } // namespace yw
