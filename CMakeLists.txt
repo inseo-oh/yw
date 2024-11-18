@@ -1,6 +1,6 @@
 # Copyright (c) 2024, Oh Inseo (YJK) <dhdlstjtr@gmail.com>
 #
-# SPDX-License-Identifier: BSD-2-Clause
+# SPDX-License-Identifier: BSD-3-Clause
 cmake_minimum_required(VERSION 3.5)
 project(yw)
 
