@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #pragma once
 #include "node.hh"
+#include "slottable.hh"
 #include <memory>
 #include <optional>
 #include <string>
@@ -12,7 +13,7 @@ namespace yw::dom {
 // https://dom.spec.whatwg.org/#interface-element
 //
 // https://developer.mozilla.org/en-US/docs/Web/API/Element
-class Element : public Node {
+class Element : public Node, public Slottable {
     struct Constructor_Badge { };
 
 public:

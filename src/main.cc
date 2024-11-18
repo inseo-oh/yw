@@ -19,6 +19,12 @@ void test()
             dom::Document::Mode::NO_QUIRKS, "application/xhtml+xml");
     std::shared_ptr<dom::Node> html = document->create_element("html");
     document->append_child(html).should_not_fail();
+    std::shared_ptr<dom::Node> head = document->create_element("head");
+    document->append_child(head).should_not_fail();
+    std::shared_ptr<dom::Node> body = document->create_element("body");
+    document->append_child(body).should_not_fail();
+
+    head->remove();
 
     dom::dump_node(std::static_pointer_cast<dom::Node>(document));
 

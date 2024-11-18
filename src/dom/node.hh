@@ -14,9 +14,11 @@
 
 namespace yw::dom {
 
+// NOTE: Some of these types may be STUB.
 class Document;
 class Node;
 class Shadow_Root;
+class Mutation_Observer;
 
 // https://dom.spec.whatwg.org/#trees
 class Node : public std::enable_shared_from_this<Node> {
@@ -28,7 +30,7 @@ class Node : public std::enable_shared_from_this<Node> {
     using Shadow_Root_For_Node = std::conditional_t<std::is_const_v<T>,
         Shadow_Root const, Shadow_Root>;
 
-    // https://dom.spec.whatwg.org/#concept-shadow-including-descendant
+    // https://dom.spec.whatwg.org/#concept-shadow-including-inclusive-descendant
     template <typename T, typename C>
     static bool _shadow_including_inclusive_descendants(T& node, C callback)
     {
@@ -50,7 +52,7 @@ class Node : public std::enable_shared_from_this<Node> {
         return true;
     }
 
-    // https://dom.spec.whatwg.org/#concept-shadow-including-inclusive-descendant
+    // https://dom.spec.whatwg.org/#concept-shadow-including-descendant
     template <typename T, typename C>
     static bool _shadow_including_descendants(T& node, C callback)
     {
@@ -62,7 +64,7 @@ class Node : public std::enable_shared_from_this<Node> {
         return true;
     }
 
-    // https://dom.spec.whatwg.org/#concept-tree-descendant
+    // https://dom.spec.whatwg.org/#concept-tree-inclusive-descendant
     template <typename T, typename C>
     static bool _inclusive_descendants(T& node, C callback)
     {
@@ -77,9 +79,9 @@ class Node : public std::enable_shared_from_this<Node> {
         return true;
     }
 
-    // https://dom.spec.whatwg.org/#concept-tree-inclusive-descendant
+    // https://dom.spec.whatwg.org/#concept-tree-descendant
     template <typename T, typename C>
-    static bool descendants(T& node, C callback)
+    static bool _descendants(T& node, C callback)
     {
         for (const std::shared_ptr<T>& node : node.child_nodes()) {
             if (!_inclusive_descendants(*node, callback)) {
@@ -88,6 +90,25 @@ class Node : public std::enable_shared_from_this<Node> {
         }
         return true;
     }
+
+    // https://dom.spec.whatwg.org/#concept-tree-inclusive-ancestor
+    template <typename T, typename C>
+    static bool _inclusive_ancestors(T &node, C callback) {
+        std::shared_ptr<T> current = node.shared_from_this();
+        while (current) {
+            if (!callback(node.shared_from_this())) {
+                return false;
+            }
+            current = current->parent_node();
+        }
+        return true;
+    }
+    // https://dom.spec.whatwg.org/#concept-tree-ancestor
+    template <typename T, typename C>
+    static bool _ancestors(T &node, C callback) {
+        return _inclusive_ancestors(node.parent_node(), callback);
+    }
+
 
 public:
     enum class Type {
@@ -144,54 +165,78 @@ public:
     // https://dom.spec.whatwg.org/#concept-node-document
     [[nodiscard]] std::shared_ptr<Document> node_document() const;
 
-    // https://dom.spec.whatwg.org/#concept-shadow-including-descendant
+    // https://dom.spec.whatwg.org/#concept-shadow-including-inclusive-descendant
     template <typename C>
     bool shadow_including_inclusive_descendants(C callback) const
     {
         return _shadow_including_inclusive_descendants(*this, callback);
     }
 
-    // https://dom.spec.whatwg.org/#concept-shadow-including-descendant
+    // https://dom.spec.whatwg.org/#concept-shadow-including-inclusive-descendant
     template <typename C>
     bool shadow_including_inclusive_descendants(C callback)
     {
         return _shadow_including_inclusive_descendants(*this, callback);
     }
 
-    // https://dom.spec.whatwg.org/#concept-shadow-including-inclusive-descendant
+    // https://dom.spec.whatwg.org/#concept-shadow-including-descendant
     template <typename C> bool shadow_including_descendants(C callback) const
     {
         return _shadow_including_descendants(*this, callback);
     }
 
-    // https://dom.spec.whatwg.org/#concept-shadow-including-inclusive-descendant
+    // https://dom.spec.whatwg.org/#concept-shadow-including-descendant
     template <typename C> bool shadow_including_descendants(C callback)
     {
         return _shadow_including_descendants(*this, callback);
     }
 
-    // https://dom.spec.whatwg.org/#concept-tree-descendant
+    // https://dom.spec.whatwg.org/#concept-tree-inclusive-descendant
     template <typename C> bool inclusive_descendants(C callback) const
     {
         return _inclusive_descendants(*this, callback);
     }
 
-    // https://dom.spec.whatwg.org/#concept-tree-descendant
+    // https://dom.spec.whatwg.org/#concept-tree-inclusive-descendant
     template <typename C> bool inclusive_descendants(C callback)
     {
         return _inclusive_descendants(*this, callback);
     }
 
-    // https://dom.spec.whatwg.org/#concept-tree-inclusive-descendant
+    // https://dom.spec.whatwg.org/#concept-tree-descendant
     template <typename C> bool descendants(C callback) const
     {
         return _descendants(*this, callback);
     }
 
-    // https://dom.spec.whatwg.org/#concept-tree-inclusive-descendant
+    // https://dom.spec.whatwg.org/#concept-tree-descendant
     template <typename C> bool descendants(C callback)
     {
         return _descendants(*this, callback);
+    }
+
+    // https://dom.spec.whatwg.org/#concept-tree-inclusive-ancestor
+    template <typename C> bool inclusive_ancestors(C callback) const
+    {
+        return _inclusive_ancestors(*this, callback);
+    }
+
+    // https://dom.spec.whatwg.org/#concept-tree-inclusive-ancestor
+    template <typename C> bool inclusive_ancestors(C callback)
+    {
+        return _inclusive_ancestors(*this, callback);
+    }
+
+    // https://dom.spec.whatwg.org/#concept-tree-ancestor
+    template <typename C> bool ancestors(C callback) const
+    {
+        return _ancestors(*this, callback);
+    }
+
+    // https://dom.spec.whatwg.org/#concept-tree-ancestor
+    template <typename C> bool ancestors(C callback)
+    {
+        return _ancestors(*this, callback);
     }
 
     // https://dom.spec.whatwg.org/#concept-tree-preceding
@@ -210,6 +255,9 @@ public:
     // https://dom.spec.whatwg.org/#concept-tree-host-including-inclusive-ancestor
     [[nodiscard]] bool host_including_inclusive_ancestor_of(
         std::shared_ptr<Node const> const& of) const;
+
+    // https://dom.spec.whatwg.org/#concept-node-remove
+    void remove(bool suppress_observers = false);
 
     // https://dom.spec.whatwg.org/#concept-node-insert
     void insert(std::shared_ptr<Node> const& parent,
@@ -237,12 +285,15 @@ public:
     // https://dom.spec.whatwg.org/#concept-node-insert-ext
     virtual void run_insertion_steps();
 
+    // https://dom.spec.whatwg.org/#concept-node-remove-ext
+    virtual void run_removing_steps(std::shared_ptr<Node> const& old_parent);
+
     // https://dom.spec.whatwg.org/#concept-node-adopt-ext
     virtual void run_adopting_steps(
         std::shared_ptr<Document> const& old_document);
 
     // https://dom.spec.whatwg.org/#concept-node-children-changed-ext
-    virtual void run_child_changed_steps();
+    virtual void run_children_changed_steps();
 
     // https://dom.spec.whatwg.org/#concept-node-post-connection-ext
     virtual void run_post_connection_steps();
@@ -339,6 +390,7 @@ private:
     std::weak_ptr<Node> m_next_sibling;
 
     std::weak_ptr<Document> m_document;
+    std::vector<std::shared_ptr<Mutation_Observer>> m_registered_observers;
 
     Type m_node_type;
     std::string m_debug_name;

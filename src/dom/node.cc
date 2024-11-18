@@ -6,8 +6,10 @@
 #include "../_utility/logging.hh"
 #include "../idl/domexception.hh"
 #include "element.hh"
+#include "nodeiterator.hh"
 #include "range.hh"
 #include "shadowroot.hh"
+#include "slottable.hh"
 
 #include <cassert>
 #include <cstddef>
@@ -163,6 +165,143 @@ template <typename T>
     }
 }
 
+void Node::remove(bool suppress_observers)
+{
+    // https://dom.spec.whatwg.org/#concept-node-remove
+
+    // 1. Let parent be node’s parent.
+    std::shared_ptr<Node> parent = parent_node();
+
+    // 2. Assert: parent is non-null.
+    assert(parent);
+
+    // 3. Let index be node’s index.
+    size_t indx = index();
+
+    if (!Range::_live_ranges().empty()) {
+        assert(!"TODO");
+        // 4. For each live range whose start node is an inclusive descendant of
+        // node, set its start to (parent, index).
+        // 5. For each live range whose end node is an inclusive descendant of
+        // node, set its end to (parent, index).
+        // 6. For each live range whose start node is parent and start offset is
+        // greater than index, decrease its start offset by 1.
+        // 7. For each live range whose end node is parent and end offset is
+        // greater than index, decrease its end offset by 1.
+    }
+
+    if (!Node_Iterator::_node_iterators().empty()) {
+        assert(!"TODO");
+        // 8. For each NodeIterator object iterator whose root’s node document
+        // is node’s node document, run the NodeIterator pre-removing steps
+        // given node and iterator.
+    }
+
+    // 9. Let oldPreviousSibling be node’s previous sibling.
+    std::shared_ptr<Node> old_previous_sibling = previous_sibling();
+
+    // 10. Let oldNextSibling be node’s next sibling.
+    std::shared_ptr<Node> old_next_sibling = next_sibling();
+
+    // 11. Remove node from its parent’s children.
+    _remove_from_parent();
+
+    // 12. If node is assigned, then run assign slottables for node’s assigned
+    // slot.
+    {
+        std::shared_ptr<Slottable> slottable
+            = std::dynamic_pointer_cast<Slottable>(shared_from_this());
+        if (slottable && slottable->is_assigned()) {
+            assert(!"TODO");
+        }
+    }
+
+    // 13. If parent’s root is a shadow root, and parent is a slot whose
+    // assigned nodes is the empty list, then run signal a slot change for
+    // parent.
+    {
+        std::shared_ptr<Shadow_Root> sroot
+            = std::dynamic_pointer_cast<Shadow_Root>(parent->root());
+        if (sroot) {
+            assert(!"TODO");
+        }
+    }
+
+    // 14. If node has an inclusive descendant that is a slot, then:
+
+    inclusive_descendants([&](std::shared_ptr<Node> const& node) {
+        std::shared_ptr<Element> element
+            = std::dynamic_pointer_cast<Element>(node);
+        if ((!element) || (element->tag_name() != "SLOT")) {
+            return true;
+        }
+        assert(!"TODO");
+        // 1. Run assign slottables for a tree with parent’s root.
+        // 2. Run assign slottables for a tree with node.
+        return true;
+    });
+
+    // 15. Run the removing steps with node and parent.
+    run_removing_steps(parent);
+
+    // 16. Let isParentConnected be parent’s connected.
+    bool is_parent_connected = parent->is_connected();
+
+    // 17. If node is custom and isParentConnected is true, then enqueue a
+    // custom element callback reaction with node, callback name
+    // "disconnectedCallback", and an empty argument list.
+    {
+        std::shared_ptr<Element> element
+            = std::dynamic_pointer_cast<Element>(shared_from_this());
+        if (element->is_custom() && is_parent_connected) {
+            assert(!"TODO");
+        }
+    }
+
+    // 18. For each shadow-including descendant descendant of node, in
+    // shadow-including tree order, then:
+    shadow_including_descendants([&](std::shared_ptr<Node> const& descendant) {
+        // 1. Run the removing steps with descendant and null.
+        descendant->run_removing_steps({});
+
+        // 2. If descendant is custom and isParentConnected is true, then
+        // enqueue a custom element callback reaction with descendant, callback
+        // name "disconnectedCallback", and an empty argument list.
+        {
+            std::shared_ptr<Element> element
+                = std::dynamic_pointer_cast<Element>(descendant);
+            if (element->is_custom() && is_parent_connected) {
+                assert(!"TODO");
+            }
+        }
+        return true;
+    });
+
+    // 19. For each inclusive ancestor inclusiveAncestor of parent, and then for
+    // each registered of inclusiveAncestor’s registered observer list, if
+    // registered’s options["subtree"] is true, then append a new transient
+    // registered observer whose observer is registered’s observer, options is
+    // registered’s options, and source is registered to node’s registered
+    // observer list.
+    inclusive_ancestors([&](std::shared_ptr<Node> const& inclusive_ancestor) {
+        if (!inclusive_ancestor->m_registered_observers.empty()) {
+            assert(!"TODO");
+        }
+        return true;
+    });
+
+    // 20. If suppress observers flag is unset, then queue a tree mutation
+    // record for parent with « », « node », oldPreviousSibling, and
+    // oldNextSibling.
+    if (!suppress_observers) {
+        LOG_TODO << "Queue a tree mutation record for parent with « », « node "
+                    "», oldPreviousSibling, and oldNextSibling.\n";
+    }
+
+    // 21. Run the children changed steps for parent.
+    parent->run_children_changed_steps();
+}
+
 void Node::insert(std::shared_ptr<Node> const& parent,
     std::shared_ptr<Node> const& before_child, bool suppress_observers)
 {
@@ -288,7 +427,7 @@ void Node::insert(std::shared_ptr<Node> const& parent,
     }
 
     // 9. Run the children changed steps for parent.
-    parent->run_child_changed_steps();
+    parent->run_children_changed_steps();
 
     // 10. Let staticNodeList be a list of nodes, initially « ».
     std::vector<std::shared_ptr<Node>> static_node_list;
@@ -530,12 +669,17 @@ void Node::run_insertion_steps()
 {
 }
 
+void Node::run_removing_steps(
+    [[maybe_unused]] std::shared_ptr<Node> const& old_parent)
+{
+}
+
 void Node::run_adopting_steps(
     [[maybe_unused]] std::shared_ptr<Document> const& old_document)
 {
 }
 
-void Node::run_child_changed_steps()
+void Node::run_children_changed_steps()
 {
 }
 

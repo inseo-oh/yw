@@ -39,8 +39,10 @@ add_executable(
     src/dom/documentfragment.cc
     src/dom/element.cc
     src/dom/node.cc
+    src/dom/nodeiterator.cc
     src/dom/range.cc
     src/dom/shadowroot.cc
+    src/dom/slottable.cc
     src/dom/_debug/node.cc
 
     src/idl/domexception.cc
