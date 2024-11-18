@@ -18,7 +18,7 @@ void test()
         = dom::Document::_create("Document", dom::Document::Type::HTML,
             dom::Document::Mode::NO_QUIRKS, "application/xhtml+xml");
     std::shared_ptr<dom::Node> html = document->create_element("html");
-    html->append(document).should_not_fail();
+    document->append_child(html).should_not_fail();
 
     dom::dump_node(std::static_pointer_cast<dom::Node>(document));
 

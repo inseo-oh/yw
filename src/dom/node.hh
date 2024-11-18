@@ -294,11 +294,23 @@ public:
     // https://developer.mozilla.org/en-US/docs/Web/API/Node/nextSibling
     [[nodiscard]] std::shared_ptr<Node> next_sibling() const;
 
+    // https://dom.spec.whatwg.org/#dom-node-insertbefore
+    //
+    // https://developer.mozilla.org/en-US/docs/Web/API/Node/insertBefore
+    Error<idl::DOM_Exception> insert_before(
+        std::shared_ptr<Node> const& node, std::shared_ptr<Node> const& child);
+
+    // https://dom.spec.whatwg.org/#dom-node-appendchild
+    //
+    // https://developer.mozilla.org/en-US/docs/Web/API/Node/appendChild
+    Error<idl::DOM_Exception> append_child(std::shared_ptr<Node> const& node);
+
     //--------------------------------------------------------------------------
     // YW Internal functions
     //--------------------------------------------------------------------------
 
-    static std::shared_ptr<Node> _create(std::string debug_name, Type type, std::shared_ptr<Document> const &node_document);
+    static std::shared_ptr<Node> _create(std::string debug_name, Type type,
+        std::shared_ptr<Document> const& node_document);
 
     [[nodiscard]] std::string _debug_name() const;
 

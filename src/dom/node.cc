@@ -599,6 +599,17 @@ std::shared_ptr<Node> Node::next_sibling() const
     return m_next_sibling.lock();
 }
 
+Error<idl::DOM_Exception> Node::insert_before(
+    std::shared_ptr<Node> const& node, std::shared_ptr<Node> const& child)
+{
+    return node->pre_insert(shared_from_this(), child);
+}
+
+Error<idl::DOM_Exception> Node::append_child(std::shared_ptr<Node> const& node)
+{
+    return node->append(shared_from_this());
+}
+
 //--------------------------------------------------------------------------
 
 void Node::_set_node_document(std::shared_ptr<Document> const& document)
