@@ -8,13 +8,8 @@ local Logger    = require "yw.common.Logger"
 local Tokenizer = require "yw.html.parser.Tokenizer"
 local Parser    = require "yw.html.parser.Parser"
 
-local profile   = require "thirdparty.profile.profile"
-
 local L         = Logger:new("main")
 local args      = { ... }
-
--- profile.start()
--- profile.stop()
 
 local function dumpValue(value)
     if type(value) == "table" and value[1] == nil then
