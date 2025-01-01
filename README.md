@@ -6,30 +6,14 @@ But how about starting from the... other end?
 
 ## Current progress
 
-Note that `main.cc`, containing the `main` function, is mostly playground for trying out APIs I implemented. In other words, it will have whatever random s-it I had last time.
+Everything is in WIP and untested basically. For now, this repo is mostly for backing up my source code.
 
-### [DOM](https://dom.spec.whatwg.org/)
+## Copyright 
 
-For a while this would be my main focus, since parsing HTML requires working DOM.
+- This project is licensed under BSD 3-Clause license. (See `LICENSE`)
 
-```c++
-std::shared_ptr<dom::Document> document
-    = dom::Document::_create("Document", dom::Document::Type::HTML,
-        dom::Document::Mode::NO_QUIRKS, "application/xhtml+xml");
-std::shared_ptr<dom::Node> html = document->create_element("html");
-document->append_child(html).should_not_fail();
-std::shared_ptr<dom::Node> head = document->create_element("head");
-html->append_child(head).should_not_fail();
-std::shared_ptr<dom::Node> body = document->create_element("body");
-html->append_child(body).should_not_fail();
+- This project includes material derived from [WHATWG standards](https://whatwg.org/ipr-policy#711-living-standards-and-review-drafts), such as HTML, DOM, Encoding and Infra, for documentation purposes. Copyright © WHATWG (Apple, Google, Mozilla, Microsoft).
 
-head->remove();
 ```
-
-Currently creating, inserting and removing nodes, and creating elements are supported.
-
-## Would this evolve to a full browser?
-
-Maybe. But even then, I don't intend to replicate what Chrome or Firefox does. In other words, I won't be making a browser for regular end-user.
-
-
+WHATWG Living Standards and Review Drafts are licensed under Creative Commons "Attribution 4.0 International (CC BY 4.0)". To the extent portions of such Living Standards or Review Drafts are incorporated into source code, such portions in the source code are licensed under the BSD 3-Clause License instead. instead.
+```
