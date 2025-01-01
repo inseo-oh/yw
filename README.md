@@ -18,4 +18,4 @@ Everything is in WIP and untested basically. For now, this repo is mostly for ba
 
 ## Sources of JSON files
 
-- `yw/res/htmlNamedCharRefs.json` came from `https://html.spec.whatwg.org/entities.json`. However, the standard states that the list will never change, so in the future I might end up just including it as a Lua file instead to avoid parsing it at runtime.
+- `yw/res/htmlNamedCharRefs.json` came from [HTML standard's "13.5 Named character references"](https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references) ([JSON file](https://html.spec.whatwg.org/entities.json)). However, the standard states that the list will never change, so in the future I might end up just including it as a Lua file instead to avoid parsing it at runtime.
