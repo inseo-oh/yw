@@ -403,6 +403,20 @@ function Element:isMathMLElement(localName)
     return true
 end
 
+---@param localNames string[]
+---@return boolean
+function Element:isOneOfHTMLElements(localNames)
+    if self.namespace ~= namespaces.HTML_NAMESPACE then
+        return false
+    end
+    for _, n in ipairs(localNames) do
+        if n == self.localName then
+            return true
+        end
+    end
+    return false
+end
+
 local SPECIAL_CATEGORY_HTML_TAG_NAMES = {
     "address", "applet", "area", "article", "aside", "base", "basefont",
     "bgsound", "blockquote", "body", "br", "button", "caption", "center",

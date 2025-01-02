@@ -945,6 +945,7 @@ InHeadInsertionMode = function(p, tk)
     return p.currentInsertionMode(p, tk)
 end
 
+---https://html.spec.whatwg.org/multipage/parsing.html#the-after-head-insertion-mode
 AfterHeadInsertionMode = function(p, tk)
     -- When the user agent is to apply the rules for the "after head" insertion mode, the user agent must handle the token as follows:
 
@@ -1041,4 +1042,152 @@ AfterHeadInsertionMode = function(p, tk)
 
     -- Reprocess the current token
     return p.currentInsertionMode(p, tk)
+end
+
+---https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inbody
+InBodyInsertionMode = function(p, tk)
+    -- When the user agent is to apply the rules for the "in body" insertion mode, the user agent must handle the token as follows:
+
+    --> A character token that is U+0000 NULL
+    if isCharacterTokenWith(tk, { "\0" }) then
+        -- Parse error.
+        reportError(tk)
+        --Ignore the token.
+        return
+    end
+    --> A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF), U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
+    if isCharacterTokenWith(tk, { "\t", "\n", "\f", "\r", " " }) then
+        -- Reconstruct the active formatting elements, if any.
+        reconstructActiveFormattingElements()
+        -- Insert the token's character.
+        insertCharacter(tk)
+        return
+    end
+    --> Any other character token
+    if tk.type == "character" then
+        -- Reconstruct the active formatting elements, if any.
+        reconstructActiveFormattingElements()
+
+        -- Insert the token's character.
+        insertCharacter(tk)
+
+        -- Set the frameset-ok flag to "not ok".
+        p.framesetOKFlag = "not ok"
+        return
+    end
+    --> A comment token
+    if tk.type == "comment" then
+        -- Insert a comment.
+        insertComment(tk)
+        return
+    end
+    --> A DOCTYPE token
+    if tk.type == "doctype" then
+        -- Parse error.
+        reportError(tk)
+        -- Ignore the token.
+        return
+    end
+    --> A start tag whose tag name is "html"
+    if isStartTagWithName(tk, { "html" }) then
+        -- Parse error.
+        reportError(tk)
+
+        -- If there is a template element on the stack of open elements, then ignore the token.
+        if p.stackOfOpenElements:hasHTMLElement("template") then
+            return
+        else
+            -- Otherwise, for each attribute on the token, check to see if the attribute is already present on the top element of the stack of open elements. If it is not, add the attribute and its corresponding value to that element.
+            error("todo")
+        end
+        return
+    end
+    --> A start tag whose tag name is one of: "base", "basefont", "bgsound", "link", "meta", "noframes", "script", "style", "template", "title"
+    --> An end tag whose tag name is "template"
+    if isStartTagWithName(tk, { "base", "basefont", "bgsound", "link", "meta", "noframes", "script", "style", "template", "title" })
+        or isEndTagWithName(tk, { "template" })
+    then
+        -- Process the token using the rules for the "in head" insertion mode.
+        return InHeadInsertionMode(p, tk)
+    end
+    --> A start tag whose tag name is "body"
+    if isStartTagWithName(tk, { "body" }) then
+        -- Parse error.
+        reportError(tk)
+
+        -- If the stack of open elements has only one node on it,
+        if #p.stackOfOpenElements.elements == 1
+            -- if the second element on the stack of open elements is not a body element,
+            or not p.stackOfOpenElements.elements[1]:isHTMLElement("body")
+            -- or if there is a template element on the stack of open elements,
+            or not p.stackOfOpenElements:hasHTMLElement("template")
+        then
+            -- then ignore the token. (fragment case or there is a template element on the stack)
+            return
+        else
+            -- Otherwise, set the frameset-ok flag to "not ok";
+            p.framesetOKFlag = "not ok"
+            -- then, for each attribute on the token, check to see if the attribute is already present on the body element (the second element) on the stack of open elements, and if it is not, add the attribute and its corresponding value to that element.
+            error("todo")
+        end
+        return
+    end
+    --> A start tag whose tag name is "frameset"
+    if isStartTagWithName(tk, { "frameset" }) then
+        -- Parse error.
+        reportError(tk)
+
+        -- If the stack of open elements has only one node on it,
+        if #p.stackOfOpenElements.elements == 1
+            -- or if the second element on the stack of open elements is not a body element,
+            or not p.stackOfOpenElements.elements[1]:isHTMLElement("body")
+        then
+            -- then ignore the token. (fragment case or there is a template element on the stack)
+            return
+        end
+        -- If the frameset-ok flag is set to "not ok",
+        if p.framesetOKFlag == "not ok" then
+            -- ignore the token.
+            return
+        end
+        -- Otherwise, run the following steps:
+        error("todo")
+        -- 1. Remove the second element on the stack of open elements from its parent node, if it has one.
+        -- 2. Pop all the nodes from the bottom of the stack of open elements, from the current node up to, but not including, the root html element.
+        -- 3. Insert an HTML element for the token.
+        insertHTMLElement(p, tk)
+        -- 4. Switch the insertion mode to "in frameset".
+        p.currentInsertionMode = InFramesetInsertionMode
+        return
+    end
+    --> An end-of-file token
+    if tk.type == "eof" then
+        -- If the stack of template insertion modes is not empty,
+        if #p.stackOfTemplateInsertionModes ~= 0 then
+            -- then process the token using the rules for the "in template" insertion mode.
+            return InTemplateInsertionMode(p, tk)
+        end
+        -- Otherwise, follow these steps:
+
+        -- 1. If there is a node in the stack of open elements
+        for _, node in ipairs(p.stackOfOpenElements.elements) do
+            -- that is not either a
+            if not node:isOneOfHTMLElements {
+                    -- dd element, a dt element, an li element, an optgroup element, an option element, a p element, an rb element, an rp element, an rt element, an rtc element, a tbody element, a td element, a tfoot element, a th element, a thead element, a tr element, the body element, or the html element,
+                    "dd", "dt", "li", "optgroup", "option element, a p", "rb", "rp", "rt", "rtc", "tbody", "td", "tfoot", "th", "thead", "tr", "body", "html"
+                }
+            then
+                -- then this is a parse error.
+                reportError(tk)
+            end
+        end
+        error("todo")
+        -- 2. Stop parsing.
+        stopParsing()
+        return
+    end
+
+
+    --> Anything else
+    error("todo")
 end
