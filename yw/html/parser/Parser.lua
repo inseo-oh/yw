@@ -30,6 +30,7 @@ local ACTIVE_SPECULATIVE_HTML_PARSER = nil
 ---@field invokedViaDocumentWrite                                    boolean
 ---@field enableFoesterParenting                                     boolean                                     https://html.spec.whatwg.org/multipage/parsing.html#foster-parent
 ---@field headElementPointer                                         HTML_HTMLHeadElement                        https://html.spec.whatwg.org/multipage/parsing.html#head-element-pointer
+---@field formElementPointer                                         HTML_HTMLFormElement                        https://html.spec.whatwg.org/multipage/parsing.html#form-element-pointer
 ---@field stackOfOpenElements                                        HTML_Parser_StackOfOpenElements             https://html.spec.whatwg.org/multipage/parsing.html#stack-of-open-elements
 ---@field stackOfTemplateInsertionModes                              HTML_Parser_InsertionMode[]                 https://html.spec.whatwg.org/multipage/parsing.html#stack-of-template-insertion-modes
 ---@field listOfActiveFormattingElements                             HTML_Parser_ListOfActiveFormattingElements  https://html.spec.whatwg.org/multipage/parsing.html#list-of-active-formatting-elements
@@ -1001,7 +1002,7 @@ AfterHeadInsertionMode = function(p, tk)
         })
     then
         -- Parse error.
-        reportError(tk)
+        reportError(p, tk)
 
         -- Push the node pointed to by the head element pointer onto the stack of open elements.
         p.stackOfOpenElements:push(p.headElementPointer)
@@ -1051,14 +1052,14 @@ InBodyInsertionMode = function(p, tk)
     --> A character token that is U+0000 NULL
     if isCharacterTokenWith(tk, { "\0" }) then
         -- Parse error.
-        reportError(tk)
+        reportError(p, tk)
         --Ignore the token.
         return
     end
     --> A character token that is one of U+0009 CHARACTER TABULATION, U+000A LINE FEED (LF), U+000C FORM FEED (FF), U+000D CARRIAGE RETURN (CR), or U+0020 SPACE
     if isCharacterTokenWith(tk, { "\t", "\n", "\f", "\r", " " }) then
         -- Reconstruct the active formatting elements, if any.
-        reconstructActiveFormattingElements()
+        reconstructActiveFormattingElements(p)
         -- Insert the token's character.
         insertCharacter(tk)
         return
@@ -1066,7 +1067,7 @@ InBodyInsertionMode = function(p, tk)
     --> Any other character token
     if tk.type == "character" then
         -- Reconstruct the active formatting elements, if any.
-        reconstructActiveFormattingElements()
+        reconstructActiveFormattingElements(p)
 
         -- Insert the token's character.
         insertCharacter(tk)
@@ -1084,14 +1085,14 @@ InBodyInsertionMode = function(p, tk)
     --> A DOCTYPE token
     if tk.type == "doctype" then
         -- Parse error.
-        reportError(tk)
+        reportError(p, tk)
         -- Ignore the token.
         return
     end
     --> A start tag whose tag name is "html"
     if isStartTagWithName(tk, { "html" }) then
         -- Parse error.
-        reportError(tk)
+        reportError(p, tk)
 
         -- If there is a template element on the stack of open elements, then ignore the token.
         if p.stackOfOpenElements:hasHTMLElement("template") then
@@ -1104,8 +1105,10 @@ InBodyInsertionMode = function(p, tk)
     end
     --> A start tag whose tag name is one of: "base", "basefont", "bgsound", "link", "meta", "noframes", "script", "style", "template", "title"
     --> An end tag whose tag name is "template"
-    if isStartTagWithName(tk, { "base", "basefont", "bgsound", "link", "meta", "noframes", "script", "style", "template", "title" })
-        or isEndTagWithName(tk, { "template" })
+    if isStartTagWithName(tk, {
+            "base", "basefont", "bgsound", "link", "meta", "noframes", "script",
+            "style", "template", "title"
+        }) or isEndTagWithName(tk, { "template" })
     then
         -- Process the token using the rules for the "in head" insertion mode.
         return InHeadInsertionMode(p, tk)
@@ -1113,7 +1116,7 @@ InBodyInsertionMode = function(p, tk)
     --> A start tag whose tag name is "body"
     if isStartTagWithName(tk, { "body" }) then
         -- Parse error.
-        reportError(tk)
+        reportError(p, tk)
 
         -- If the stack of open elements has only one node on it,
         if #p.stackOfOpenElements.elements == 1
@@ -1135,7 +1138,7 @@ InBodyInsertionMode = function(p, tk)
     --> A start tag whose tag name is "frameset"
     if isStartTagWithName(tk, { "frameset" }) then
         -- Parse error.
-        reportError(tk)
+        reportError(p, tk)
 
         -- If the stack of open elements has only one node on it,
         if #p.stackOfOpenElements.elements == 1
@@ -1169,25 +1172,883 @@ InBodyInsertionMode = function(p, tk)
         end
         -- Otherwise, follow these steps:
 
-        -- 1. If there is a node in the stack of open elements
+        -- 1. If there is a node in the stack of open elements that is not either a dd element, a dt element, an li element, an optgroup element, an option element, a p element, an rb element, an rp element, an rt element, an rtc element, a tbody element, a td element, a tfoot element, a th element, a thead element, a tr element, the body element, or the html element,
         for _, node in ipairs(p.stackOfOpenElements.elements) do
-            -- that is not either a
             if not node:isOneOfHTMLElements {
-                    -- dd element, a dt element, an li element, an optgroup element, an option element, a p element, an rb element, an rp element, an rt element, an rtc element, a tbody element, a td element, a tfoot element, a th element, a thead element, a tr element, the body element, or the html element,
-                    "dd", "dt", "li", "optgroup", "option element, a p", "rb", "rp", "rt", "rtc", "tbody", "td", "tfoot", "th", "thead", "tr", "body", "html"
+                    "dd", "dt", "li", "optgroup", "option", "p", "rb", "rp",
+                    "rt", "rtc", "tbody", "td", "tfoot", "th", "thead", "tr",
+                    "body", "html"
                 }
             then
                 -- then this is a parse error.
-                reportError(tk)
+                reportError(p, tk)
             end
         end
         error("todo")
         -- 2. Stop parsing.
-        stopParsing()
+        stopParsing(p)
+        return
+    end
+    --> An end tag whose tag name is "body"
+    if isEndTagWithName(tk, { "body" }) then
+        -- If the stack of open elements does not have a body element in scope,
+        if not p.stackOfOpenElements:hasElementInScope { "body" } then
+            -- this is a parse error;
+            reportError(tk)
+            -- ignore the token.
+            return
+        end
+
+        -- Otherwise, if there is a node in the stack of open elements that is not either a dd element, a dt element, an li element, an optgroup element, an option element, a p element, an rb element, an rp element, an rt element, an rtc element, a tbody element, a td element, a tfoot element, a th element, a thead element, a tr element, the body element, or the html element,
+        for _, node in ipairs(p.stackOfOpenElements.elements) do
+            if not node:isOneOfHTMLElements {
+                    "dd", "dt", "li", "optgroup", "option", "a", "p", "rb",
+                    "rp", "rt", "rtc", "tbody", "td", "tfoot", "th", "thead",
+                    "tr", "body", "html"
+                }
+            then
+                -- then this is a parse error.
+                reportError(p, tk)
+            end
+        end
+        -- Switch the insertion mode to "after body".
+        p.currentInsertionMode = AfterBodyInsertionMode
+        return
+    end
+    --> An end tag whose tag name is "html"
+    if isEndTagWithName(tk, { "html" }) then
+        -- If the stack of open elements does not have a body element in scope,
+        if not p.stackOfOpenElements:hasElementInScope { "body" } then
+            -- this is a parse error;
+            reportError(tk)
+            -- ignore the token.
+            return
+        end
+
+        -- Otherwise, If there is a node in the stack of open elements that is not either a dd element, a dt element, an li element, an optgroup element, an option element, a p element, an rb element, an rp element, an rt element, an rtc element, a tbody element, a td element, a tfoot element, a th element, a thead element, a tr element, the body element, or the html element,
+        for _, node in ipairs(p.stackOfOpenElements.elements) do
+            if not node:isOneOfHTMLElements {
+                    "dd", "dt", "li", "optgroup", "option", "a", "p", "rb",
+                    "rp", "rt", "rtc", "tbody", "td", "tfoot", "th", "thead",
+                    "tr", "body", "html"
+                } then
+                -- then this is a parse error.
+                reportError(p, tk)
+            end
+        end
+        -- Switch the insertion mode to "after body".
+        p.currentInsertionMode = AfterBodyInsertionMode
+
+        -- Reprocess the token.
+        return p.currentInsertionMode(p, tk)
+    end
+    --> A start tag whose tag name is one of: "address", "article", "aside", "blockquote", "center", "details", "dialog", "dir", "div", "dl", "fieldset", "figcaption", "figure", "footer", "header", "hgroup", "main", "menu", "nav", "ol", "p", "search", "section", "summary", "ul"
+    if isStartTagWithName(tk, {
+            "address", "article", "aside", "blockquote", "center", "details",
+            "dialog", "dir", "div", "dl", "fieldset", "figcaption", "figure",
+            "footer", "header", "hgroup", "main", "menu", "nav", "ol", "p",
+            "search", "section", "summary", "ul"
+        })
+    then
+        -- If the stack of open elements has a p element in button scope,
+        if p.stackOfOpenElements:hasElementInButtonScope { "p" } then
+            -- then close a p element.
+            closePElement(p)
+        end
+        -- Insert an HTML element for the token.
+        insertHTMLElement(p, tk)
+        return
+    end
+    --> A start tag whose tag name is one of: "h1", "h2", "h3", "h4", "h5", "h6"
+    if isStartTagWithName(tk, { "h1", "h2", "h3", "h4", "h5", "h6" }) then
+        -- If the stack of open elements has a p element in button scope,
+        if p.stackOfOpenElements:hasElementInButtonScope { "p" } then
+            -- then close a p element.
+            closePElement(p)
+        end
+
+        -- If the current node is an HTML element whose tag name is one of "h1", "h2", "h3", "h4", "h5", or "h6",
+        if p.stackOfOpenElements:currentNode():isOneOfHTMLElements {
+                "h1", "h2", "h3", "h4", "h5", "h6"
+            }
+        then
+            -- then this is a parse error;
+            reportError(p, tk)
+            -- pop the current node off the stack of open elements.
+            p.stackOfOpenElements:pop()
+        end
+
+        -- Insert an HTML element for the token.
+        insertHTMLElement(p, tk)
+        return
+    end
+    --> A start tag whose tag name is one of: "pre", "listing"
+    if isStartTagWithName(tk, { "pre", "listing" }) then
+        -- If the stack of open elements has a p element in button scope,
+        if p.stackOfOpenElements:hasElementInButtonScope { "p" } then
+            -- then close a p element.
+            closePElement(p)
+        end
+
+        -- Insert an HTML element for the token.
+        insertHTMLElement(p, tk)
+
+        -- If the next token is a U+000A LINE FEED (LF) character token, then ignore that token and move on to the next one. (Newlines at the start of pre blocks are ignored as an authoring convenience.)
+        p.ignoreNextLF = true
+
+        -- Set the frameset-ok flag to "not ok".
+        p.framesetOKFlag = "not ok"
+
+        return
+    end
+    --> A start tag whose tag name is "form"
+    if isStartTagWithName(tk, { "form" }) then
+        -- If the form element pointer is not null, and there is no template element on the stack of open elements,
+        if p.formElementPointer ~= nil and not p.stackOfOpenElements:hasHTMLElement("template") then
+            -- then this is a parse error;
+            reportError(p, tk)
+            -- ignore the token.
+            return
+        end
+        -- Otherwise:
+
+        -- If the stack of open elements has a p element in button scope,
+        if p.stackOfOpenElements:hasElementInButtonScope { "p" } then
+            -- then close a p element.
+            closePElement(p)
+        end
+
+        -- Insert an HTML element for the token,
+        local element = insertHTMLElement(p, tk)
+
+        -- and, if there is no template element on the stack of open elements,
+        if not p.stackOfOpenElements:hasHTMLElement("template") then
+            -- set the form element pointer to point to the element created.
+            p.formElementPointer = element
+        end
+        return
+    end
+    --> A start tag whose tag name is "li"
+    if isStartTagWithName(tk, { "li" }) then
+        -- Run these steps:
+
+        -- 1. Set the frameset-ok flag to "not ok".
+        p.framesetOKFlag = "not ok"
+
+        -- 2. Initialize node to be the current node (the bottommost node of the stack).
+        local nodeIndex = #p.stackOfOpenElements.elements
+
+        while true do
+            local node = p.stackOfOpenElements.elements[nodeIndex]
+
+            -- 3. Loop: If node is an li element, then run these substeps:
+            if node:isHTMLElement("li") then
+                -- 1. Generate implied end tags, except for li elements.
+                generateImpliedEndTags(p, { "li" })
+
+                -- 2. If the current node is not an li element,
+                if not p.stackOfOpenElements:currentNode():isHTMLElement("li") then
+                    -- then this is a parse error.
+                    reportError(p, tk)
+                end
+
+                -- 3. Pop elements from the stack of open elements until an li element has been popped from the stack.
+                while not p.stackOfOpenElements:pop():isHTMLElement("li") do end
+
+                -- 4. Jump to the step labeled done below.
+                break
+            end
+            -- 4. If node is in the special category, but is not an address, div, or p element,
+            if node:isInSpecialCategory()
+                and not node:isOneOfHTMLElements { "address", "div", "p" }
+            then
+                -- then jump to the step labeled done below.
+                break
+            end
+            -- 5. Otherwise, set node to the previous entry in the stack of open elements and return to the step labeled loop.
+            nodeIndex = nodeIndex - 1
+        end
+        -- 6. Done: If the stack of open elements has a p element in button scope,
+        if p.stackOfOpenElements:hasElementInButtonScope { "p" } then
+            -- then close a p element.
+            closePElement(p)
+        end
+
+        -- 7. Finally, insert an HTML element for the token.
+        insertHTMLElement(p, tk)
+        return
+    end
+    --> A start tag whose tag name is one of: "dd", "dt"
+    if isStartTagWithName(tk, { "dd", "dt" }) then
+        -- Run these steps:
+
+        -- 1. Set the frameset-ok flag to "not ok".
+        p.framesetOKFlag = "not ok"
+
+        -- 2. Initialize node to be the current node (the bottommost node of the stack).
+        local nodeIndex = #p.stackOfOpenElements.elements
+
+        while true do
+            local node = p.stackOfOpenElements.elements[nodeIndex]
+
+            -- 3. Loop: If node is a dd element, then run these substeps:
+            if node:isHTMLElement("dd") then
+                -- 1. Generate implied end tags, except for dd elements.
+                generateImpliedEndTags(p, { "dd" })
+
+                -- 2. If the current node is not an dd element,
+                if not p.stackOfOpenElements:currentNode():isHTMLElement("li") then
+                    -- then this is a parse error.
+                    reportError(p, tk)
+                end
+
+                -- 3. Pop elements from the stack of open elements until an dd element has been popped from the stack.
+                while not p.stackOfOpenElements:pop():isHTMLElement("li") do end
+
+                -- 4. Jump to the step labeled done below.
+                break
+            end
+            -- 3. If node is a dt element, then run these substeps:
+            if node:isHTMLElement("dt") then
+                -- 1. Generate implied end tags, except for dt elements.
+                generateImpliedEndTags(p, { "dt" })
+
+                -- 2. If the current node is not an dt element,
+                if not p.stackOfOpenElements:currentNode():isHTMLElement("li") then
+                    -- then this is a parse error.
+                    reportError(p, tk)
+                end
+
+                -- 3. Pop elements from the stack of open elements until an dt element has been popped from the stack.
+                while not p.stackOfOpenElements:pop():isHTMLElement("li") do end
+
+                -- 4. Jump to the step labeled done below.
+                break
+            end
+
+            -- 5. If node is in the special category, but is not an address, div, or p element,
+            if node:isInSpecialCategory()
+                and not node:isOneOfHTMLElements { "address", "div", "p" }
+            then
+                -- then jump to the step labeled done below.
+                break
+            end
+            -- 6. Otherwise, set node to the previous entry in the stack of open elements and return to the step labeled loop.
+            nodeIndex = nodeIndex - 1
+        end
+        -- 7. Done: If the stack of open elements has a p element in button scope,
+        if p.stackOfOpenElements:hasElementInButtonScope { "p" } then
+            -- then close a p element.
+            closePElement(p)
+        end
+
+        -- 8. Finally, insert an HTML element for the token.
+        insertHTMLElement(p, tk)
+        return
+    end
+    --> A start tag whose tag name is "plaintext"
+    if isStartTagWithName(tk, { "plaintext" }) then
+        -- If the stack of open elements has a p element in button scope,
+        if p.stackOfOpenElements:hasElementInButtonScope { "p" } then
+            -- then close a p element.
+            closePElement(p)
+        end
+
+        -- Insert an HTML element for the token.
+        insertHTMLElement(p, tk)
+
+        -- Switch the tokenizer to the PLAINTEXT state.
+        p.tokenizer:switchToState(p.PlainText)
+    end
+    --> A start tag whose tag name is "button"
+    if isStartTagWithName(tk, { "button" }) then
+        -- 1. If the stack of open elements has a button element in scope, then run these substeps:
+        if p.stackOfOpenElements:hasElementInScope { "button" } then
+            -- 1. Parse error.
+            reportError(p, tk)
+
+            -- 2. Generate implied end tags.
+            generateImpliedEndTags(p)
+
+            -- 3. Pop elements from the stack of open elements until a button element has been popped from the stack.
+            while not p.stackOfOpenElements:pop():isHTMLElement("button") do end
+        end
+
+        -- 2. Reconstruct the active formatting elements, if any.
+        reconstructActiveFormattingElements(p)
+
+        -- 3. Insert an HTML element for the token.
+        insertHTMLElement(p, tk)
+
+        -- 4. Set the frameset-ok flag to "not ok".
+        p.framesetOKFlag = "not ok"
+        return
+    end
+    --> An end tag whose tag name is one of: "address", "article", "aside", "blockquote", "button", "center", "details", "dialog", "dir", "div", "dl", "fieldset", "figcaption", "figure", "footer", "header", "hgroup", "listing", "main", "menu", "nav", "ol", "pre", "search", "section", "summary", "ul"
+    if isEndTagWithName(tk, {
+            "article", "aside", "blockquote", "button", "center", "details",
+            "dialog", "dir", "div", "dl", "fieldset", "figcaption", "figure",
+            "footer", "header", "hgroup", "listing", "main", "menu", "nav",
+            "ol", "pre", "search", "section", "summary", "ul"
+        })
+    then
+        -- If the stack of open elements does not have an element in scope that is an HTML element with the same tag name as that of the token,
+        if p.stackOfOpenElements:hasElementInScope { tk.name } then
+            -- then this is a parse error;
+            reportError(p, tk)
+            -- ignore the token.
+            return
+        end
+        -- Otherwise, run these steps:
+
+        -- 1. Generate implied end tags.
+        generateImpliedEndTags(p)
+
+        -- 2. If the current node is not an HTML element with the same tag name as that of the token,
+        if not p.stackOfOpenElements:currentNode():isHTMLElement(tk.name) then
+            -- then this is a parse error.
+            reportError(p, tk)
+        end
+
+        -- 3. Pop elements from the stack of open elements until an HTML element with the same tag name as the token has been popped from the stack.
+        while not p.stackOfOpenElements:pop():isHTMLElement(tk.name) do end
+
         return
     end
 
+    --> An end tag whose tag name is "form"
+    if isEndTagWithName(tk, { "form" }) then
+        -- If there is no template element on the stack of open elements,
+        if not p.stackOfOpenElements:hasHTMLElement("template") then
+            -- then run these substeps:
 
-    --> Anything else
-    error("todo")
+            -- 1. Let node be the element that the form element pointer is set to, or null if it is not set to an element.
+            local node = p.formElementPointer
+
+            -- 2. Set the form element pointer to null.
+            p.formElementPointer = nil
+
+            -- 3. If node is null or if the stack of open elements does not have node in scope,
+            if node == nil or p.stackOfOpenElements:hasElementInScope { node } then
+                -- then this is a parse error;
+                reportError(p, tk)
+                -- return and ignore the token.
+                return
+            end
+
+            -- 4. Generate implied end tags.
+            generateImpliedEndTags(p)
+
+            -- 5. If the current node is not node,
+            if p.stackOfOpenElements:currentNode() ~= node then
+                -- then this is a parse error.
+                reportError(p, tk)
+            end
+
+            -- 6. Remove node from the stack of open elements.
+            p.stackOfOpenElements:remove(node)
+        else
+            -- If there is a template element on the stack of open elements, then run these substeps instead:
+
+            -- 1. If the stack of open elements does not have a form element in scope,
+            if not p.stackOfOpenElements:hasElementInScope { "form" } then
+                -- then this is a parse error;
+                reportError(p, tk)
+                -- return and ignore the token.
+                return
+            end
+
+            -- 2. Generate implied end tags.
+            generateImpliedEndTags(p)
+
+            -- 3. If the current node is not a form element,
+            if not p.stackOfOpenElements:currentNode():isHTMLElement("form") then
+                -- then this is a parse error.
+                reportError(p, tk)
+            end
+
+            -- 4. Pop elements from the stack of open elements until a form element has been popped from the stack.
+            while not p.stackOfOpenElements:pop():isHTMLElement("form") do end
+        end
+        return
+    end
+    --> An end tag whose tag name is "p"
+    if isEndTagWithName(tk, { "p" }) then
+        -- If the stack of open elements does not have a p element in button scope,
+        if not p.stackOfOpenElements:hasElementInButtonScope { "p" } then
+            -- then this is a parse error;
+            reportError(tk)
+            -- insert an HTML element for a "p" start tag token with no attributes.
+            insertHTMLElement(p, token.TagToken:new("p", "start", tk.startLocation, tk.endLocation))
+            return
+        end
+        -- Close a p element.
+        closePElement(p)
+        return
+    end
+    --> An end tag whose tag name is "li"
+    if isEndTagWithName(tk, { "li" }) then
+        -- If the stack of open elements does not have an li element in list item scope,
+        if not p.stackOfOpenElements:hasElementInListItemScope { "li" } then
+            -- then this is a parse error;
+            reportError(tk)
+            -- ignore the token.
+            return
+        end
+
+        -- 1. Generate implied end tags, except for li elements.
+        generateImpliedEndTags(p, { "li" })
+
+        -- 2. If the current node is not an li element,
+        if not p.stackOfOpenElements:currentNode():isHTMLElement("li") then
+            -- then this is a parse error.
+            reportError(p, tk)
+        end
+
+        -- 3. Pop elements from the stack of open elements until an li element has been popped from the stack.
+        while not p.stackOfOpenElements:pop():isHTMLElement("li") do end
+
+        return
+    end
+    --> An end tag whose tag name is "dd", "dt"
+    if isEndTagWithName(tk, { "dd", "dt" }) then
+        -- If the stack of open elements does not have an element in scope that is an HTML element with the same tag name as that of the token,
+        if not p.stackOfOpenElements:hasElementInScope { tk.name } then
+            -- then this is a parse error;
+            reportError(tk)
+            -- ignore the token.
+            return
+        end
+        -- Otherwise, run these steps:
+
+        -- 1. Generate implied end tags, except for HTML elements with the same tag name as the token.
+        generateImpliedEndTags(p, { tk.name })
+
+        -- 2. If the current node is not an HTML element with the same tag name as that of the token,
+        if not p.stackOfOpenElements:currentNode():isHTMLElement(tk.name) then
+            -- then this is a parse error.
+            reportError(p, tk)
+        end
+
+        -- 3. Pop elements from the stack of open elements until an HTML element with the same tag name as the token has been popped from the stack.
+        while not p.stackOfOpenElements:pop():isHTMLElement(tk.name) do end
+
+        return
+    end
+    --> An end tag whose tag name is one of: "h1", "h2", "h3", "h4", "h5", "h6"
+    if isEndTagWithName(tk, { "h1", "h2", "h3", "h4", "h5", "h6" }) then
+        -- If the stack of open elements does not have an element in scope that is an HTML element and whose tag name is one of "h1", "h2", "h3", "h4", "h5", or "h6",
+        if not p.stackOfOpenElements:hasElementInScope { "h1", "h2", "h3", "h4", "h5", "h6" } then
+            -- then this is a parse error;
+            reportError(tk)
+            -- ignore the token.
+            return
+        end
+        -- Otherwise, run these steps:
+
+        -- 1. Generate implied end tags
+        generateImpliedEndTags(p)
+
+        -- 2. If the current node is not an HTML element with the same tag name as that of the token,
+        if not p.stackOfOpenElements:currentNode():isHTMLElement(tk.name) then
+            -- then this is a parse error.
+            reportError(p, tk)
+        end
+
+        -- 3. Pop elements from the stack of open elements until an HTML element whose tag name is one of "h1", "h2", "h3", "h4", "h5", or "h6" has been popped from the stack.
+        while not p.stackOfOpenElements:pop():isOneOfHTMLElements { "h1", "h2", "h3", "h4", "h5", "h6" } do end
+
+        return
+    end
+    --> An end tag whose tag name is "sarcasm"
+    if isEndTagWithName(tk, { "sarcasm" }) then
+        -- Take a deep breath, then act as described in the "any other end tag" entry below.
+        local messages = {
+            "It's time to take a deep breath",
+            "심호흡을 할 시간입니다",
+            "深呼吸をする時間です",
+        };
+        L:w(messages[math.random(3)] or messages[1])
+    end
+    --> A start tag whose tag name is "a"
+    if isStartTagWithName(tk, { "a" }) then
+        -- If the list of active formatting elements contains an a element between the end of the list and the last marker on the list (or the start of the list if there is no marker on the list),
+        if p.listOfActiveFormattingElements:containsElementSinceLastMarker { "a" }
+            or p.listOfActiveFormattingElements.elements[1]:isHTMLElement("a")
+        then
+            -- then this is a parse error;
+            reportError(p, tk)
+            -- run the adoption agency algorithm for the token,
+            adoptionAgencyAlgorithm(p, tk)
+            -- then remove that element from the list of active formatting elements and the stack of open elements if the adoption agency algorithm didn't already remove it (it might not have if the element is not in table scope).
+            p.listOfActiveFormattingElements:remove(element)
+        end
+        -- Reconstruct the active formatting elements, if any.
+        reconstructActiveFormattingElements(p)
+        -- Insert an HTML element for the token.
+        local element = insertHTMLElement(p, tk)
+        -- Push onto the list of active formatting elements that element.
+        p.listOfActiveFormattingElements:push(element, tk)
+        return
+    end
+    --> A start tag whose tag name is one of: "b", "big", "code", "em", "font", "i", "s", "small", "strike", "strong", "tt", "u"
+    if isStartTagWithName(tk, {
+            "b", "big", "code", "em", "font", "i", "s", "small", "strike",
+            "strong", "tt", "u"
+        })
+    then
+        -- Reconstruct the active formatting elements, if any.
+        reconstructActiveFormattingElements(p)
+        -- Insert an HTML element for the token.
+        local element = insertHTMLElement(p, tk)
+        -- Push onto the list of active formatting elements that element.
+        p.listOfActiveFormattingElements:push(element, tk)
+        return
+    end
+    --> A start tag whose tag name is "nobr"
+    if isStartTagWithName(tk, { "nobr" }) then
+        -- Reconstruct the active formatting elements, if any.
+        reconstructActiveFormattingElements(p)
+
+        -- If the stack of open elements has a nobr element in scope,
+        if p.stackOfOpenElements.hasElementInScope("nobr") then
+            -- then this is a parse error;
+            reportError(p, tk)
+            -- run the adoption agency algorithm for the token,
+            adoptionAgencyAlgorithm(p, tk)
+            -- then once again reconstruct the active formatting elements, if any.
+            reconstructActiveFormattingElements(p)
+        end
+        -- Insert an HTML element for the token.
+        local element = insertHTMLElement(p, tk)
+        -- Push onto the list of active formatting elements that element.
+        p.listOfActiveFormattingElements:push(element, tk)
+        return
+    end
+    --> An end tag whose tag name is one of: "a", "b", "big", "code", "em", "font", "i", "nobr", "s", "small", "strike", "strong", "tt", "u"
+    if isStartTagWithName(tk, {
+            "a", "b", "big", "code", "em", "font", "i", "nobr", "s", "small",
+            "strike", "strong", "tt", "u"
+        })
+    then
+        -- Run the adoption agency algorithm for the token.
+        adoptionAgencyAlgorithm(p, tk)
+        return
+    end
+    --> A start tag whose tag name is one of: "applet", "marquee", "object"
+    if isStartTagWithName(tk, { "applet", "marquee", "object" }) then
+        -- Reconstruct the active formatting elements, if any.
+        reconstructActiveFormattingElements(p)
+
+        -- Insert an HTML element for the token.
+        insertHTMLElement(p, tk)
+
+        -- Insert a marker at the end of the list of active formatting elements.
+        table.insert(p.listOfActiveFormattingElements.elements, { type = "marker" })
+
+        -- Set the frameset-ok flag to "not ok".
+        p.framesetOKFlag = "not ok"
+        return
+    end
+    --> An end tag token whose tag name is one of: "applet", "marquee", "object"
+    if isEndTagWithName(tk, { "applet", "marquee", "object" }) then
+        -- If the stack of open elements does not have an element in scope that is an HTML element with the same tag name as that of the token,
+        if p.stackOfOpenElements:hasElementInScope { tk.name } then
+            -- then this is a parse error;
+            reportError(p, tk)
+            -- ignore the token.
+            return
+        end
+        -- Otherwise, run these steps:
+
+        -- 1. Generate implied end tags.
+        generateImpliedEndTags(p)
+
+        -- 2. If the current node is not an HTML element with the same tag name as that of the token,
+        if not p.stackOfOpenElements:currentNode():isHTMLElement(tk.name) then
+            -- then this is a parse error.
+            reportError(p, tk)
+        end
+
+        -- 3. Pop elements from the stack of open elements until an HTML element with the same tag name as the token has been popped from the stack.
+        while not p.stackOfOpenElements:pop():isHTMLElement(tk.name) do end
+
+        -- 4. Clear the list of active formatting elements up to the last marker.
+        clearListOfActiveFormattingElementsUpToLastMarker()
+        return
+    end
+    --> A start tag whose tag name is "table"
+    if isStartTagWithName(tk, { "table" }) then
+        -- If the Document is not set to quirks mode, and the stack of open elements has a p element in button scope,
+        if p.document.mode ~= "quirks"
+            and p.stackOfOpenElements:hasElementInButtonScope { "p" }
+        then
+            -- then close a p element.
+            closePElement(p)
+        end
+
+        -- Insert an HTML element for the token.
+        insertHTMLElement(p, tk)
+
+        -- Set the frameset-ok flag to "not ok".
+        p.framesetOKFlag = "not ok"
+
+        -- Switch the insertion mode to "in table".
+        p.currentInsertionMode = InTableInsertionMode
+        return
+    end
+    --> An end tag whose tag name is "br"
+    --> A start tag whose tag name is one of: "area", "br", "embed", "img", "keygen", "wbr"
+    local isEndBr = isEndTagWithName(tk, { "br" })
+    if isEndBr or isStartTagWithName(tk, {
+            "area", "br", "embed", "img", "keygen", "wbr"
+        })
+    then
+        --> An end tag whose tag name is "br"
+        if isEndBr then
+            -- Parse error.
+            reportError(p, tk)
+            -- Drop the attributes from the token,
+            tk.attributes = {}
+            -- and act as described in the next entry; i.e. act as if this was a "br" start tag token with no attributes, rather than the end tag token that it actually is.
+        end
+        --> A start tag whose tag name is one of: "area", "br", "embed", "img", "keygen", "wbr"
+
+        -- Reconstruct the active formatting elements, if any.
+        reconstructActiveFormattingElements(p)
+
+        -- Insert an HTML element for the token.
+        insertHTMLElement(p, tk)
+
+        -- Immediately pop the current node off the stack of open elements.
+        p.stackOfOpenElements:pop()
+
+        -- Acknowledge the token's self-closing flag, if it is set.
+        if tk.selfClosing then tk.selfClosingAcknowledged = true end
+
+        -- Set the frameset-ok flag to "not ok".
+        p.framesetOKFlag = "not ok"
+        return
+    end
+    --> A start tag whose tag name is "input"
+    if isStartTagWithName(tk, { "input" }) then
+        -- Reconstruct the active formatting elements, if any.
+        reconstructActiveFormattingElements(p)
+
+        -- Insert an HTML element for the token.
+        insertHTMLElement(p, tk)
+
+        -- Immediately pop the current node off the stack of open elements.
+        p.stackOfOpenElements:pop()
+
+        -- Acknowledge the token's self-closing flag, if it is set.
+        if tk.selfClosing then tk.selfClosingAcknowledged = true end
+
+        -- If the token does not have an attribute with the name "type", or if it does, but that attribute's value is not an ASCII case-insensitive match for the string "hidden", then:
+        local nameAttr = tk --[[@as HTML_Parser_TagToken]]:getAttribute("name")
+        if nameAttr == nil or nameAttr:lower() ~= "hidden" then
+            -- set the frameset-ok flag to "not ok".
+            p.framesetOKFlag = "not ok"
+        end
+        return
+    end
+    --> A start tag whose tag name is one of: "param", "source", "track"
+    if isStartTagWithName(tk, { "param", "source", "track" }) then
+        -- Insert an HTML element for the token.
+        insertHTMLElement(p, tk)
+
+        -- Immediately pop the current node off the stack of open elements.
+        p.stackOfOpenElements:pop()
+
+        -- Acknowledge the token's self-closing flag, if it is set.
+        if tk.selfClosing then tk.selfClosingAcknowledged = true end
+
+        return
+    end
+    --> A start tag whose tag name is "hr"
+    if isStartTagWithName(tk, { "hr" }) then
+        -- If the stack of open elements has a p element in button scope,
+        if p.stackOfOpenElements:hasElementInButtonScope { "p" } then
+            -- then close a p element.
+            closePElement(p)
+        end
+
+        -- Insert an HTML element for the token.
+        insertHTMLElement(p, tk)
+
+        -- Immediately pop the current node off the stack of open elements.
+        p.stackOfOpenElements:pop()
+
+        -- Acknowledge the token's self-closing flag, if it is set.
+        if tk.selfClosing then tk.selfClosingAcknowledged = true end
+
+        -- Set the frameset-ok flag to "not ok".
+        p.framesetOKFlag = "not ok"
+
+        return
+    end
+
+    --> A start tag whose tag name is "image"
+    if isStartTagWithName(tk, { "image" }) then
+        -- Parse error.
+        reportError(p, tk)
+
+        -- Change the token's tag name to "img" and reprocess it. (Don't ask.)
+        tk.name = "img"
+        return InBodyInsertionMode(p, tk)
+    end
+
+    --> A start tag whose tag name is "textarea"
+    if isStartTagWithName(tk, { "textarea" }) then
+        -- Run these steps:
+
+        -- 1. Insert an HTML element for the token.
+        insertHTMLElement(p, tk)
+
+        -- 2. If the next token is a U+000A LINE FEED (LF) character token, then ignore that token and move on to the next one. (Newlines at the start of textarea elements are ignored as an authoring convenience.)
+        p.ignoreNextLF = true
+
+        -- 3. Switch the tokenizer to the RCDATA state.
+        p.tokenizer:switchToState(Tokenizer.RCDATAState)
+
+        -- 4. Let the original insertion mode be the current insertion mode.
+        p.originalInsertionMode = p.currentInsertionMode
+
+        -- 5. Set the frameset-ok flag to "not ok".
+        p.framesetOKFlag = "not ok"
+
+        -- 6. Switch the insertion mode to "text".
+        p.currentInsertionMode = TextInsertionMode
+        return
+    end
+
+    --> A start tag whose tag name is "xmp"
+    if isStartTagWithName(tk, { "xmp" }) then
+        -- If the stack of open elements has a p element in button scope,
+        if p.stackOfOpenElements:hasElementInButtonScope { "p" } then
+            -- then close a p element.
+            closePElement(p)
+        end
+
+        -- Reconstruct the active formatting elements, if any.
+        reconstructActiveFormattingElements(p)
+
+        -- Set the frameset-ok flag to "not ok".
+        p.framesetOKFlag = "not ok"
+
+        -- Follow the generic raw text element parsing algorithm.
+        genericRawTextParsingAlgorithm(p)
+        return
+    end
+
+    --> A start tag whose tag name is "iframe"
+    if isStartTagWithName(tk, { "iframe" }) then
+        -- Set the frameset-ok flag to "not ok".
+        p.framesetOKFlag = "not ok"
+
+        -- Follow the generic raw text element parsing algorithm.
+        genericRawTextParsingAlgorithm(p)
+        return
+    end
+
+    --> A start tag whose tag name is "noembed"
+    --> A start tag whose tag name is "noscript", if the scripting flag is enabled
+    if isStartTagWithName(tk, { "noembed" })
+        or (SCRIPTING_ENABLED and isStartTagWithName(tk, { "noscript" }))
+    then
+        -- Follow the generic raw text element parsing algorithm.
+
+        genericRawTextParsingAlgorithm(p)
+        return
+    end
+
+    --> A start tag whose tag name is "select"
+    if isStartTagWithName(tk, { "select" }) then
+        -- Reconstruct the active formatting elements, if any.
+        reconstructActiveFormattingElements(p)
+
+        -- Insert an HTML element for the token.
+        insertHTMLElement(p, tk)
+
+        -- Set the frameset-ok flag to "not ok".
+        p.framesetOKFlag = "not ok"
+
+        -- If the insertion mode is one of "in table", "in caption", "in table body", "in row", or "in cell",
+        if p.currentInsertionMode == InTableInsertionMode
+            or p.currentInsertionMode == InCaptionInsertionMode
+            or p.currentInsertionMode == InTableBodyInsertionMode
+            or p.currentInsertionMode == InRowInsertionMode
+            or p.currentInsertionMode == InCellInsertionMode
+        then
+            -- then switch the insertion mode to "in select in table".
+            p.currentInsertionMode = InSelectInTableInsertionMode
+        else
+            -- Otherwise, switch the insertion mode to "in select".
+            p.currentInsertionMode = InSelectInsertionMode
+        end
+
+        return
+    end
+
+    --> A start tag whose tag name is one of: "optgroup", "option"
+    if isStartTagWithName(tk, { "optgroup", "option" }) then
+        -- If the current node is an option element,
+        if p.stackOfOpenElements:currentNode():isHTMLElement("option") then
+            -- then pop the current node off the stack of open elements.
+            p.stackOfOpenElements:pop()
+        end
+
+        -- Reconstruct the active formatting elements, if any.
+        reconstructActiveFormattingElements(p)
+
+        -- Insert an HTML element for the token.
+        insertHTMLElement(p, tk)
+
+        return
+    end
+    --> A start tag whose tag name is one of: "rb", "rtc"
+    if isStartTagWithName(tk, { "rb", "rtc" }) then
+        -- If the stack of open elements has a ruby element in scope,
+        if p.stackOfOpenElements:hasElementInScope({ "ruby" }) then
+            -- then generate implied end tags.
+            generateImpliedEndTags(p)
+
+            -- If the current node is not now a ruby element,
+            if not p.stackOfOpenElements:currentNode():isHTMLElement("ruby") then
+                -- this is a parse error.
+                reportError(p, tk)
+            end
+        end
+
+        -- Insert an HTML element for the token.
+        insertHTMLElement(p, tk)
+
+        return
+    end
+    --> A start tag whose tag name is one of: "rp", "rt"
+    if isStartTagWithName(tk, { "rp", "rt" }) then
+        -- If the stack of open elements has a ruby element in scope,
+        if p.stackOfOpenElements:hasElementInScope({ "ruby" }) then
+            -- then generate implied end tags, except for rtc elements.
+            generateImpliedEndTags(p, { "rtc" })
+
+            -- If the current node is not now a rtc element or a ruby element
+            if not p.stackOfOpenElements:currentNode():isOneOfHTMLElements({ "rtc", "ruby" }) then
+                -- this is a parse error.
+                reportError(p, tk)
+            end
+        end
+
+        -- Insert an HTML element for the token.
+        insertHTMLElement(p, tk)
+
+        return
+    end
+    --> A start tag whose tag name is "math"
+    if isStartTagWithName(tk, { "math" }) then
+        
+    end
+
+
+    error("unreachable")
 end
