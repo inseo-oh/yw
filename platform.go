@@ -9,21 +9,21 @@ import (
 	"yw/libhtml/platform"
 )
 
-type LinuxPlatform struct {
+type platform_impl struct {
 	ft_lib C.FT_Library
 }
 
-func init_platform() *LinuxPlatform {
+func init_platform() *platform_impl {
 	var ft_lib C.FT_Library
 	if res := C.FT_Init_FreeType(&ft_lib); res != C.FT_Err_Ok {
 		log.Fatalf("Failed to initialize FreeType (FT Error %d)", res)
 	}
 
-	return &LinuxPlatform{
+	return &platform_impl{
 		ft_lib: ft_lib,
 	}
 }
-func (plat LinuxPlatform) OpenFont(name string) platform.Font {
+func (plat platform_impl) OpenFont(name string) platform.Font {
 	var face C.FT_Face
 	if res := C.FT_New_Face(plat.ft_lib, C.CString("res/font.ttf"), 0, &face); res != C.FT_Err_Unknown_File_Format {
 		log.Fatalf("Unrecognized font (FT Error %d)", res)
