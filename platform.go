@@ -6,6 +6,7 @@ package main
 import "C"
 import (
 	"log"
+	"unsafe"
 	"yw/libhtml/platform"
 )
 
@@ -25,10 +26,12 @@ func init_platform() *platform_impl {
 }
 func (plat platform_impl) OpenFont(name string) platform.Font {
 	var face C.FT_Face
-	if res := C.FT_New_Face(plat.ft_lib, C.CString("res/font.ttf"), 0, &face); res != C.FT_Err_Unknown_File_Format {
+	font_name := C.CString("res/font.ttf")
+	if res := C.FT_New_Face(plat.ft_lib, font_name, 0, &face); res != C.FT_Err_Unknown_File_Format {
 		log.Fatalf("Unrecognized font (FT Error %d)", res)
 	} else if res != C.FT_Err_Ok {
 		log.Fatalf("Failed to open font %s (FT Error %d)", name, res)
 	}
+	C.free(unsafe.Pointer(font_name))
 	return ft_font{face: face}
 }
