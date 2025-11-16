@@ -15,5 +15,6 @@ func main() {
 		os.Exit(1)
 	}
 	br := libhtml.Browser{}
-	br.Init(*url, &LinuxPlatform{})
+	plat := init_platform()
+	br.Init(*url, plat)
 }

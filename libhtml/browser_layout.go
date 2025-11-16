@@ -243,7 +243,7 @@ func (bcon browser_layout_block_container_node) get_or_make_ifc() *browser_layou
 //==============================================================================
 
 type browser_layout_tree_builder struct {
-	plat platform.Platform
+	font platform.Font
 }
 
 func (tb browser_layout_tree_builder) make_text(
@@ -390,7 +390,7 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 		// Layout for Text nodes
 		//======================================================================
 		left, top := get_next_position()
-		width, height := tb.plat.MeasureText(text.get_text())
+		width, height := platform.MeasureText(tb.font, text.get_text())
 		if parent.is_width_auto() {
 			parent.get_rect_p().Width += width
 		}
@@ -510,7 +510,7 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 // https://www.w3.org/TR/css-display-3/#initial-containing-block
 func browser_make_layout(root dom_Element, viewport_width, viewport_height float64, plat platform.Platform) browser_layout_node {
 	tb := browser_layout_tree_builder{}
-	tb.plat = plat
+	tb.font = plat.OpenFont("this_is_not_real_filename.ttf")
 	bfc := browser_layout_block_formatting_context{}
 	box_rect := libgfx.Rect{Left: 0, Top: 0, Width: viewport_width, Height: viewport_height}
 	icb := tb.make_block_container(&bfc, browser_layout_write_mode_horizontal, nil, root, box_rect, false, false)

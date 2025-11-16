@@ -1,9 +1,34 @@
 package main
 
+// #cgo pkg-config: freetype2
+// #include <ft2build.h>
+// #include FT_FREETYPE_H
+import "C"
+import (
+	"log"
+	"yw/libhtml/platform"
+)
+
 type LinuxPlatform struct {
+	ft_lib C.FT_Library
 }
 
-func (plat *LinuxPlatform) MeasureText(text string) (width, height float64) {
-	// STUB
-	return 10, 10
+func init_platform() *LinuxPlatform {
+	var ft_lib C.FT_Library
+	if res := C.FT_Init_FreeType(&ft_lib); res != C.FT_Err_Ok {
+		log.Fatalf("Failed to initialize FreeType (FT Error %d)", res)
+	}
+
+	return &LinuxPlatform{
+		ft_lib: ft_lib,
+	}
+}
+func (plat LinuxPlatform) OpenFont(name string) platform.Font {
+	var face C.FT_Face
+	if res := C.FT_New_Face(plat.ft_lib, C.CString("res/font.ttf"), 0, &face); res != C.FT_Err_Unknown_File_Format {
+		log.Fatalf("Unrecognized font (FT Error %d)", res)
+	} else if res != C.FT_Err_Ok {
+		log.Fatalf("Failed to open font %s (FT Error %d)", name, res)
+	}
+	return ft_font{face: face}
 }

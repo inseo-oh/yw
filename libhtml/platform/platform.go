@@ -4,5 +4,5 @@ type Platform interface {
 	//==========================================================================
 	// Fonts
 	//==========================================================================
-	MeasureText(text string) (width, height float64)
+	OpenFont(name string) Font
 }
