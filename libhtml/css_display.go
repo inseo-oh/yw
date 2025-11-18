@@ -145,169 +145,137 @@ func (m css_visibility) String() string {
 	return fmt.Sprintf("unregognized css_visibility %d", m)
 }
 
-func init() {
-	//==========================================================================
-	// https://www.w3.org/TR/css-display-3/#the-display-properties
-	//==========================================================================
-	// https://www.w3.org/TR/css-display-3/#typedef-display-outside
-	parse_display_outside := func(ts *css_token_stream) (css_display_outer_mode, bool) {
-		if !cm.IsNil(ts.consume_ident_token_with("block")) {
-			return css_display_outer_mode_block, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("inline")) {
-			return css_display_outer_mode_inline, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("run-in")) {
-			return css_display_outer_mode_run_in, true
-		}
-		return 0, false
+// https://www.w3.org/TR/css-display-3/#typedef-display-outside
+func (ts *css_token_stream) parse_display_outside() (css_display_outer_mode, bool) {
+	if !cm.IsNil(ts.consume_ident_token_with("block")) {
+		return css_display_outer_mode_block, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("inline")) {
+		return css_display_outer_mode_inline, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("run-in")) {
+		return css_display_outer_mode_run_in, true
 	}
-	// https://www.w3.org/TR/css-display-3/#typedef-display-inside
-	parse_display_inside := func(ts *css_token_stream) (css_display_inner_mode, bool) {
-		if !cm.IsNil(ts.consume_ident_token_with("flow")) {
-			return css_display_inner_mode_flow, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("flow-root")) {
-			return css_display_inner_mode_flow_root, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("table")) {
-			return css_display_inner_mode_table, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("flex")) {
-			return css_display_inner_mode_flex, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("grid")) {
-			return css_display_inner_mode_grid, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("ruby")) {
-			return css_display_inner_mode_ruby, true
-		}
-		return 0, false
+	return 0, false
+}
+
+// https://www.w3.org/TR/css-display-3/#typedef-display-inside
+func (ts *css_token_stream) parse_display_inside() (css_display_inner_mode, bool) {
+	if !cm.IsNil(ts.consume_ident_token_with("flow")) {
+		return css_display_inner_mode_flow, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("flow-root")) {
+		return css_display_inner_mode_flow_root, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("table")) {
+		return css_display_inner_mode_table, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("flex")) {
+		return css_display_inner_mode_flex, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("grid")) {
+		return css_display_inner_mode_grid, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("ruby")) {
+		return css_display_inner_mode_ruby, true
 	}
-	// https://www.w3.org/TR/css-display-3/#propdef-display
-	parse_display := func(ts *css_token_stream) (css_display, bool) {
-		// Try legacy keyword first --------------------------------------------
-		// https://www.w3.org/TR/css-display-3/#typedef-display-legacy
-		if !cm.IsNil(ts.consume_ident_token_with("inline-block")) {
-			return css_display{css_display_mode_outer_inner_mode, css_display_outer_mode_inline, css_display_inner_mode_flow_root}, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("inline-table")) {
-			return css_display{css_display_mode_outer_inner_mode, css_display_outer_mode_inline, css_display_inner_mode_table}, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("inline-flex")) {
-			return css_display{css_display_mode_outer_inner_mode, css_display_outer_mode_inline, css_display_inner_mode_flex}, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("inline-grid")) {
-			return css_display{css_display_mode_outer_inner_mode, css_display_outer_mode_inline, css_display_inner_mode_grid}, true
-		}
-		// Try <display-outside> <display-inside> ------------------------------
-		got_outer_mode, got_inner_mode := false, false
-		var outer_mode css_display_outer_mode
-		var inner_mode css_display_inner_mode
-		for !got_outer_mode || !got_inner_mode {
-			got_something := false
-			if !got_outer_mode {
-				outer_mode, got_outer_mode = parse_display_outside(ts)
-				if got_outer_mode {
-					got_something = true
-				}
-			}
-			if !got_inner_mode {
-				inner_mode, got_inner_mode = parse_display_inside(ts)
-				if got_inner_mode {
-					got_something = true
-				}
-			}
-			if !got_something {
-				break
-			}
-		}
-		if got_outer_mode || got_inner_mode {
-			if !got_inner_mode {
-				inner_mode = css_display_inner_mode_flow
-			} else if !got_outer_mode {
-				if inner_mode == css_display_inner_mode_ruby {
-					outer_mode = css_display_outer_mode_inline
-				} else {
-					outer_mode = css_display_outer_mode_block
-				}
-			}
-			return css_display{css_display_mode_outer_inner_mode, outer_mode, inner_mode}, true
-		}
-		// Try display-listitem ------------------------------------------------
-		// https://www.w3.org/TR/css-display-3/#typedef-display-listitem
-		// TODO
+	return 0, false
+}
 
-		// Try display-internal ------------------------------------------------
-		// https://www.w3.org/TR/css-display-3/#typedef-display-internal
-
-		if !cm.IsNil(ts.consume_ident_token_with("table-row-group")) {
-			return css_display{css_display_mode_table_row_group, 0, 0}, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("table-header-group")) {
-			return css_display{css_display_mode_table_header_group, 0, 0}, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("table-footer-group")) {
-			return css_display{css_display_mode_table_footer_group, 0, 0}, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("table-row")) {
-			return css_display{css_display_mode_table_row, 0, 0}, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("table-cell")) {
-			return css_display{css_display_mode_table_cell, 0, 0}, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("table-column-group")) {
-			return css_display{css_display_mode_table_column_group, 0, 0}, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("table-column")) {
-			return css_display{css_display_mode_table_column, 0, 0}, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("table-caption")) {
-			return css_display{css_display_mode_table_caption, 0, 0}, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("ruby-base")) {
-			return css_display{css_display_mode_ruby_base, 0, 0}, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("ruby-text")) {
-			return css_display{css_display_mode_ruby_text, 0, 0}, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("ruby-base-container")) {
-			return css_display{css_display_mode_ruby_base_container, 0, 0}, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("ruby-text-container")) {
-			return css_display{css_display_mode_ruby_text_container, 0, 0}, true
-		}
-
-		// Try display-box -----------------------------------------------------
-		// https://www.w3.org/TR/css-display-3/#typedef-display-box
-
-		if !cm.IsNil(ts.consume_ident_token_with("contents")) {
-			return css_display{css_display_mode_contents, 0, 0}, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("none")) {
-			return css_display{css_display_mode_none, 0, 0}, true
-		}
-
-		return css_display{}, false
+// https://www.w3.org/TR/css-display-3/#propdef-display
+func (ts *css_token_stream) parse_display() (css_display, bool) {
+	// Try legacy keyword first --------------------------------------------
+	// https://www.w3.org/TR/css-display-3/#typedef-display-legacy
+	if !cm.IsNil(ts.consume_ident_token_with("inline-block")) {
+		return css_display{css_display_mode_outer_inner_mode, css_display_outer_mode_inline, css_display_inner_mode_flow_root}, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("inline-table")) {
+		return css_display{css_display_mode_outer_inner_mode, css_display_outer_mode_inline, css_display_inner_mode_table}, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("inline-flex")) {
+		return css_display{css_display_mode_outer_inner_mode, css_display_outer_mode_inline, css_display_inner_mode_flex}, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("inline-grid")) {
+		return css_display{css_display_mode_outer_inner_mode, css_display_outer_mode_inline, css_display_inner_mode_grid}, true
 	}
-	// https://www.w3.org/TR/css-display-3/#propdef-display
-	css_property_descriptors_map["display"] = css_property_descriptor{
-		initial: css_display{css_display_mode_outer_inner_mode, css_display_outer_mode_inline, css_display_inner_mode_flow},
-		apply_func: func(dest *css_computed_style_set, value any) {
-			v := value.(css_display)
-			dest.display = &v
-		},
-		parse_func: func(ts *css_token_stream) (css_property_value, error) {
-			if disp, ok := parse_display(ts); ok {
-				return disp, nil
+	// Try <display-outside> <display-inside> ------------------------------
+	got_outer_mode, got_inner_mode := false, false
+	var outer_mode css_display_outer_mode
+	var inner_mode css_display_inner_mode
+	for !got_outer_mode || !got_inner_mode {
+		got_something := false
+		if !got_outer_mode {
+			outer_mode, got_outer_mode = ts.parse_display_outside()
+			if got_outer_mode {
+				got_something = true
+			}
+		}
+		if !got_inner_mode {
+			inner_mode, got_inner_mode = ts.parse_display_inside()
+			if got_inner_mode {
+				got_something = true
+			}
+		}
+		if !got_something {
+			break
+		}
+	}
+	if got_outer_mode || got_inner_mode {
+		if !got_inner_mode {
+			inner_mode = css_display_inner_mode_flow
+		} else if !got_outer_mode {
+			if inner_mode == css_display_inner_mode_ruby {
+				outer_mode = css_display_outer_mode_inline
 			} else {
-				return nil, nil
+				outer_mode = css_display_outer_mode_block
 			}
-		},
-	}
-	//==========================================================================
-	// https://www.w3.org/TR/css-display-3/#visibility
-	//==========================================================================
-	// https://www.w3.org/TR/css-display-3/#propdef-visibility
-	parse_visibility := func(ts *css_token_stream) (css_visibility, bool) {
-		// Try legacy keyword first --------------------------------------------
-		// https://www.w3.org/TR/css-display-3/#typedef-display-legacy
-		if !cm.IsNil(ts.consume_ident_token_with("visible")) {
-			return css_visibility_visible, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("hidden")) {
-			return css_visibility_hidden, true
-		} else if !cm.IsNil(ts.consume_ident_token_with("collapse")) {
-			return css_visibility_collapse, true
 		}
-		return 0, false
+		return css_display{css_display_mode_outer_inner_mode, outer_mode, inner_mode}, true
 	}
-	// https://www.w3.org/TR/css-display-3/#propdef-visibility
-	css_property_descriptors_map["visibility"] = css_property_descriptor{
-		initial: css_visibility_visible,
-		parse_func: func(ts *css_token_stream) (css_property_value, error) {
-			if vis, ok := parse_visibility(ts); ok {
-				return &vis, nil
-			} else {
-				return nil, nil
-			}
-		},
+	// Try display-listitem ------------------------------------------------
+	// https://www.w3.org/TR/css-display-3/#typedef-display-listitem
+	// TODO
+
+	// Try display-internal ------------------------------------------------
+	// https://www.w3.org/TR/css-display-3/#typedef-display-internal
+
+	if !cm.IsNil(ts.consume_ident_token_with("table-row-group")) {
+		return css_display{css_display_mode_table_row_group, 0, 0}, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("table-header-group")) {
+		return css_display{css_display_mode_table_header_group, 0, 0}, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("table-footer-group")) {
+		return css_display{css_display_mode_table_footer_group, 0, 0}, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("table-row")) {
+		return css_display{css_display_mode_table_row, 0, 0}, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("table-cell")) {
+		return css_display{css_display_mode_table_cell, 0, 0}, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("table-column-group")) {
+		return css_display{css_display_mode_table_column_group, 0, 0}, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("table-column")) {
+		return css_display{css_display_mode_table_column, 0, 0}, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("table-caption")) {
+		return css_display{css_display_mode_table_caption, 0, 0}, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("ruby-base")) {
+		return css_display{css_display_mode_ruby_base, 0, 0}, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("ruby-text")) {
+		return css_display{css_display_mode_ruby_text, 0, 0}, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("ruby-base-container")) {
+		return css_display{css_display_mode_ruby_base_container, 0, 0}, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("ruby-text-container")) {
+		return css_display{css_display_mode_ruby_text_container, 0, 0}, true
 	}
+
+	// Try display-box -----------------------------------------------------
+	// https://www.w3.org/TR/css-display-3/#typedef-display-box
+
+	if !cm.IsNil(ts.consume_ident_token_with("contents")) {
+		return css_display{css_display_mode_contents, 0, 0}, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("none")) {
+		return css_display{css_display_mode_none, 0, 0}, true
+	}
+
+	return css_display{}, false
+}
+
+func (ts *css_token_stream) parse_visibility() (css_visibility, bool) {
+	// Try legacy keyword first --------------------------------------------
+	// https://www.w3.org/TR/css-display-3/#typedef-display-legacy
+	if !cm.IsNil(ts.consume_ident_token_with("visible")) {
+		return css_visibility_visible, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("hidden")) {
+		return css_visibility_hidden, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("collapse")) {
+		return css_visibility_collapse, true
+	}
+	return 0, false
 }

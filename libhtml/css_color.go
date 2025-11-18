@@ -2,7 +2,6 @@
 package libhtml
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -185,17 +184,20 @@ func css_color_from_rgba(r, g, b, a uint8) css_color {
 		css_number_from_int(int64(a)),
 	}}
 }
+func css_color_currentColor() css_color {
+	return css_color{css_color_type_currentColor, nil}
+}
 
 const (
-	css_color_type_rgb           = css_color_type(iota) // rgb(), rgba(), hex colors, named colors
-	css_color_type_current_color                        // currentColor
-	css_color_type_hsl                                  // hsl(), hsla()
-	css_color_type_hwb                                  // hwb()
-	css_color_type_lab                                  // lab()
-	css_color_type_lch                                  // lch()
-	css_color_type_oklab                                // oklab()
-	css_color_type_oklch                                // oklch()
-	css_color_type_color                                // color()
+	css_color_type_rgb          = css_color_type(iota) // rgb(), rgba(), hex colors, named colors
+	css_color_type_currentColor                        // currentColor
+	css_color_type_hsl                                 // hsl(), hsla()
+	css_color_type_hwb                                 // hwb()
+	css_color_type_lab                                 // lab()
+	css_color_type_lch                                 // lch()
+	css_color_type_oklab                               // oklab()
+	css_color_type_oklch                               // oklch()
+	css_color_type_color                               // color()
 	// TODO: System color
 )
 
@@ -217,7 +219,7 @@ func (c css_color) String() string {
 	switch c.tp {
 	case css_color_type_rgb:
 		return fmt.Sprintf("#%02x%02x%02x%02x", c.values[0].to_int(), c.values[1].to_int(), c.values[2].to_int(), c.values[3].to_int())
-	case css_color_type_current_color:
+	case css_color_type_currentColor:
 		return "currentColor"
 	case css_color_type_hsl:
 		return fmt.Sprintf("hsl(%v, %v, %v, %v)", c.values[0], c.values[1], c.values[2], c.values[3]) // STUB
@@ -237,7 +239,7 @@ func (c css_color) String() string {
 	return fmt.Sprintf("<unknown css_color type %v>", c.tp)
 }
 
-func (ts *css_token_stream) parse_color() (*css_color, error) {
+func (ts *css_token_stream) parse_color() (css_color, bool) {
 	// Try hex notation --------------------------------------------------------
 	if tk := ts.consume_token_with_type(css_token_type_hash); !cm.IsNil(tk) {
 		// https://www.w3.org/TR/css-color-4/#hex-notation
@@ -268,30 +270,30 @@ func (ts *css_token_stream) parse_color() (*css_color, error) {
 			b_str = string(chrs[4:6])
 			a_str = string(chrs[6:8])
 		default:
-			return nil, errors.New("illegal hex color length")
+			return css_color{}, false
 		}
 		r, err := strconv.ParseUint(r_str, 16, 8)
 		if err != nil {
-			return nil, fmt.Errorf("illegal hex color digit: %w", err)
+			return css_color{}, false
 		}
 		g, err := strconv.ParseUint(g_str, 16, 8)
 		if err != nil {
-			return nil, fmt.Errorf("illegal hex color digit: %w", err)
+			return css_color{}, false
 		}
 		b, err := strconv.ParseUint(b_str, 16, 8)
 		if err != nil {
-			return nil, fmt.Errorf("illegal hex color digit: %w", err)
+			return css_color{}, false
 		}
 		a, err := strconv.ParseUint(a_str, 16, 8)
 		if err != nil {
-			return nil, fmt.Errorf("illegal hex color digit: %w", err)
+			return css_color{}, false
 		}
-		return &css_color{css_color_type_rgb, []css_number{
+		return css_color{css_color_type_rgb, []css_number{
 			css_number_from_int(int64(r)),
 			css_number_from_int(int64(g)),
 			css_number_from_int(int64(b)),
 			css_number_from_int(int64(a)),
-		}}, nil
+		}}, true
 	}
 	// Try rgb()/rgba() function -----------------------------------------------
 	fn := ts.consume_ast_function_with("rgb")
@@ -334,7 +336,7 @@ func (ts *css_token_stream) parse_color() (*css_color, error) {
 			return ts.parse_percentage(), nil
 		})
 		if per == nil && err != nil {
-			return nil, err
+			return css_color{}, false
 		} else if len(per) == 3 {
 			// Percentage value
 			r_per := per[0].value.clamp(css_number_from_int(0), css_number_from_int(100)).to_float()
@@ -348,7 +350,7 @@ func (ts *css_token_stream) parse_color() (*css_color, error) {
 				return ts.parse_number(), nil
 			})
 			if num == nil && err != nil {
-				return nil, err
+				return css_color{}, false
 			} else if len(num) == 3 {
 				// Number value
 				r = num[0].clamp(css_number_from_int(0), css_number_from_int(255))
@@ -369,15 +371,15 @@ func (ts *css_token_stream) parse_color() (*css_color, error) {
 			if v := parse_alpha(); v != nil {
 				a = *v
 			} else {
-				return nil, errors.New("expected alpha value after ','")
+				return css_color{}, false
 			}
 			// rgb(  r  ,  g  ,  b  ,  a<  >) ----------------------------------
 			ts.skip_whitespaces()
 		}
 		if !ts.is_end() {
-			return nil, errors.New("unexpected junk at the end of function")
+			return css_color{}, false
 		}
-		return &css_color{css_color_type_rgb, []css_number{r, g, b, a}}, nil
+		return css_color{css_color_type_rgb, []css_number{r, g, b, a}}, true
 	modern_syntax:
 		ts.cursor = old_cursor
 
@@ -404,7 +406,7 @@ func (ts *css_token_stream) parse_color() (*css_color, error) {
 			} else if tk := ts.consume_ident_token_with("none"); !cm.IsNil(tk) {
 				panic("TODO")
 			} else {
-				return nil, errors.New("unexpected value in rgb/rgba() function")
+				return css_color{}, false
 			}
 			components = append(components, v)
 			// rgb(  r<  >g<  >b<  >) ------------------------------------------
@@ -420,15 +422,15 @@ func (ts *css_token_stream) parse_color() (*css_color, error) {
 			if v := parse_alpha(); v != nil {
 				a = *v
 			} else {
-				return nil, errors.New("expected alpha value after '/'")
+				return css_color{}, false
 			}
 			// rgb(  r  g  b  /  a<  >) --------------------------------------------
 			ts.skip_whitespaces()
 		}
 		if !ts.is_end() {
-			return nil, errors.New("unexpected junk at the end of function")
+			return css_color{}, false
 		}
-		return &css_color{css_color_type_rgb, []css_number{components[0], components[1], components[2], a}}, nil
+		return css_color{css_color_type_rgb, []css_number{components[0], components[1], components[2], a}}, true
 	}
 	// Try hsl()/hsla() function -----------------------------------------------
 	fn = ts.consume_ast_function_with("hsl")
@@ -476,38 +478,24 @@ func (ts *css_token_stream) parse_color() (*css_color, error) {
 	if !cm.IsNil(ident) {
 		rgba, ok := css_named_colors_map[ident.(css_ident_token).value]
 		if ok {
-			return &css_color{css_color_type_rgb, []css_number{
+			return css_color{css_color_type_rgb, []css_number{
 				css_number_from_int(int64(rgba.red)),
 				css_number_from_int(int64(rgba.green)),
 				css_number_from_int(int64(rgba.blue)),
 				css_number_from_int(int64(rgba.alpha)),
-			}}, nil
+			}}, true
 		}
 		ts.cursor = old_cursor
 	}
 	// Try transparent ---------------------------------------------------------
 	if ts.consume_ident_token_with("transparent") != nil {
 		c := css_color_transparent()
-		return &c, nil
+		return c, true
 	}
 	// Try currentColor --------------------------------------------------------
 	if ts.consume_ident_token_with("currentColor") != nil {
-		return &css_color{css_color_type_current_color, nil}, nil
+		return css_color{css_color_type_currentColor, nil}, true
 	}
 	// TODO: Try system colors
-
-	return nil, nil
-}
-
-func init() {
-	//==========================================================================
-	// https://www.w3.org/TR/css-color-4/#the-color-property
-	//==========================================================================
-	// https://www.w3.org/TR/css-color-4/#propdef-color
-	css_property_descriptors_map["color"] = css_property_descriptor{
-		initial: css_color_CanvasText(),
-		parse_func: func(ts *css_token_stream) (css_property_value, error) {
-			return ts.parse_color()
-		},
-	}
+	return css_color{}, false
 }

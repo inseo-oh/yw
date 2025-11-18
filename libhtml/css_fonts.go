@@ -2,7 +2,6 @@
 package libhtml
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -195,344 +194,178 @@ func (l css_length_font_size) calculate_real_font_size() css_length {
 	panic("TODO")
 }
 
-type css_font_shorthand struct {
-	style css_font_style
-	// TODO: https://www.w3.org/TR/css-fonts-3/#font-variant-css21-values
-	weight  css_font_weight
-	stretch css_font_stretch
-	size    css_font_size
-	// TODO: line-height
-	family css_font_family_list
+// https://www.w3.org/TR/css-fonts-3/#propdef-font-family
+func (ts *css_token_stream) parse_family_name() (string, bool) {
+	if tk := ts.consume_token_with_type(css_token_type_string); !cm.IsNil(tk) {
+		return tk.(css_string_token).value, true
+	}
+	out := ""
+	ident_tks, _ := css_accept_repetion(ts, 0, func(ts *css_token_stream) (css_token, error) {
+		return ts.consume_token_with_type(css_token_type_ident), nil
+	})
+	if ident_tks == nil {
+		return "", false
+	}
+	for _, tk := range ident_tks {
+		out += tk.(css_ident_token).value
+	}
+	return out, true
 }
 
-func (f css_font_shorthand) String() string {
-	return fmt.Sprintf("%v %v %v %v %v", f.style, f.weight, f.stretch, f.size, f.family)
+// https://www.w3.org/TR/css-fonts-3/#generic-family-value
+func (ts *css_token_stream) parse_generic_family() (css_font_family_type, bool) {
+	if !cm.IsNil(ts.consume_ident_token_with("serif")) {
+		return css_font_family_type_serif, true
+	}
+	if !cm.IsNil(ts.consume_ident_token_with("sans-serif")) {
+		return css_font_family_type_sans_serif, true
+	}
+	if !cm.IsNil(ts.consume_ident_token_with("cursive")) {
+		return css_font_family_type_cursive, true
+	}
+	if !cm.IsNil(ts.consume_ident_token_with("fantasy")) {
+		return css_font_family_type_fantasy, true
+	}
+	if !cm.IsNil(ts.consume_ident_token_with("monospace")) {
+		return css_font_family_type_monospace, true
+	}
+	return 0, false
 }
 
-func init() {
-	//==========================================================================
-	// https://www.w3.org/TR/css-fonts-3/#font-family-prop
-	//==========================================================================
-	// https://www.w3.org/TR/css-fonts-3/#propdef-font-family
-	parse_family_name := func(ts *css_token_stream) (*string, error) {
-		if tk := ts.consume_token_with_type(css_token_type_string); !cm.IsNil(tk) {
-			return cm.MakeStrPtr(tk.(css_string_token).value), nil
+// https://www.w3.org/TR/css-fonts-3/#font-family-prop
+func (ts *css_token_stream) parse_font_family() (css_font_family_list, bool) {
+	family_ptrs, _ := css_accept_comma_separated_repetion(ts, 0, func(ts *css_token_stream) (*css_font_family, error) {
+		if tp, ok := ts.parse_generic_family(); ok {
+			return &css_font_family{tp, ""}, nil
 		}
-		out := ""
-		ident_tks, err := css_accept_repetion(ts, 0, func(ts *css_token_stream) (css_token, error) {
-			return ts.consume_token_with_type(css_token_type_ident), nil
-		})
-		if ident_tks == nil {
-			return nil, err
-		}
-		for _, tk := range ident_tks {
-			out += tk.(css_ident_token).value
-		}
-		return &out, nil
-	}
-	// https://www.w3.org/TR/css-fonts-3/#generic-family-value
-	parse_generic_family := func(ts *css_token_stream) (*css_font_family_type, error) {
-		var v css_font_family_type
-		if !cm.IsNil(ts.consume_ident_token_with("serif")) {
-			v = css_font_family_type_serif
-		} else if !cm.IsNil(ts.consume_ident_token_with("sans-serif")) {
-			v = css_font_family_type_sans_serif
-		} else if !cm.IsNil(ts.consume_ident_token_with("cursive")) {
-			v = css_font_family_type_cursive
-		} else if !cm.IsNil(ts.consume_ident_token_with("fantasy")) {
-			v = css_font_family_type_fantasy
-		} else if !cm.IsNil(ts.consume_ident_token_with("monospace")) {
-			v = css_font_family_type_monospace
-		} else {
-			return nil, nil
-		}
-		return &v, nil
-	}
-	parse_font_family := func(ts *css_token_stream) (*css_font_family_list, error) {
-		family_ptrs, err := css_accept_comma_separated_repetion(ts, 0, func(ts *css_token_stream) (*css_font_family, error) {
-			if tp, err := parse_generic_family(ts); tp != nil {
-				return &css_font_family{*tp, ""}, nil
-			} else if err != nil {
-				return nil, err
-			}
-			if name, err := parse_family_name(ts); name != nil {
-				return &css_font_family{css_font_family_type_custom, *name}, nil
-			} else if err != nil {
-				return nil, err
-			}
-			return nil, nil
-		})
-		if family_ptrs == nil {
-			return nil, err
-		}
-		families := []css_font_family{}
-		for _, f := range family_ptrs {
-			families = append(families, *f)
-		}
-		return &css_font_family_list{families}, nil
-	}
-
-	// https://www.w3.org/TR/css-fonts-3/#font-family-prop
-	css_property_descriptors_map["font-family"] = css_property_descriptor{
-		initial: css_font_family_list{[]css_font_family{{css_font_family_type_sans_serif, ""}}},
-		parse_func: func(ts *css_token_stream) (css_property_value, error) {
-			return parse_font_family(ts)
-		},
-	}
-
-	//==========================================================================
-	// https://www.w3.org/TR/css-fonts-3/#font-weight-prop
-	//==========================================================================
-	// https://www.w3.org/TR/css-fonts-3/#propdef-font-weight
-	parse_font_weight := func(ts *css_token_stream) (*css_font_weight, error) {
-		var v css_font_weight
-		if !cm.IsNil(ts.consume_ident_token_with("normal")) {
-			v = css_font_weight_normal
-		} else if !cm.IsNil(ts.consume_ident_token_with("bold")) {
-			v = css_font_weight_bold
-		} else if n := ts.parse_number(); n != nil {
-			if n.tp == css_number_type_float {
-				return nil, errors.New("floating point not allowed")
-			}
-			int_val := n.to_int()
-			if int_val < 0 || 1000 < int_val {
-				return nil, errors.New("value out of range")
-			}
-			v = css_font_weight(n.to_int())
-		} else {
-			return nil, nil
-		}
-		return &v, nil
-	}
-	// https://www.w3.org/TR/css-fonts-3/#propdef-font-weight
-	css_property_descriptors_map["font-weight"] = css_property_descriptor{
-		initial: css_font_weight_normal,
-		parse_func: func(ts *css_token_stream) (css_property_value, error) {
-			return parse_font_weight(ts)
-		},
-	}
-	//==========================================================================
-	// https://www.w3.org/TR/css-fonts-3/#font-stretch-prop
-	//==========================================================================
-	// https://www.w3.org/TR/css-fonts-3/#propdef-font-stretch
-	parse_font_stretch := func(ts *css_token_stream) (*css_font_stretch, error) {
-		var v css_font_stretch
-		if !cm.IsNil(ts.consume_ident_token_with("ultra-condensed")) {
-			v = css_font_stretch_ultra_condensed
-		} else if !cm.IsNil(ts.consume_ident_token_with("extra-condensed")) {
-			v = css_font_stretch_extra_condensed
-		} else if !cm.IsNil(ts.consume_ident_token_with("condensed")) {
-			v = css_font_stretch_condensed
-		} else if !cm.IsNil(ts.consume_ident_token_with("semi-condensed")) {
-			v = css_font_stretch_semi_condensed
-		} else if !cm.IsNil(ts.consume_ident_token_with("normal")) {
-			v = css_font_stretch_normal
-		} else if !cm.IsNil(ts.consume_ident_token_with("semi-expanded")) {
-			v = css_font_stretch_semi_expanded
-		} else if !cm.IsNil(ts.consume_ident_token_with("expanded")) {
-			v = css_font_stretch_expanded
-		} else if !cm.IsNil(ts.consume_ident_token_with("extra-expanded")) {
-			v = css_font_stretch_extra_expanded
-		} else if !cm.IsNil(ts.consume_ident_token_with("ultra-expanded")) {
-			v = css_font_stretch_ultra_expanded
-		} else {
-			return nil, nil
-		}
-		return &v, nil
-	}
-	// https://www.w3.org/TR/css-fonts-3/#propdef-font-stretch
-	css_property_descriptors_map["font-stretch"] = css_property_descriptor{
-		initial: css_font_stretch_normal,
-		parse_func: func(ts *css_token_stream) (css_property_value, error) {
-			return parse_font_stretch(ts)
-		},
-	}
-	//==========================================================================
-	// https://www.w3.org/TR/css-fonts-3/#font-style-prop
-	//==========================================================================
-	// https://www.w3.org/TR/css-fonts-3/#propdef-font-style
-	parse_font_style := func(ts *css_token_stream) (*css_font_style, error) {
-		var v css_font_style
-		if !cm.IsNil(ts.consume_ident_token_with("normal")) {
-			v = css_font_style_normal
-		} else if !cm.IsNil(ts.consume_ident_token_with("italic")) {
-			v = css_font_style_italic
-		} else if !cm.IsNil(ts.consume_ident_token_with("oblique")) {
-			v = css_font_style_oblique
-		} else {
-			return nil, nil
-		}
-		return &v, nil
-	}
-	// https://www.w3.org/TR/css-fonts-3/#propdef-font-style
-	css_property_descriptors_map["font-style"] = css_property_descriptor{
-		initial: css_font_style_normal,
-		parse_func: func(ts *css_token_stream) (css_property_value, error) {
-			return parse_font_style(ts)
-		},
-	}
-	//==========================================================================
-	// https://www.w3.org/TR/css-fonts-3/#font-size-prop
-	//==========================================================================
-	// https://www.w3.org/TR/css-fonts-3/#absolute-size-value
-	parse_absolute_size := func(ts *css_token_stream) (*css_absolute_size, error) {
-		var v css_absolute_size
-		if !cm.IsNil(ts.consume_ident_token_with("xx-small")) {
-			v = css_absolute_size_xx_small
-		} else if !cm.IsNil(ts.consume_ident_token_with("x-small")) {
-			v = css_absolute_size_x_small
-		} else if !cm.IsNil(ts.consume_ident_token_with("small")) {
-			v = css_absolute_size_small
-		} else if !cm.IsNil(ts.consume_ident_token_with("medium")) {
-			v = css_absolute_size_medium
-		} else if !cm.IsNil(ts.consume_ident_token_with("large")) {
-			v = css_absolute_size_large
-		} else if !cm.IsNil(ts.consume_ident_token_with("x-large")) {
-			v = css_absolute_size_x_large
-		} else if !cm.IsNil(ts.consume_ident_token_with("xx-large")) {
-			v = css_absolute_size_xx_large
-		} else {
-			return nil, nil
-		}
-		return &v, nil
-	}
-	// https://www.w3.org/TR/css-fonts-3/#relative-size-value
-	parse_relative_size := func(ts *css_token_stream) (*css_relative_size, error) {
-		var v css_relative_size
-		if !cm.IsNil(ts.consume_ident_token_with("larger")) {
-			v = css_relative_size_larger
-		} else if !cm.IsNil(ts.consume_ident_token_with("smaller")) {
-			v = css_relative_size_smaller
-		} else {
-			return nil, nil
-		}
-		return &v, nil
-	}
-	// https://www.w3.org/TR/css-fonts-3/#propdef-font-size
-	parse_font_size := func(ts *css_token_stream) (css_font_size, error) {
-		if sz, err := parse_absolute_size(ts); sz != nil {
-			return *sz, nil
-		} else if err != nil {
-			return nil, nil
-		}
-		if sz, err := parse_relative_size(ts); sz != nil {
-			return *sz, nil
-		} else if err != nil {
-			return nil, nil
-		}
-		if l, err := ts.parse_length_or_percentage(true); !cm.IsNil(l) {
-			return css_length_font_size{l}, nil
-		} else if err != nil {
-			return nil, nil
+		if name, ok := ts.parse_family_name(); ok {
+			return &css_font_family{css_font_family_type_custom, name}, nil
 		}
 		return nil, nil
+	})
+	if family_ptrs == nil {
+		return css_font_family_list{}, false
 	}
-	// https://www.w3.org/TR/css-fonts-3/#propdef-font-size
-	css_property_descriptors_map["font-size"] = css_property_descriptor{
-		initial: css_absolute_size_medium,
-		parse_func: func(ts *css_token_stream) (css_property_value, error) {
-			return parse_font_size(ts)
-		},
+	families := []css_font_family{}
+	for _, f := range family_ptrs {
+		families = append(families, *f)
 	}
-	//==========================================================================
-	// https://www.w3.org/TR/css-fonts-3/#font-size-adjust-prop
-	//==========================================================================
-	// TODO
+	return css_font_family_list{families}, true
+}
 
-	//==========================================================================
-	// https://www.w3.org/TR/css-fonts-3/#font-prop
-	//==========================================================================
-	// https://www.w3.org/TR/css-fonts-3/#propdef-font
-	parse_font_shorthand := func(ts *css_token_stream) (*css_font_shorthand, error) {
-		out := css_font_shorthand{
-			css_property_descriptors_map["font-style"].initial.(css_font_style),
-			css_property_descriptors_map["font-weight"].initial.(css_font_weight),
-			css_property_descriptors_map["font-stretch"].initial.(css_font_stretch),
-			css_property_descriptors_map["font-size"].initial.(css_font_size),
-			css_property_descriptors_map["font-family"].initial.(css_font_family_list),
-		}
-		got_style := false
-		got_weight := false
-		got_stretch := false
-		got_size := false
-		got_family := false
-		for !got_style || !got_weight || !got_stretch || !got_size || !got_family {
-			invalid := true
-			if !got_style {
-				ts.skip_whitespaces()
-				if res, err := parse_font_style(ts); !cm.IsNil(res) {
-					out.style = *res
-					invalid = false
-					got_style = true
-				} else if err != nil {
-					return nil, err
-				}
-			}
-			if !got_weight {
-				ts.skip_whitespaces()
-				if res, err := parse_font_weight(ts); !cm.IsNil(res) {
-					out.weight = *res
-					invalid = false
-					got_weight = true
-				} else if err != nil {
-					return nil, err
-				}
-			}
-			if !got_stretch {
-				ts.skip_whitespaces()
-				if res, err := parse_font_stretch(ts); !cm.IsNil(res) {
-					out.stretch = *res
-					invalid = false
-					got_stretch = true
-				} else if err != nil {
-					return nil, err
-				}
-			}
-			if !got_size {
-				ts.skip_whitespaces()
-				if res, err := parse_font_size(ts); !cm.IsNil(res) {
-					out.size = res
-					invalid = false
-					got_size = true
-				} else if err != nil {
-					return nil, err
-				}
-			}
-			if !got_family {
-				ts.skip_whitespaces()
-				if res, err := parse_font_family(ts); !cm.IsNil(res) {
-					out.family = *res
-					invalid = false
-					got_family = true
-				} else if err != nil {
-					return nil, err
-				}
-			}
-			ts.skip_whitespaces()
-			if ts.is_end() {
-				invalid = false
-				break
-			}
-			if invalid {
-				return nil, errors.New("got unexpected token")
-			}
-		}
-		if !got_style && !got_weight && !got_stretch && !got_size && !got_family {
-			return nil, nil
-		}
-		return &out, nil
+// https://www.w3.org/TR/css-fonts-3/#propdef-font-weight
+func (ts *css_token_stream) parse_font_weight() (css_font_weight, bool) {
+	if !cm.IsNil(ts.consume_ident_token_with("normal")) {
+		return css_font_weight_normal, true
 	}
-	// https://www.w3.org/TR/css-fonts-3/#propdef-font
-	css_property_descriptors_map["font"] = css_property_descriptor{
-		initial: css_font_shorthand{
-			css_property_descriptors_map["font-style"].initial.(css_font_style),
-			css_property_descriptors_map["font-weight"].initial.(css_font_weight),
-			css_property_descriptors_map["font-stretch"].initial.(css_font_stretch),
-			css_property_descriptors_map["font-size"].initial.(css_font_size),
-			css_property_descriptors_map["font-family"].initial.(css_font_family_list),
-		},
-		parse_func: func(ts *css_token_stream) (css_property_value, error) {
-			return parse_font_shorthand(ts)
-		},
+	if !cm.IsNil(ts.consume_ident_token_with("bold")) {
+		return css_font_weight_bold, true
 	}
+	if n := ts.parse_number(); n != nil {
+		if n.tp == css_number_type_float {
+			return 0, false
+		}
+		int_val := n.to_int()
+		if int_val < 0 || 1000 < int_val {
+			return 0, false
+		}
+		return css_font_weight(n.to_int()), true
+	}
+	return 0, false
+}
+
+// https://www.w3.org/TR/css-fonts-3/#propdef-font-stretch
+func (ts *css_token_stream) parse_font_stretch() (css_font_stretch, bool) {
+	if !cm.IsNil(ts.consume_ident_token_with("ultra-condensed")) {
+		return css_font_stretch_ultra_condensed, true
+	}
+	if !cm.IsNil(ts.consume_ident_token_with("extra-condensed")) {
+		return css_font_stretch_extra_condensed, true
+	}
+	if !cm.IsNil(ts.consume_ident_token_with("condensed")) {
+		return css_font_stretch_condensed, true
+	}
+	if !cm.IsNil(ts.consume_ident_token_with("semi-condensed")) {
+		return css_font_stretch_semi_condensed, true
+	}
+	if !cm.IsNil(ts.consume_ident_token_with("normal")) {
+		return css_font_stretch_normal, true
+	}
+	if !cm.IsNil(ts.consume_ident_token_with("semi-expanded")) {
+		return css_font_stretch_semi_expanded, true
+	}
+	if !cm.IsNil(ts.consume_ident_token_with("expanded")) {
+		return css_font_stretch_expanded, true
+	}
+	if !cm.IsNil(ts.consume_ident_token_with("extra-expanded")) {
+		return css_font_stretch_extra_expanded, true
+	}
+	if !cm.IsNil(ts.consume_ident_token_with("ultra-expanded")) {
+		return css_font_stretch_ultra_expanded, true
+	}
+	return 0, false
+}
+
+// https://www.w3.org/TR/css-fonts-3/#propdef-font-style
+func (ts *css_token_stream) parse_font_style() (css_font_style, bool) {
+	if !cm.IsNil(ts.consume_ident_token_with("normal")) {
+		return css_font_style_normal, true
+	}
+	if !cm.IsNil(ts.consume_ident_token_with("italic")) {
+		return css_font_style_italic, true
+	}
+	if !cm.IsNil(ts.consume_ident_token_with("oblique")) {
+		return css_font_style_oblique, true
+	}
+	return 0, false
+}
+
+// https://www.w3.org/TR/css-fonts-3/#absolute-size-value
+func (ts *css_token_stream) parse_absolute_size() (css_absolute_size, bool) {
+	if !cm.IsNil(ts.consume_ident_token_with("xx-small")) {
+		return css_absolute_size_xx_small, true
+	}
+	if !cm.IsNil(ts.consume_ident_token_with("x-small")) {
+		return css_absolute_size_x_small, true
+	}
+	if !cm.IsNil(ts.consume_ident_token_with("small")) {
+		return css_absolute_size_small, true
+	}
+	if !cm.IsNil(ts.consume_ident_token_with("medium")) {
+		return css_absolute_size_medium, true
+	}
+	if !cm.IsNil(ts.consume_ident_token_with("large")) {
+		return css_absolute_size_large, true
+	}
+	if !cm.IsNil(ts.consume_ident_token_with("x-large")) {
+		return css_absolute_size_x_large, true
+	}
+	if !cm.IsNil(ts.consume_ident_token_with("xx-large")) {
+		return css_absolute_size_xx_large, true
+	}
+	return 0, false
+}
+
+// https://www.w3.org/TR/css-fonts-3/#relative-size-value
+func (ts *css_token_stream) parse_relative_size() (css_relative_size, bool) {
+	if !cm.IsNil(ts.consume_ident_token_with("larger")) {
+		return css_relative_size_larger, true
+	} else if !cm.IsNil(ts.consume_ident_token_with("smaller")) {
+		return css_relative_size_smaller, true
+	}
+	return 0, false
+}
+
+// https://www.w3.org/TR/css-fonts-3/#propdef-font-size
+func (ts *css_token_stream) parse_font_size() (css_font_size, bool) {
+	if sz, ok := ts.parse_absolute_size(); ok {
+		return sz, true
+	}
+	if sz, ok := ts.parse_relative_size(); ok {
+		return sz, true
+	}
+	if l, _ := ts.parse_length_or_percentage(true); !cm.IsNil(l) {
+		return css_length_font_size{l}, true
+	}
+	return nil, false
 }

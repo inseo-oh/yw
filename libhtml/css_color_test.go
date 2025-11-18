@@ -76,7 +76,11 @@ func TestCssColor(t *testing.T) {
 			}
 			t.Logf("Tokens: %v", tokens)
 			got, err := css_parse(tokens, func(ts *css_token_stream) (*css_color, error) {
-				return ts.parse_color()
+				v, ok := ts.parse_color()
+				if !ok {
+					return nil, nil
+				}
+				return &v, nil
 			})
 			if cm.IsNil(got) && err != nil {
 				t.Errorf("failed to parse: %v", err)

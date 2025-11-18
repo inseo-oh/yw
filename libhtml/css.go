@@ -1,3 +1,4 @@
+//go:generate go run ./css_props_gen
 package libhtml
 
 import (
@@ -113,37 +114,37 @@ type css_at_rule struct {
 	value   []css_token
 }
 
-type css_computed_style_set struct {
-	display *css_display
-	width   *css_size_value
-	height  *css_size_value
-}
+// type css_computed_style_set struct {
+// 	display *css_display
+// 	width   *css_size_value
+// 	height  *css_size_value
+// }
 
-func (css *css_computed_style_set) init_with_initial_value(name string) css_property_value {
-	desc, ok := css_property_descriptors_map[name]
-	if !ok {
-		log.Panicf("attempted to initialize property '%s', but there's no such property", name)
-	}
-	return desc.initial
-}
-func (css *css_computed_style_set) get_display() css_display {
-	if css.display == nil {
-		v := css.init_with_initial_value("display").(css_display)
-		css.display = &v
-	}
-	return *css.display
-}
-func (css *css_computed_style_set) get_width() css_size_value {
-	if css.width == nil {
-		v := css.init_with_initial_value("width").(css_size_value)
-		css.width = &v
-	}
-	return *css.width
-}
-func (css *css_computed_style_set) get_height() css_size_value {
-	if css.height == nil {
-		v := css.init_with_initial_value("height").(css_size_value)
-		css.height = &v
-	}
-	return *css.height
-}
+// func (css *css_computed_style_set) init_with_initial_value(name string) css_property_value {
+// 	desc, ok := css_property_descriptors_map[name]
+// 	if !ok {
+// 		log.Panicf("attempted to initialize property '%s', but there's no such property", name)
+// 	}
+// 	return desc.initial
+// }
+// func (css *css_computed_style_set) get_display() css_display {
+// 	if css.display == nil {
+// 		v := css.init_with_initial_value("display").(css_display)
+// 		css.display = &v
+// 	}
+// 	return *css.display
+// }
+// func (css *css_computed_style_set) get_width() css_size_value {
+// 	if css.width == nil {
+// 		v := css.init_with_initial_value("width").(css_size_value)
+// 		css.width = &v
+// 	}
+// 	return *css.width
+// }
+// func (css *css_computed_style_set) get_height() css_size_value {
+// 	if css.height == nil {
+// 		v := css.init_with_initial_value("height").(css_size_value)
+// 		css.height = &v
+// 	}
+// 	return *css.height
+// }

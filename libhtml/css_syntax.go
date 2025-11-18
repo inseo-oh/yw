@@ -1647,12 +1647,9 @@ func css_parse_style_rules_from_nodes(rule_nodes []css_token) []css_style_rule {
 				}
 				inner_as := css_token_stream{tokens: decl_node.value}
 				inner_as.skip_whitespaces()
-				value, err := prop_desc.parse_func(&inner_as)
-				if err != nil {
+				value, ok := prop_desc.parse_func(&inner_as)
+				if !ok {
 					log.Printf("bad value for property: %v (%v, token list: %v)", decl_node.name, err, inner_as.tokens)
-					continue
-				} else if cm.IsNil(value) {
-					log.Printf("missing a valid value for property: %v (token list: %v)", decl_node.name, inner_as.tokens)
 					continue
 				}
 				inner_as.skip_whitespaces()
@@ -1679,8 +1676,8 @@ type css_property_value interface {
 }
 type css_property_descriptor struct {
 	initial    css_property_value
-	parse_func func(ts *css_token_stream) (css_property_value, error)
+	parse_func func(ts *css_token_stream) (css_property_value, bool)
 	apply_func func(dest *css_computed_style_set, value any)
 }
 
-var css_property_descriptors_map = map[string]css_property_descriptor{}
+// var css_property_descriptors_map = map[string]css_property_descriptor{}
