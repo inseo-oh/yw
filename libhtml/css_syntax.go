@@ -1649,7 +1649,7 @@ func css_parse_style_rules_from_nodes(rule_nodes []css_token) []css_style_rule {
 				inner_as.skip_whitespaces()
 				value, ok := prop_desc.parse_func(&inner_as)
 				if !ok {
-					log.Printf("bad value for property: %v (%v, token list: %v)", decl_node.name, err, inner_as.tokens)
+					log.Printf("bad value for property: %v (token list: %v)", decl_node.name, inner_as.tokens)
 					continue
 				}
 				inner_as.skip_whitespaces()
