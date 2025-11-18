@@ -111,7 +111,7 @@ func (fctx browser_layout_inline_formatting_context) get_formatting_context_type
 type browser_layout_text_node struct {
 	browser_layout_node_common
 	rect libgfx.Rect
-	text dom_Text
+	text string
 	font libplatform.Font
 }
 
@@ -223,7 +223,7 @@ type browser_layout_tree_builder struct {
 
 func (tb browser_layout_tree_builder) make_text(
 	parent browser_layout_box_node,
-	text dom_Text,
+	text string,
 	rect libgfx.Rect,
 ) browser_layout_text_node {
 	t := browser_layout_text_node{}
@@ -362,11 +362,17 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 		return nil
 	}
 	if text, ok := dom_node.(*dom_Text_s); ok {
+		str := text.get_text()
+		str = strings.TrimSpace(str)
+		if str == "" {
+			// Nothing to display
+			return nil
+		}
 		//======================================================================
 		// Layout for Text nodes
 		//======================================================================
 		left, top := get_next_position()
-		width, height := libplatform.MeasureText(tb.font, text.get_text())
+		width, height := libplatform.MeasureText(tb.font, str)
 		if parent.is_width_auto() {
 			parent.get_rect_p().Width += width
 		}
@@ -374,7 +380,7 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 			parent.get_rect_p().Height += height
 		}
 		rect := libgfx.Rect{Left: left, Top: top, Width: width, Height: height}
-		text := tb.make_text(parent, text, rect)
+		text := tb.make_text(parent, str, rect)
 		inline_axis_size := rect.Width
 		if write_mode == browser_layout_write_mode_vertical {
 			inline_axis_size = rect.Height

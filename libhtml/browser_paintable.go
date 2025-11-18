@@ -18,7 +18,7 @@ type browser_text_paint_node struct {
 }
 
 func (t browser_text_paint_node) paint(dest *image.RGBA) {
-	text := t.text_layout_node.text.get_text()
+	text := t.text_layout_node.text
 	// First we draw(to nowhere) with 0, 0 as baseline offset.
 	rect := t.font.DrawText(text, nil, 0, 0)
 	// Then we figure out where the baseline should be
