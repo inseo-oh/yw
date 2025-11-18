@@ -1,12 +1,17 @@
 package platform
 
-import "image"
+import (
+	"image"
+	"yw/libgfx"
+)
 
 type Font interface {
 	SetTextSize(size int)
-	DrawText(text string, dest *image.Image, offset_x, offset_y float64) (width, height float64)
+	// Note that dest may be nil -- in that case DrawText should perform a dry-run and return resulting size.
+	DrawText(text string, dest *image.RGBA, offset_x, offset_y float64) libgfx.Rect
 }
 
 func MeasureText(font Font, text string) (width, height float64) {
-	return font.DrawText(text, nil, 0, 0)
+	rect := font.DrawText(text, nil, 0, 0)
+	return rect.Width, rect.Height
 }
