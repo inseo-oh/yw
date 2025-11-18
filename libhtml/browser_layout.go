@@ -208,7 +208,7 @@ func (bcon browser_layout_block_container_node) String() string {
 func (bcon browser_layout_block_container_node) get_node_type() browser_layout_node_type {
 	return browser_layout_node_type_block_container
 }
-func (bcon browser_layout_block_container_node) get_or_make_ifc() *browser_layout_inline_formatting_context {
+func (bcon *browser_layout_block_container_node) get_or_make_ifc() *browser_layout_inline_formatting_context {
 	if bcon.ifc == nil {
 		bcon.ifc = &browser_layout_inline_formatting_context{}
 	}
