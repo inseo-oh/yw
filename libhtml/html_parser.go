@@ -796,7 +796,9 @@ func (p *html_parser) apply_in_head_insertion_mode_rules(token html_token) {
 		p.insert_html_element(*tk)
 		p.insertion_mode = html_parser_insertion_mode_in_head_noscript
 	} else if tk, ok := token.(*html_tag_token); ok && tk.is_start_tag() && tk.tag_name == "script" {
-		panic("TODO[https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inhead]")
+		// STUB
+		p.parse_generic_raw_text_element(*tk)
+		// panic("TODO[https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inhead]")
 	} else if tk, ok := token.(*html_tag_token); ok && tk.is_end_tag() && tk.tag_name == "head" {
 		p.pop_node_from_soe()
 		p.insertion_mode = html_parser_insertion_mode_after_head
@@ -1533,7 +1535,8 @@ func (p *html_parser) apply_text_insertion_mode_rules(token html_token) {
 		p.insertion_mode = p.original_insertion_mode
 		p.apply_current_insertion_mode_rules(token)
 	} else if tk, ok := token.(*html_tag_token); ok && tk.is_end_tag() && tk.tag_name == "script" {
-		panic("TODO[https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-incdata]")
+		// STUB
+		// panic("TODO[https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-incdata]")
 	} else if tk, ok := token.(*html_tag_token); ok && tk.is_end {
 		p.pop_node_from_soe()
 		p.insertion_mode = p.original_insertion_mode
