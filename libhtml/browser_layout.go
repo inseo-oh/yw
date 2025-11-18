@@ -440,7 +440,7 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 			box_rect, width_auto, height_auto := compute_box_rect()
 
 			// Check if we have auto size on a block element. If so, use parent's size and unset auto.
-			if write_mode == browser_layout_write_mode_vertical && width_auto {
+			if write_mode == browser_layout_write_mode_horizontal && width_auto {
 				box_rect.Width = parent.get_rect().Width
 				width_auto = false
 			} else if write_mode == browser_layout_write_mode_vertical && height_auto {
