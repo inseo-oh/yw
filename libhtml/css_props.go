@@ -1131,323 +1131,323 @@ type css_computed_style_set struct {
 
 func (css *css_computed_style_set) get_color() css_color {
 	if css.color == nil {
-		desc := css_property_descriptors_map["color"]
-		*css.color = desc.initial.(css_color)
+		initial := css_property_descriptors_map["color"].initial.(css_color)
+		css.color = &initial
 	}
 	return *css.color
 }
 func (css *css_computed_style_set) get_width() css_size_value {
 	if css.width == nil {
-		desc := css_property_descriptors_map["width"]
-		*css.width = desc.initial.(css_size_value)
+		initial := css_property_descriptors_map["width"].initial.(css_size_value)
+		css.width = &initial
 	}
 	return *css.width
 }
 func (css *css_computed_style_set) get_height() css_size_value {
 	if css.height == nil {
-		desc := css_property_descriptors_map["height"]
-		*css.height = desc.initial.(css_size_value)
+		initial := css_property_descriptors_map["height"].initial.(css_size_value)
+		css.height = &initial
 	}
 	return *css.height
 }
 func (css *css_computed_style_set) get_min_width() css_size_value {
 	if css.min_width == nil {
-		desc := css_property_descriptors_map["min-width"]
-		*css.min_width = desc.initial.(css_size_value)
+		initial := css_property_descriptors_map["min-width"].initial.(css_size_value)
+		css.min_width = &initial
 	}
 	return *css.min_width
 }
 func (css *css_computed_style_set) get_min_height() css_size_value {
 	if css.min_height == nil {
-		desc := css_property_descriptors_map["min-height"]
-		*css.min_height = desc.initial.(css_size_value)
+		initial := css_property_descriptors_map["min-height"].initial.(css_size_value)
+		css.min_height = &initial
 	}
 	return *css.min_height
 }
 func (css *css_computed_style_set) get_max_width() css_size_value {
 	if css.max_width == nil {
-		desc := css_property_descriptors_map["max-width"]
-		*css.max_width = desc.initial.(css_size_value)
+		initial := css_property_descriptors_map["max-width"].initial.(css_size_value)
+		css.max_width = &initial
 	}
 	return *css.max_width
 }
 func (css *css_computed_style_set) get_max_height() css_size_value {
 	if css.max_height == nil {
-		desc := css_property_descriptors_map["max-height"]
-		*css.max_height = desc.initial.(css_size_value)
+		initial := css_property_descriptors_map["max-height"].initial.(css_size_value)
+		css.max_height = &initial
 	}
 	return *css.max_height
 }
 func (css *css_computed_style_set) get_display() css_display {
 	if css.display == nil {
-		desc := css_property_descriptors_map["display"]
-		*css.display = desc.initial.(css_display)
+		initial := css_property_descriptors_map["display"].initial.(css_display)
+		css.display = &initial
 	}
 	return *css.display
 }
 func (css *css_computed_style_set) get_visibility() css_visibility {
 	if css.visibility == nil {
-		desc := css_property_descriptors_map["visibility"]
-		*css.visibility = desc.initial.(css_visibility)
+		initial := css_property_descriptors_map["visibility"].initial.(css_visibility)
+		css.visibility = &initial
 	}
 	return *css.visibility
 }
 func (css *css_computed_style_set) get_background_color() css_color {
 	if css.background_color == nil {
-		desc := css_property_descriptors_map["background-color"]
-		*css.background_color = desc.initial.(css_color)
+		initial := css_property_descriptors_map["background-color"].initial.(css_color)
+		css.background_color = &initial
 	}
 	return *css.background_color
 }
 func (css *css_computed_style_set) get_border_top_color() css_color {
 	if css.border_top_color == nil {
-		desc := css_property_descriptors_map["border-top-color"]
-		*css.border_top_color = desc.initial.(css_color)
+		initial := css_property_descriptors_map["border-top-color"].initial.(css_color)
+		css.border_top_color = &initial
 	}
 	return *css.border_top_color
 }
 func (css *css_computed_style_set) get_border_right_color() css_color {
 	if css.border_right_color == nil {
-		desc := css_property_descriptors_map["border-right-color"]
-		*css.border_right_color = desc.initial.(css_color)
+		initial := css_property_descriptors_map["border-right-color"].initial.(css_color)
+		css.border_right_color = &initial
 	}
 	return *css.border_right_color
 }
 func (css *css_computed_style_set) get_border_bottom_color() css_color {
 	if css.border_bottom_color == nil {
-		desc := css_property_descriptors_map["border-bottom-color"]
-		*css.border_bottom_color = desc.initial.(css_color)
+		initial := css_property_descriptors_map["border-bottom-color"].initial.(css_color)
+		css.border_bottom_color = &initial
 	}
 	return *css.border_bottom_color
 }
 func (css *css_computed_style_set) get_border_left_color() css_color {
 	if css.border_left_color == nil {
-		desc := css_property_descriptors_map["border-left-color"]
-		*css.border_left_color = desc.initial.(css_color)
+		initial := css_property_descriptors_map["border-left-color"].initial.(css_color)
+		css.border_left_color = &initial
 	}
 	return *css.border_left_color
 }
 func (css *css_computed_style_set) get_border_color() css_border_color_shorthand {
 	if css.border_color == nil {
-		desc := css_property_descriptors_map["border-color"]
-		*css.border_color = desc.initial.(css_border_color_shorthand)
+		initial := css_property_descriptors_map["border-color"].initial.(css_border_color_shorthand)
+		css.border_color = &initial
 	}
 	return *css.border_color
 }
 func (css *css_computed_style_set) get_border_top_style() css_line_style {
 	if css.border_top_style == nil {
-		desc := css_property_descriptors_map["border-top-style"]
-		*css.border_top_style = desc.initial.(css_line_style)
+		initial := css_property_descriptors_map["border-top-style"].initial.(css_line_style)
+		css.border_top_style = &initial
 	}
 	return *css.border_top_style
 }
 func (css *css_computed_style_set) get_border_right_style() css_line_style {
 	if css.border_right_style == nil {
-		desc := css_property_descriptors_map["border-right-style"]
-		*css.border_right_style = desc.initial.(css_line_style)
+		initial := css_property_descriptors_map["border-right-style"].initial.(css_line_style)
+		css.border_right_style = &initial
 	}
 	return *css.border_right_style
 }
 func (css *css_computed_style_set) get_border_bottom_style() css_line_style {
 	if css.border_bottom_style == nil {
-		desc := css_property_descriptors_map["border-bottom-style"]
-		*css.border_bottom_style = desc.initial.(css_line_style)
+		initial := css_property_descriptors_map["border-bottom-style"].initial.(css_line_style)
+		css.border_bottom_style = &initial
 	}
 	return *css.border_bottom_style
 }
 func (css *css_computed_style_set) get_border_left_style() css_line_style {
 	if css.border_left_style == nil {
-		desc := css_property_descriptors_map["border-left-style"]
-		*css.border_left_style = desc.initial.(css_line_style)
+		initial := css_property_descriptors_map["border-left-style"].initial.(css_line_style)
+		css.border_left_style = &initial
 	}
 	return *css.border_left_style
 }
 func (css *css_computed_style_set) get_border_style() css_border_style_shorthand {
 	if css.border_style == nil {
-		desc := css_property_descriptors_map["border-style"]
-		*css.border_style = desc.initial.(css_border_style_shorthand)
+		initial := css_property_descriptors_map["border-style"].initial.(css_border_style_shorthand)
+		css.border_style = &initial
 	}
 	return *css.border_style
 }
 func (css *css_computed_style_set) get_border_top_width() css_length {
 	if css.border_top_width == nil {
-		desc := css_property_descriptors_map["border-top-width"]
-		*css.border_top_width = desc.initial.(css_length)
+		initial := css_property_descriptors_map["border-top-width"].initial.(css_length)
+		css.border_top_width = &initial
 	}
 	return *css.border_top_width
 }
 func (css *css_computed_style_set) get_border_right_width() css_length {
 	if css.border_right_width == nil {
-		desc := css_property_descriptors_map["border-right-width"]
-		*css.border_right_width = desc.initial.(css_length)
+		initial := css_property_descriptors_map["border-right-width"].initial.(css_length)
+		css.border_right_width = &initial
 	}
 	return *css.border_right_width
 }
 func (css *css_computed_style_set) get_border_bottom_width() css_length {
 	if css.border_bottom_width == nil {
-		desc := css_property_descriptors_map["border-bottom-width"]
-		*css.border_bottom_width = desc.initial.(css_length)
+		initial := css_property_descriptors_map["border-bottom-width"].initial.(css_length)
+		css.border_bottom_width = &initial
 	}
 	return *css.border_bottom_width
 }
 func (css *css_computed_style_set) get_border_left_width() css_length {
 	if css.border_left_width == nil {
-		desc := css_property_descriptors_map["border-left-width"]
-		*css.border_left_width = desc.initial.(css_length)
+		initial := css_property_descriptors_map["border-left-width"].initial.(css_length)
+		css.border_left_width = &initial
 	}
 	return *css.border_left_width
 }
 func (css *css_computed_style_set) get_border_width() css_border_width_shorthand {
 	if css.border_width == nil {
-		desc := css_property_descriptors_map["border-width"]
-		*css.border_width = desc.initial.(css_border_width_shorthand)
+		initial := css_property_descriptors_map["border-width"].initial.(css_border_width_shorthand)
+		css.border_width = &initial
 	}
 	return *css.border_width
 }
 func (css *css_computed_style_set) get_border_top() css_border_top_shorthand {
 	if css.border_top == nil {
-		desc := css_property_descriptors_map["border-top"]
-		*css.border_top = desc.initial.(css_border_top_shorthand)
+		initial := css_property_descriptors_map["border-top"].initial.(css_border_top_shorthand)
+		css.border_top = &initial
 	}
 	return *css.border_top
 }
 func (css *css_computed_style_set) get_border_right() css_border_right_shorthand {
 	if css.border_right == nil {
-		desc := css_property_descriptors_map["border-right"]
-		*css.border_right = desc.initial.(css_border_right_shorthand)
+		initial := css_property_descriptors_map["border-right"].initial.(css_border_right_shorthand)
+		css.border_right = &initial
 	}
 	return *css.border_right
 }
 func (css *css_computed_style_set) get_border_bottom() css_border_bottom_shorthand {
 	if css.border_bottom == nil {
-		desc := css_property_descriptors_map["border-bottom"]
-		*css.border_bottom = desc.initial.(css_border_bottom_shorthand)
+		initial := css_property_descriptors_map["border-bottom"].initial.(css_border_bottom_shorthand)
+		css.border_bottom = &initial
 	}
 	return *css.border_bottom
 }
 func (css *css_computed_style_set) get_border_left() css_border_left_shorthand {
 	if css.border_left == nil {
-		desc := css_property_descriptors_map["border-left"]
-		*css.border_left = desc.initial.(css_border_left_shorthand)
+		initial := css_property_descriptors_map["border-left"].initial.(css_border_left_shorthand)
+		css.border_left = &initial
 	}
 	return *css.border_left
 }
 func (css *css_computed_style_set) get_border() css_border_shorthand {
 	if css.border == nil {
-		desc := css_property_descriptors_map["border"]
-		*css.border = desc.initial.(css_border_shorthand)
+		initial := css_property_descriptors_map["border"].initial.(css_border_shorthand)
+		css.border = &initial
 	}
 	return *css.border
 }
 func (css *css_computed_style_set) get_margin_top() css_margin {
 	if css.margin_top == nil {
-		desc := css_property_descriptors_map["margin-top"]
-		*css.margin_top = desc.initial.(css_margin)
+		initial := css_property_descriptors_map["margin-top"].initial.(css_margin)
+		css.margin_top = &initial
 	}
 	return *css.margin_top
 }
 func (css *css_computed_style_set) get_margin_right() css_margin {
 	if css.margin_right == nil {
-		desc := css_property_descriptors_map["margin-right"]
-		*css.margin_right = desc.initial.(css_margin)
+		initial := css_property_descriptors_map["margin-right"].initial.(css_margin)
+		css.margin_right = &initial
 	}
 	return *css.margin_right
 }
 func (css *css_computed_style_set) get_margin_bottom() css_margin {
 	if css.margin_bottom == nil {
-		desc := css_property_descriptors_map["margin-bottom"]
-		*css.margin_bottom = desc.initial.(css_margin)
+		initial := css_property_descriptors_map["margin-bottom"].initial.(css_margin)
+		css.margin_bottom = &initial
 	}
 	return *css.margin_bottom
 }
 func (css *css_computed_style_set) get_margin_left() css_margin {
 	if css.margin_left == nil {
-		desc := css_property_descriptors_map["margin-left"]
-		*css.margin_left = desc.initial.(css_margin)
+		initial := css_property_descriptors_map["margin-left"].initial.(css_margin)
+		css.margin_left = &initial
 	}
 	return *css.margin_left
 }
 func (css *css_computed_style_set) get_margin() css_margin_shorthand {
 	if css.margin == nil {
-		desc := css_property_descriptors_map["margin"]
-		*css.margin = desc.initial.(css_margin_shorthand)
+		initial := css_property_descriptors_map["margin"].initial.(css_margin_shorthand)
+		css.margin = &initial
 	}
 	return *css.margin
 }
 func (css *css_computed_style_set) get_padding_top() css_length_resolvable {
 	if css.padding_top == nil {
-		desc := css_property_descriptors_map["padding-top"]
-		*css.padding_top = desc.initial.(css_length_resolvable)
+		initial := css_property_descriptors_map["padding-top"].initial.(css_length_resolvable)
+		css.padding_top = &initial
 	}
 	return *css.padding_top
 }
 func (css *css_computed_style_set) get_padding_right() css_length_resolvable {
 	if css.padding_right == nil {
-		desc := css_property_descriptors_map["padding-right"]
-		*css.padding_right = desc.initial.(css_length_resolvable)
+		initial := css_property_descriptors_map["padding-right"].initial.(css_length_resolvable)
+		css.padding_right = &initial
 	}
 	return *css.padding_right
 }
 func (css *css_computed_style_set) get_padding_bottom() css_length_resolvable {
 	if css.padding_bottom == nil {
-		desc := css_property_descriptors_map["padding-bottom"]
-		*css.padding_bottom = desc.initial.(css_length_resolvable)
+		initial := css_property_descriptors_map["padding-bottom"].initial.(css_length_resolvable)
+		css.padding_bottom = &initial
 	}
 	return *css.padding_bottom
 }
 func (css *css_computed_style_set) get_padding_left() css_length_resolvable {
 	if css.padding_left == nil {
-		desc := css_property_descriptors_map["padding-left"]
-		*css.padding_left = desc.initial.(css_length_resolvable)
+		initial := css_property_descriptors_map["padding-left"].initial.(css_length_resolvable)
+		css.padding_left = &initial
 	}
 	return *css.padding_left
 }
 func (css *css_computed_style_set) get_padding() css_padding_shorthand {
 	if css.padding == nil {
-		desc := css_property_descriptors_map["padding"]
-		*css.padding = desc.initial.(css_padding_shorthand)
+		initial := css_property_descriptors_map["padding"].initial.(css_padding_shorthand)
+		css.padding = &initial
 	}
 	return *css.padding
 }
 func (css *css_computed_style_set) get_font_family() css_font_family_list {
 	if css.font_family == nil {
-		desc := css_property_descriptors_map["font-family "]
-		*css.font_family = desc.initial.(css_font_family_list)
+		initial := css_property_descriptors_map["font-family "].initial.(css_font_family_list)
+		css.font_family = &initial
 	}
 	return *css.font_family
 }
 func (css *css_computed_style_set) get_font_weight() css_font_weight {
 	if css.font_weight == nil {
-		desc := css_property_descriptors_map["font-weight"]
-		*css.font_weight = desc.initial.(css_font_weight)
+		initial := css_property_descriptors_map["font-weight"].initial.(css_font_weight)
+		css.font_weight = &initial
 	}
 	return *css.font_weight
 }
 func (css *css_computed_style_set) get_font_stretch() css_font_stretch {
 	if css.font_stretch == nil {
-		desc := css_property_descriptors_map["font-stretch"]
-		*css.font_stretch = desc.initial.(css_font_stretch)
+		initial := css_property_descriptors_map["font-stretch"].initial.(css_font_stretch)
+		css.font_stretch = &initial
 	}
 	return *css.font_stretch
 }
 func (css *css_computed_style_set) get_font_style() css_font_style {
 	if css.font_style == nil {
-		desc := css_property_descriptors_map["font-style"]
-		*css.font_style = desc.initial.(css_font_style)
+		initial := css_property_descriptors_map["font-style"].initial.(css_font_style)
+		css.font_style = &initial
 	}
 	return *css.font_style
 }
 func (css *css_computed_style_set) get_font_size() css_font_size {
 	if css.font_size == nil {
-		desc := css_property_descriptors_map["font-size"]
-		*css.font_size = desc.initial.(css_font_size)
+		initial := css_property_descriptors_map["font-size"].initial.(css_font_size)
+		css.font_size = &initial
 	}
 	return *css.font_size
 }
 func (css *css_computed_style_set) get_font() css_font_shorthand {
 	if css.font == nil {
-		desc := css_property_descriptors_map["font"]
-		*css.font = desc.initial.(css_font_shorthand)
+		initial := css_property_descriptors_map["font"].initial.(css_font_shorthand)
+		css.font = &initial
 	}
 	return *css.font
 }

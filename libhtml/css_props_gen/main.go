@@ -251,8 +251,8 @@ func main() {
 		sb_inner := strings.Builder{}
 		sb_inner.WriteString(fmt.Sprintf("func (css *css_computed_style_set) get_%s() %s {\n", go_ident_name_of_prop(prop), prop.get_type().type_name))
 		sb_inner.WriteString(fmt.Sprintf("\tif css.%s == nil {\n", go_ident_name_of_prop(prop)))
-		sb_inner.WriteString(fmt.Sprintf("\t\tdesc := css_property_descriptors_map[%s]\n", strconv.Quote(prop.get_name())))
-		sb_inner.WriteString(fmt.Sprintf("\t\t*css.%s = desc.initial.(%s)\n", go_ident_name_of_prop(prop), prop.get_type().type_name))
+		sb_inner.WriteString(fmt.Sprintf("\t\tinitial := css_property_descriptors_map[%s].initial.(%s)\n", strconv.Quote(prop.get_name()), prop.get_type().type_name))
+		sb_inner.WriteString(fmt.Sprintf("\t\tcss.%s = &initial\n", go_ident_name_of_prop(prop)))
 		sb_inner.WriteString( /*      */ "\t}\n")
 		sb_inner.WriteString( /*      */ fmt.Sprintf("\treturn *css.%s\n", go_ident_name_of_prop(prop)))
 		sb_inner.WriteString("}\n")
