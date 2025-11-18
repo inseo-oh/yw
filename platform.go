@@ -27,7 +27,7 @@ func init_platform() *platform_impl {
 func (plat platform_impl) OpenFont(name string) platform.Font {
 	var face C.FT_Face
 	font_name := C.CString("res/font.ttf")
-	if res := C.FT_New_Face(plat.ft_lib, font_name, 0, &face); res != C.FT_Err_Unknown_File_Format {
+	if res := C.FT_New_Face(plat.ft_lib, font_name, 0, &face); res == C.FT_Err_Unknown_File_Format {
 		log.Fatalf("Unrecognized font (FT Error %d)", res)
 	} else if res != C.FT_Err_Ok {
 		log.Fatalf("Failed to open font %s (FT Error %d)", name, res)
