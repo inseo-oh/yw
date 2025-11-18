@@ -28,6 +28,7 @@ func (fnt ft_font) DrawText(text string, dest *image.RGBA, offset_x, offset_y fl
 	}
 
 	pen_x, pen_y := offset_x, offset_y
+	line_height := 0
 	rect := libgfx.Rect{Left: pen_x, Top: pen_y, Width: 0, Height: 0}
 	for _, char := range text {
 		glyph_index := C.FT_Get_Char_Index(fnt.face, C.FT_ULong(char))
@@ -68,7 +69,8 @@ func (fnt ft_font) DrawText(text string, dest *image.RGBA, offset_x, offset_y fl
 		pen_y += ft_26_6_pos_to_float(gslot.advance.y)
 
 		rect.Width += ft_26_6_pos_to_float(gslot.advance.x)
-		rect.Height += ft_26_6_pos_to_float(gslot.advance.y)
+		line_height = max(line_height, int(bitmap.rows))
 	}
+	rect.Height = float64(line_height)
 	return rect
 }
