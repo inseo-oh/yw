@@ -557,7 +557,8 @@ func (p *html_parser) generate_implied_end_tags(exclude_filter func(node dom_Ele
 	}
 	for {
 		current_node := p.get_current_node()
-		if slices.ContainsFunc(html_elems, current_node.is_html_element) && !exclude_filter(current_node) {
+		if slices.ContainsFunc(html_elems, current_node.is_html_element) &&
+			(exclude_filter == nil || !exclude_filter(current_node)) {
 			p.pop_node_from_soe()
 		} else {
 			break
