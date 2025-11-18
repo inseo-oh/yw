@@ -436,16 +436,40 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 			if parent.is_height_auto() {
 				parent.get_rect_p().Height += box_rect.Height
 			}
-			inline_axis_size := box_rect.Width
-			block_axis_size := box_rect.Height
+			inline_axis_size, inline_axis_auto := box_rect.Width, width_auto
+			block_axis_size, block_axis_auto := box_rect.Height, height_auto
 			if write_mode == browser_layout_write_mode_vertical {
 				inline_axis_size, block_axis_size = block_axis_size, inline_axis_size
+				inline_axis_auto, block_axis_auto = block_axis_auto, inline_axis_auto
 			}
 			switch css_display.outer_mode {
 			case css_display_outer_mode_inline:
-				get_closest_ifc().increment_natural_position(inline_axis_size)
+				if !inline_axis_auto {
+					get_closest_ifc().increment_natural_position(inline_axis_size)
+				}
 			case css_display_outer_mode_block:
-				get_closest_bfc().increment_natural_position(block_axis_size)
+				if !block_axis_auto {
+					get_closest_bfc().increment_natural_position(block_axis_size)
+				}
+			}
+
+			increment_natural_pos_auto_size := func(box browser_layout_box_node) {
+				// XXX: Should we increment width/height if the element uses absolute positioning?
+				inline_axis_size := box.get_rect().Width
+				block_axis_size := box.get_rect().Height
+				if write_mode == browser_layout_write_mode_vertical {
+					inline_axis_size, block_axis_size = block_axis_size, inline_axis_size
+				}
+				switch css_display.outer_mode {
+				case css_display_outer_mode_inline:
+					if inline_axis_auto {
+						get_closest_ifc().increment_natural_position(inline_axis_size)
+					}
+				case css_display_outer_mode_block:
+					if block_axis_auto {
+						get_closest_bfc().increment_natural_position(block_axis_size)
+					}
+				}
 			}
 
 			switch css_display.inner_mode {
@@ -470,6 +494,7 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 				} else {
 					box = tb.make_block_container(parent_fctx, write_mode, parent, elem, box_rect, width_auto, height_auto)
 				}
+				increment_natural_pos_auto_size(box)
 				return box
 			case css_display_inner_mode_flow_root:
 				//==================================================================
@@ -477,6 +502,7 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 				//==================================================================
 				// https://www.w3.org/TR/css-display-3/#valdef-display-flow-root
 				box := tb.make_block_container(parent_fctx, write_mode, parent, elem, box_rect, width_auto, height_auto)
+				increment_natural_pos_auto_size(box)
 				return box
 			default:
 				log.Panicf("TODO: Support display: %v", css_display)
