@@ -19,6 +19,7 @@ var out_file = flag.String("out", "html_entities.go", "Output file")
 func main() {
 	flag.Parse()
 
+	log.SetPrefix("[html_entities_gen] ")
 	log.Printf("Downloading from %s", *url)
 	res, err := http.Get(*url)
 	if err != nil {
