@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"go/format"
 	"log"
 	"net/http"
 	"os"
@@ -78,8 +79,14 @@ func main() {
 		sb.WriteString(sb_line.String())
 	}
 	sb.WriteString("}\n")
+
+	log.Printf("Formatting generated source")
+	formatted, err := format.Source([]byte(sb.String()))
+	if err != nil {
+		log.Fatal(err)
+	}
 	log.Printf("Writing output to %s", *out_file)
-	err = os.WriteFile(*out_file, []byte(sb.String()), 0644)
+	err = os.WriteFile(*out_file, formatted, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
