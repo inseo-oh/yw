@@ -3,7 +3,6 @@
 package libhtml
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -15,13 +14,13 @@ type css_border_color_shorthand struct {
 }
 
 func (ts *css_token_stream) parse_css_border_color_shorthand() (css_border_color_shorthand, bool) {
-	items, _ := css_accept_repetion(ts, 4, func(ts *css_token_stream) (css_color, error) {
+	items, _ := css_accept_repetion(ts, 4, func(ts *css_token_stream) (*css_color, error) {
 		var res css_color
 		res, ok := ts.parse_color()
 		if !ok {
-			return res, errors.New("illegal value")
+			return nil, nil
 		}
-		return res, nil
+		return &res, nil
 	})
 	if items == nil {
 		return css_border_color_shorthand{}, false
@@ -29,27 +28,27 @@ func (ts *css_token_stream) parse_css_border_color_shorthand() (css_border_color
 	res := css_border_color_shorthand{}
 	switch len(items) {
 	case 1:
-		res.top = items[0]
-		res.right = items[0]
-		res.bottom = items[0]
-		res.left = items[0]
+		res.top = *items[0]
+		res.right = *items[0]
+		res.bottom = *items[0]
+		res.left = *items[0]
 	case 2:
-		res.top = items[0]
-		res.right = items[1]
-		res.bottom = items[0]
-		res.left = items[1]
+		res.top = *items[0]
+		res.right = *items[1]
+		res.bottom = *items[0]
+		res.left = *items[1]
 	case 3:
-		res.top = items[0]
-		res.right = items[1]
-		res.bottom = items[2]
-		res.left = items[1]
+		res.top = *items[0]
+		res.right = *items[1]
+		res.bottom = *items[2]
+		res.left = *items[1]
 	case 4:
-		res.top = items[0]
-		res.right = items[1]
-		res.bottom = items[2]
-		res.left = items[3]
+		res.top = *items[0]
+		res.right = *items[1]
+		res.bottom = *items[2]
+		res.left = *items[3]
 	}
-	return css_border_color_shorthand{}, false
+	return res, true
 }
 func (sh css_border_color_shorthand) String() string {
 	return fmt.Sprintf("%v %v %v %v", sh.top, sh.right, sh.bottom, sh.left)
@@ -63,13 +62,13 @@ type css_border_style_shorthand struct {
 }
 
 func (ts *css_token_stream) parse_css_border_style_shorthand() (css_border_style_shorthand, bool) {
-	items, _ := css_accept_repetion(ts, 4, func(ts *css_token_stream) (css_line_style, error) {
+	items, _ := css_accept_repetion(ts, 4, func(ts *css_token_stream) (*css_line_style, error) {
 		var res css_line_style
 		res, ok := ts.parse_line_style()
 		if !ok {
-			return res, errors.New("illegal value")
+			return nil, nil
 		}
-		return res, nil
+		return &res, nil
 	})
 	if items == nil {
 		return css_border_style_shorthand{}, false
@@ -77,27 +76,27 @@ func (ts *css_token_stream) parse_css_border_style_shorthand() (css_border_style
 	res := css_border_style_shorthand{}
 	switch len(items) {
 	case 1:
-		res.top = items[0]
-		res.right = items[0]
-		res.bottom = items[0]
-		res.left = items[0]
+		res.top = *items[0]
+		res.right = *items[0]
+		res.bottom = *items[0]
+		res.left = *items[0]
 	case 2:
-		res.top = items[0]
-		res.right = items[1]
-		res.bottom = items[0]
-		res.left = items[1]
+		res.top = *items[0]
+		res.right = *items[1]
+		res.bottom = *items[0]
+		res.left = *items[1]
 	case 3:
-		res.top = items[0]
-		res.right = items[1]
-		res.bottom = items[2]
-		res.left = items[1]
+		res.top = *items[0]
+		res.right = *items[1]
+		res.bottom = *items[2]
+		res.left = *items[1]
 	case 4:
-		res.top = items[0]
-		res.right = items[1]
-		res.bottom = items[2]
-		res.left = items[3]
+		res.top = *items[0]
+		res.right = *items[1]
+		res.bottom = *items[2]
+		res.left = *items[3]
 	}
-	return css_border_style_shorthand{}, false
+	return res, true
 }
 func (sh css_border_style_shorthand) String() string {
 	return fmt.Sprintf("%v %v %v %v", sh.top, sh.right, sh.bottom, sh.left)
@@ -111,13 +110,13 @@ type css_border_width_shorthand struct {
 }
 
 func (ts *css_token_stream) parse_css_border_width_shorthand() (css_border_width_shorthand, bool) {
-	items, _ := css_accept_repetion(ts, 4, func(ts *css_token_stream) (css_length, error) {
+	items, _ := css_accept_repetion(ts, 4, func(ts *css_token_stream) (*css_length, error) {
 		var res css_length
 		res, ok := ts.parse_line_width()
 		if !ok {
-			return res, errors.New("illegal value")
+			return nil, nil
 		}
-		return res, nil
+		return &res, nil
 	})
 	if items == nil {
 		return css_border_width_shorthand{}, false
@@ -125,27 +124,27 @@ func (ts *css_token_stream) parse_css_border_width_shorthand() (css_border_width
 	res := css_border_width_shorthand{}
 	switch len(items) {
 	case 1:
-		res.top = items[0]
-		res.right = items[0]
-		res.bottom = items[0]
-		res.left = items[0]
+		res.top = *items[0]
+		res.right = *items[0]
+		res.bottom = *items[0]
+		res.left = *items[0]
 	case 2:
-		res.top = items[0]
-		res.right = items[1]
-		res.bottom = items[0]
-		res.left = items[1]
+		res.top = *items[0]
+		res.right = *items[1]
+		res.bottom = *items[0]
+		res.left = *items[1]
 	case 3:
-		res.top = items[0]
-		res.right = items[1]
-		res.bottom = items[2]
-		res.left = items[1]
+		res.top = *items[0]
+		res.right = *items[1]
+		res.bottom = *items[2]
+		res.left = *items[1]
 	case 4:
-		res.top = items[0]
-		res.right = items[1]
-		res.bottom = items[2]
-		res.left = items[3]
+		res.top = *items[0]
+		res.right = *items[1]
+		res.bottom = *items[2]
+		res.left = *items[3]
 	}
-	return css_border_width_shorthand{}, false
+	return res, true
 }
 func (sh css_border_width_shorthand) String() string {
 	return fmt.Sprintf("%v %v %v %v", sh.top, sh.right, sh.bottom, sh.left)
@@ -449,13 +448,13 @@ type css_margin_shorthand struct {
 }
 
 func (ts *css_token_stream) parse_css_margin_shorthand() (css_margin_shorthand, bool) {
-	items, _ := css_accept_repetion(ts, 4, func(ts *css_token_stream) (css_margin, error) {
+	items, _ := css_accept_repetion(ts, 4, func(ts *css_token_stream) (*css_margin, error) {
 		var res css_margin
 		res, ok := ts.parse_margin()
 		if !ok {
-			return res, errors.New("illegal value")
+			return nil, nil
 		}
-		return res, nil
+		return &res, nil
 	})
 	if items == nil {
 		return css_margin_shorthand{}, false
@@ -463,27 +462,27 @@ func (ts *css_token_stream) parse_css_margin_shorthand() (css_margin_shorthand, 
 	res := css_margin_shorthand{}
 	switch len(items) {
 	case 1:
-		res.top = items[0]
-		res.right = items[0]
-		res.bottom = items[0]
-		res.left = items[0]
+		res.top = *items[0]
+		res.right = *items[0]
+		res.bottom = *items[0]
+		res.left = *items[0]
 	case 2:
-		res.top = items[0]
-		res.right = items[1]
-		res.bottom = items[0]
-		res.left = items[1]
+		res.top = *items[0]
+		res.right = *items[1]
+		res.bottom = *items[0]
+		res.left = *items[1]
 	case 3:
-		res.top = items[0]
-		res.right = items[1]
-		res.bottom = items[2]
-		res.left = items[1]
+		res.top = *items[0]
+		res.right = *items[1]
+		res.bottom = *items[2]
+		res.left = *items[1]
 	case 4:
-		res.top = items[0]
-		res.right = items[1]
-		res.bottom = items[2]
-		res.left = items[3]
+		res.top = *items[0]
+		res.right = *items[1]
+		res.bottom = *items[2]
+		res.left = *items[3]
 	}
-	return css_margin_shorthand{}, false
+	return res, true
 }
 func (sh css_margin_shorthand) String() string {
 	return fmt.Sprintf("%v %v %v %v", sh.top, sh.right, sh.bottom, sh.left)
@@ -497,13 +496,13 @@ type css_padding_shorthand struct {
 }
 
 func (ts *css_token_stream) parse_css_padding_shorthand() (css_padding_shorthand, bool) {
-	items, _ := css_accept_repetion(ts, 4, func(ts *css_token_stream) (css_length_resolvable, error) {
+	items, _ := css_accept_repetion(ts, 4, func(ts *css_token_stream) (*css_length_resolvable, error) {
 		var res css_length_resolvable
 		res, ok := ts.parse_padding()
 		if !ok {
-			return res, errors.New("illegal value")
+			return nil, nil
 		}
-		return res, nil
+		return &res, nil
 	})
 	if items == nil {
 		return css_padding_shorthand{}, false
@@ -511,27 +510,27 @@ func (ts *css_token_stream) parse_css_padding_shorthand() (css_padding_shorthand
 	res := css_padding_shorthand{}
 	switch len(items) {
 	case 1:
-		res.top = items[0]
-		res.right = items[0]
-		res.bottom = items[0]
-		res.left = items[0]
+		res.top = *items[0]
+		res.right = *items[0]
+		res.bottom = *items[0]
+		res.left = *items[0]
 	case 2:
-		res.top = items[0]
-		res.right = items[1]
-		res.bottom = items[0]
-		res.left = items[1]
+		res.top = *items[0]
+		res.right = *items[1]
+		res.bottom = *items[0]
+		res.left = *items[1]
 	case 3:
-		res.top = items[0]
-		res.right = items[1]
-		res.bottom = items[2]
-		res.left = items[1]
+		res.top = *items[0]
+		res.right = *items[1]
+		res.bottom = *items[2]
+		res.left = *items[1]
 	case 4:
-		res.top = items[0]
-		res.right = items[1]
-		res.bottom = items[2]
-		res.left = items[3]
+		res.top = *items[0]
+		res.right = *items[1]
+		res.bottom = *items[2]
+		res.left = *items[3]
 	}
-	return css_padding_shorthand{}, false
+	return res, true
 }
 func (sh css_padding_shorthand) String() string {
 	return fmt.Sprintf("%v %v %v %v", sh.top, sh.right, sh.bottom, sh.left)
