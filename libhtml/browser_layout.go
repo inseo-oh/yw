@@ -2,6 +2,7 @@ package libhtml
 
 import (
 	"fmt"
+	"image/color"
 	"log"
 	"strconv"
 	"strings"
@@ -111,9 +112,10 @@ func (fctx browser_layout_inline_formatting_context) get_formatting_context_type
 
 type browser_layout_text_node struct {
 	browser_layout_node_common
-	rect libgfx.Rect
-	text string
-	font libplatform.Font
+	rect  libgfx.Rect
+	text  string
+	font  libplatform.Font
+	color color.RGBA
 }
 
 func (txt browser_layout_text_node) String() string {
@@ -126,6 +128,7 @@ func (txt browser_layout_text_node) make_paint_node() browser_paint_node {
 	return browser_text_paint_node{
 		text_layout_node: txt,
 		font:             txt.font,
+		color:            txt.color,
 	}
 }
 
@@ -135,6 +138,7 @@ func (txt browser_layout_text_node) make_paint_node() browser_paint_node {
 
 type browser_layout_box_node interface {
 	browser_layout_node
+	get_elem() dom_Element
 	get_rect() libgfx.Rect
 	get_rect_p() *libgfx.Rect
 	get_child_boxes() []browser_layout_box_node
@@ -152,6 +156,7 @@ type browser_layout_box_node_common struct {
 	child_texts []browser_layout_text_node
 }
 
+func (bx browser_layout_box_node_common) get_elem() dom_Element     { return bx.elem }
 func (bx browser_layout_box_node_common) get_rect() libgfx.Rect     { return bx.rect }
 func (bx *browser_layout_box_node_common) get_rect_p() *libgfx.Rect { return &bx.rect }
 func (bx browser_layout_box_node_common) get_child_boxes() []browser_layout_box_node {
@@ -226,6 +231,7 @@ func (tb browser_layout_tree_builder) make_text(
 	parent browser_layout_box_node,
 	text string,
 	rect libgfx.Rect,
+	color color.RGBA,
 ) browser_layout_text_node {
 	t := browser_layout_text_node{}
 	t.parent = parent
@@ -363,6 +369,7 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 		return nil
 	}
 	if text, ok := dom_node.(*dom_Text_s); ok {
+		color := parent.get_elem().get_computed_style_set().get_color().to_rgba()
 		str := text.get_text()
 		str = strings.TrimSpace(str)
 		if str == "" {
@@ -381,7 +388,7 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 			parent.get_rect_p().Height += height
 		}
 		rect := libgfx.Rect{Left: left, Top: top, Width: width, Height: height}
-		text := tb.make_text(parent, str, rect)
+		text := tb.make_text(parent, str, rect, color)
 		inline_axis_size := rect.Width
 		if write_mode == browser_layout_write_mode_vertical {
 			inline_axis_size = rect.Height

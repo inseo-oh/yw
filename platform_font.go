@@ -21,7 +21,7 @@ func (fnt ft_font) SetTextSize(size int) {
 		log.Printf("Failed to set font size (FT_Set_Pixel_Sizes error %d)", res)
 	}
 }
-func (fnt ft_font) DrawText(text string, dest *image.RGBA, offset_x, offset_y float64) libgfx.Rect {
+func (fnt ft_font) DrawText(text string, dest *image.RGBA, offset_x, offset_y float64, text_color color.RGBA) libgfx.Rect {
 	// 26.6 Fixed Point -> float64
 	ft_26_6_pos_to_float := func(p C.FT_Pos) float64 {
 		return float64(p) / 64.0
@@ -56,7 +56,15 @@ func (fnt ft_font) DrawText(text string, dest *image.RGBA, offset_x, offset_y fl
 				src_idx := src_line_idx
 				for range bitmap.width {
 					val := bytes[src_idx]
-					dest.SetRGBA(dest_x, dest_y, color.RGBA{val, val, val, 255})
+					rgba := dest.RGBAAt(dest_x, dest_y)
+					calc_channel := func(old, new, alpha uint8) uint8 {
+						return uint8((int(old)*(255-int(alpha)))/255) + uint8((int(new)*int(alpha))/255)
+					}
+					rgba.R = calc_channel(rgba.R, text_color.R, val)
+					rgba.G = calc_channel(rgba.G, text_color.G, val)
+					rgba.B = calc_channel(rgba.B, text_color.B, val)
+					rgba.A = 255 // Just make sure it's fully opaque
+					dest.SetRGBA(dest_x, dest_y, rgba)
 					src_idx++
 					dest_x++
 				}

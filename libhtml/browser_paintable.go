@@ -3,6 +3,7 @@ package libhtml
 import (
 	"fmt"
 	"image"
+	"image/color"
 	"strings"
 	"yw/libplatform"
 )
@@ -15,20 +16,21 @@ type browser_paint_node interface {
 type browser_text_paint_node struct {
 	text_layout_node browser_layout_text_node
 	font             libplatform.Font
+	color            color.RGBA
 }
 
 func (t browser_text_paint_node) paint(dest *image.RGBA) {
 	text := t.text_layout_node.text
 	// First we draw(to nowhere) with 0, 0 as baseline offset.
-	rect := t.font.DrawText(text, nil, 0, 0)
+	rect := t.font.DrawText(text, nil, 0, 0, color.RGBA{})
 	// Then we figure out where the baseline should be
 	baseline_x := t.text_layout_node.rect.Left - rect.Left
 	baseline_y := t.text_layout_node.rect.Top - rect.Top // Note that rect.Top would be a negative position
 	// And finally we draw the text for real
-	t.font.DrawText(text, dest, baseline_x, baseline_y)
+	t.font.DrawText(text, dest, baseline_x, baseline_y, t.color)
 }
 func (t browser_text_paint_node) String() string {
-	return fmt.Sprintf("text-paint %v", t.text_layout_node)
+	return fmt.Sprintf("text-paint(%v) %v", t.text_layout_node, t.color)
 }
 
 type browser_grouped_paint_node struct {

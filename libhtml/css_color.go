@@ -3,6 +3,8 @@ package libhtml
 
 import (
 	"fmt"
+	"image/color"
+	"log"
 	"strconv"
 	"strings"
 	cm "yw/libcommon"
@@ -186,6 +188,36 @@ func css_color_from_rgba(r, g, b, a uint8) css_color {
 }
 func css_color_currentColor() css_color {
 	return css_color{css_color_type_currentColor, nil}
+}
+
+func (c css_color) to_rgba() color.RGBA {
+	switch c.tp {
+	case css_color_type_rgb:
+		return color.RGBA{
+			uint8(c.values[0].to_int()),
+			uint8(c.values[1].to_int()),
+			uint8(c.values[2].to_int()),
+			uint8(c.values[3].to_int()),
+		}
+	case css_color_type_currentColor:
+		panic("TODO")
+	case css_color_type_hsl:
+		panic("TODO")
+	case css_color_type_hwb:
+		panic("TODO")
+	case css_color_type_lab:
+		panic("TODO")
+	case css_color_type_lch:
+		panic("TODO")
+	case css_color_type_oklab:
+		panic("TODO")
+	case css_color_type_oklch:
+		panic("TODO")
+	case css_color_type_color:
+		panic("TODO")
+	}
+	log.Panicf("<unknown css_color type %v>", c.tp)
+	panic("unreachable")
 }
 
 const (
