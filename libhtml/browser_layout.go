@@ -78,7 +78,6 @@ func (fctx *browser_layout_formatting_context_common) increment_natural_position
 // https://www.w3.org/TR/CSS2/visuren.html#block-formatting
 type browser_layout_block_formatting_context struct {
 	browser_layout_formatting_context_common
-	current_position float64
 }
 
 func (fctx browser_layout_block_formatting_context) get_formatting_context_type() browser_layout_formatting_context_type {
@@ -99,7 +98,6 @@ func browser_layout_make_bfc() *browser_layout_block_formatting_context {
 // https://www.w3.org/TR/CSS2/visuren.html#inline-formatting
 type browser_layout_inline_formatting_context struct {
 	browser_layout_formatting_context_common
-	current_position float64
 }
 
 func (fctx browser_layout_inline_formatting_context) get_formatting_context_type() browser_layout_formatting_context_type {
@@ -339,7 +337,7 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 		return closest.get_or_make_ifc()
 	}
 	get_next_position := func() (float64, float64) {
-		x, y := get_closest_ifc().current_position, get_closest_bfc().current_position
+		x, y := get_closest_ifc().current_natural_pos, get_closest_bfc().current_natural_pos
 		if write_mode == browser_layout_write_mode_vertical {
 			return y, x
 		}
@@ -349,8 +347,8 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 		if write_mode == browser_layout_write_mode_vertical {
 			x, y = y, x
 		}
-		get_closest_ifc().current_position += x
-		get_closest_bfc().current_position += y
+		get_closest_ifc().current_natural_pos += x
+		get_closest_bfc().current_natural_pos += y
 	}
 	_ = increment_next_box_position // FIXME: Remove this function if we don't need it.
 
@@ -453,25 +451,6 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 				}
 			}
 
-			increment_natural_pos_auto_size := func(box browser_layout_box_node) {
-				// XXX: Should we increment width/height if the element uses absolute positioning?
-				inline_axis_size := box.get_rect().Width
-				block_axis_size := box.get_rect().Height
-				if write_mode == browser_layout_write_mode_vertical {
-					inline_axis_size, block_axis_size = block_axis_size, inline_axis_size
-				}
-				switch css_display.outer_mode {
-				case css_display_outer_mode_inline:
-					if inline_axis_auto {
-						get_closest_ifc().increment_natural_position(inline_axis_size)
-					}
-				case css_display_outer_mode_block:
-					if block_axis_auto {
-						get_closest_bfc().increment_natural_position(block_axis_size)
-					}
-				}
-			}
-
 			switch css_display.inner_mode {
 			case css_display_inner_mode_flow:
 				//==================================================================
@@ -494,7 +473,6 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 				} else {
 					box = tb.make_block_container(parent_fctx, write_mode, parent, elem, box_rect, width_auto, height_auto)
 				}
-				increment_natural_pos_auto_size(box)
 				return box
 			case css_display_inner_mode_flow_root:
 				//==================================================================
@@ -502,7 +480,6 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 				//==================================================================
 				// https://www.w3.org/TR/css-display-3/#valdef-display-flow-root
 				box := tb.make_block_container(parent_fctx, write_mode, parent, elem, box_rect, width_auto, height_auto)
-				increment_natural_pos_auto_size(box)
 				return box
 			default:
 				log.Panicf("TODO: Support display: %v", css_display)
