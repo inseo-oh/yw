@@ -53,7 +53,7 @@ func (ts *css_token_stream) parse_length(allow_zero_shorthand bool) (*css_length
 		if allow_zero_shorthand {
 			old_cursor := ts.cursor
 			num_tk := ts.consume_token_with_type(css_token_type_number)
-			if cm.IsNil(num_tk) || num_tk.(css_number_token).value.equals(css_number_from_int(0)) {
+			if cm.IsNil(num_tk) || !num_tk.(css_number_token).value.equals(css_number_from_int(0)) {
 				ts.cursor = old_cursor
 			} else {
 				return &css_length{css_number_from_int(0), css_length_unit_px}, nil
