@@ -382,17 +382,24 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 		//======================================================================
 		left, top := get_next_position()
 		width, height := libplatform.MeasureText(tb.font, str)
-		if parent.is_width_auto() {
-			parent.get_rect_p().Width += width
-		}
-		if parent.is_height_auto() {
-			parent.get_rect_p().Height += height
-		}
 		rect := libgfx.Rect{Left: left, Top: top, Width: width, Height: height}
 		text := tb.make_text(parent, str, rect, color)
 		inline_axis_size := rect.Width
 		if write_mode == browser_layout_write_mode_vertical {
 			inline_axis_size = rect.Height
+		}
+		if parent.is_width_auto() {
+			parent.get_rect_p().Width += rect.Width
+		}
+		if parent.is_height_auto() {
+			// Increment parent's height if needed.
+			height_diff := rect.Height - parent.get_rect_p().Height
+			log.Println("parent is ", parent)
+			log.Println("height diff", height_diff, rect.Height, parent.get_rect_p().Height)
+			if 0 < height_diff {
+				get_closest_bfc().increment_natural_position(height_diff)
+				parent.get_rect_p().Height += height_diff
+			}
 		}
 		get_closest_ifc().increment_natural_position(inline_axis_size)
 		return text
@@ -443,12 +450,25 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 
 			// Check if parent is auto and we have to grow its size.
 			// XXX: Should we increment width/height if the element uses absolute positioning?
-			if parent.is_width_auto() {
-				parent.get_rect_p().Width += box_rect.Width
+			switch css_display.outer_mode {
+			case css_display_outer_mode_block:
+				if parent.is_width_auto() {
+					parent.get_rect_p().Width = max(parent.get_rect_p().Width, box_rect.Width)
+				}
+				if parent.is_height_auto() {
+					parent.get_rect_p().Height += box_rect.Height
+					get_closest_bfc().increment_natural_position(box_rect.Height)
+				}
+			case css_display_outer_mode_inline:
+				if parent.is_width_auto() {
+					parent.get_rect_p().Width += box_rect.Width
+					get_closest_ifc().increment_natural_position(box_rect.Width)
+				}
+				if parent.is_height_auto() {
+					parent.get_rect_p().Height += max(parent.get_rect_p().Height, box_rect.Height)
+				}
 			}
-			if parent.is_height_auto() {
-				parent.get_rect_p().Height += box_rect.Height
-			}
+
 			inline_axis_size, inline_axis_auto := box_rect.Width, width_auto
 			block_axis_size, block_axis_auto := box_rect.Height, height_auto
 			if write_mode == browser_layout_write_mode_vertical {
@@ -466,6 +486,7 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 				}
 			}
 
+			log.Println("Initial box size", box_rect)
 			switch css_display.inner_mode {
 			case css_display_inner_mode_flow:
 				//==================================================================
