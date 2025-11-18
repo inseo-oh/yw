@@ -1476,7 +1476,8 @@ func (p *html_parser) apply_in_body_insertion_mode_rules(token html_token) {
 				if node() != p.get_current_node() {
 					p.parse_error_encountered(token)
 				}
-				for p.pop_node_from_soe() != node() {
+				target_node := node()
+				for p.pop_node_from_soe() != target_node {
 				}
 				return
 			}
