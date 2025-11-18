@@ -412,6 +412,8 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 		css := elem.get_computed_style_set()
 		compute_box_rect := func() (r libgfx.Rect, width_auto, height_auto bool) {
 			box_left, box_top := get_next_position()
+			box_left += parent.get_rect().Left
+			box_top += parent.get_rect().Top
 			box_width := css.get_width()
 			box_height := css.get_height()
 			box_width_px := 0.0
