@@ -137,7 +137,7 @@ type html_HTMLLinkElement_s struct {
 }
 
 func html_make_HTMLLinkElement(options dom_element_creation_common_options) html_HTMLLinkElement {
-	return html_HTMLLinkElement_s{
+	return &html_HTMLLinkElement_s{
 		html_HTMLElement: html_make_HTMLElement(options, dom_element_callbacks{
 			get_intrinsic_size: func() (width float64, height float64) {
 				// XXX: Do we need intrinsic size for this?
