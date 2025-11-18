@@ -1,6 +1,8 @@
 package libhtml
 
 import (
+	"image"
+	"image/color"
 	"io"
 	"log"
 	"net/http"
@@ -11,7 +13,7 @@ import (
 
 type Browser struct{}
 
-func (b *Browser) Init(url_str string, plat libplatform.Platform) {
+func (b *Browser) Init(url_str string, plat libplatform.Platform, viewport_img *image.RGBA) {
 	debug_builtin_stylesheet := false
 
 	// Show a cool banner ------------------------------------------------------
@@ -94,8 +96,21 @@ func (b *Browser) Init(url_str string, plat libplatform.Platform) {
 	// Do something with it ----------------------------------------------------
 	_ = head_elem
 	dom_print_tree(doc)
-	log.Println("Document loaded. Making layout...")
-	icb := browser_make_layout(html_elem, 1280, 720, plat)
-	browser_layout_print_tree(icb)
+	log.Println("Document loaded. Making layout tree...")
+	viewport_size := viewport_img.Rect.Size()
+	for y := range viewport_size.Y {
+		for x := range viewport_size.X {
+			viewport_img.SetRGBA(x, y, color.RGBA{255, 255, 255, 255})
+		}
+	}
+
+	icb := browser_make_layout(html_elem, float64(viewport_size.X), float64(viewport_size.Y), plat)
+	browser_print_layout_tree(icb)
+	log.Println("Made layout. Making paint tree...")
+	paint := icb.make_paint_node()
+	browser_print_paint_tree(paint)
+	log.Println("Painting...")
+	paint.paint(viewport_img)
+
 	log.Println("DONE")
 }

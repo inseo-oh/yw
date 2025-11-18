@@ -43,10 +43,13 @@ func (fnt ft_font) DrawText(text string, dest *image.RGBA, offset_x, offset_y fl
 		bitmap := gslot.bitmap
 		bitmap_left := int(gslot.bitmap_left)
 		bitmap_top := int(gslot.bitmap_top)
+		rect.Left = float64(bitmap_left)
+		rect.Top = -float64(bitmap_top)
 		bytes := C.GoBytes(unsafe.Pointer(bitmap.buffer), C.int(bitmap.rows*bitmap.width))
 		src_line_idx := 0
 		dest_x := int(pen_x) + bitmap_left
 		dest_y := int(pen_y) - bitmap_top
+		dest_left := dest_x
 		if dest != nil {
 			for range bitmap.rows {
 				src_idx := src_line_idx
@@ -58,6 +61,7 @@ func (fnt ft_font) DrawText(text string, dest *image.RGBA, offset_x, offset_y fl
 				}
 				src_line_idx += int(bitmap.width)
 				dest_y++
+				dest_x = dest_left
 			}
 		}
 		pen_x += ft_26_6_pos_to_float(gslot.advance.x)

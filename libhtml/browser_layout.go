@@ -12,6 +12,7 @@ import (
 type browser_layout_node interface {
 	get_node_type() browser_layout_node_type
 	get_parent() browser_layout_node
+	make_paint_node() browser_paint_node
 	String() string
 }
 type browser_layout_node_common struct {
@@ -113,6 +114,7 @@ type browser_layout_text_node struct {
 	browser_layout_node_common
 	rect libgfx.Rect
 	text dom_Text
+	font libplatform.Font
 }
 
 func (txt browser_layout_text_node) String() string {
@@ -120,6 +122,12 @@ func (txt browser_layout_text_node) String() string {
 }
 func (txt browser_layout_text_node) get_node_type() browser_layout_node_type {
 	return browser_layout_node_type_text
+}
+func (txt browser_layout_text_node) make_paint_node() browser_paint_node {
+	return browser_text_paint_node{
+		text_layout_node: txt,
+		font:             txt.font,
+	}
 }
 
 //==============================================================================
@@ -158,6 +166,16 @@ func (bx *browser_layout_box_node_common) set_child_texts(texts []browser_layout
 }
 func (bx browser_layout_box_node_common) is_width_auto() bool  { return bx.width_auto }
 func (bx browser_layout_box_node_common) is_height_auto() bool { return bx.height_auto }
+func (bx browser_layout_box_node_common) make_paint_node() browser_paint_node {
+	paintables := []browser_paint_node{}
+	for _, child := range bx.get_child_boxes() {
+		paintables = append(paintables, child.make_paint_node())
+	}
+	for _, child := range bx.get_child_texts() {
+		paintables = append(paintables, child.make_paint_node())
+	}
+	return browser_grouped_paint_node{items: paintables}
+}
 
 // https://www.w3.org/TR/css-display-3/#inline-box
 type browser_layout_inline_box_node struct {
@@ -214,6 +232,7 @@ func (tb browser_layout_tree_builder) make_text(
 	t.parent = parent
 	t.text = text
 	t.rect = rect
+	t.font = tb.font
 	return t
 }
 func (tb browser_layout_tree_builder) make_inline_box(
@@ -479,7 +498,7 @@ func browser_make_layout(root dom_Element, viewport_width, viewport_height float
 	return icb
 }
 
-func browser_layout_print_tree(node browser_layout_node) {
+func browser_print_layout_tree(node browser_layout_node) {
 	curr_node := node
 	count := 0
 	if !cm.IsNil(curr_node.get_parent()) {
@@ -491,10 +510,10 @@ func browser_layout_print_tree(node browser_layout_node) {
 	fmt.Printf("%s%v\n", indent, node)
 	if bx, ok := curr_node.(browser_layout_box_node); ok {
 		for _, child := range bx.get_child_boxes() {
-			browser_layout_print_tree(child)
+			browser_print_layout_tree(child)
 		}
 		for _, child := range bx.get_child_texts() {
-			browser_layout_print_tree(child)
+			browser_print_layout_tree(child)
 		}
 	}
 }
