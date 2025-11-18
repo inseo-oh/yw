@@ -238,6 +238,7 @@ func (tb browser_layout_tree_builder) make_text(
 	t.text = text
 	t.rect = rect
 	t.font = tb.font
+	t.color = color
 	return t
 }
 func (tb browser_layout_tree_builder) make_inline_box(
