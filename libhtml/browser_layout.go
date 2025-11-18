@@ -3,6 +3,7 @@ package libhtml
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	cm "yw/libcommon"
 	"yw/libgfx"
@@ -116,7 +117,7 @@ type browser_layout_text_node struct {
 }
 
 func (txt browser_layout_text_node) String() string {
-	return fmt.Sprintf("text %s at [%v]", txt.text, txt.rect)
+	return fmt.Sprintf("text %s at [%v]", strconv.Quote(txt.text), txt.rect)
 }
 func (txt browser_layout_text_node) get_node_type() browser_layout_node_type {
 	return browser_layout_node_type_text
