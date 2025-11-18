@@ -7,7 +7,7 @@ import "C"
 import (
 	"log"
 	"unsafe"
-	"yw/libhtml/platform"
+	"yw/libplatform"
 )
 
 type platform_impl struct {
@@ -24,7 +24,7 @@ func init_platform() *platform_impl {
 		ft_lib: ft_lib,
 	}
 }
-func (plat platform_impl) OpenFont(name string) platform.Font {
+func (plat platform_impl) OpenFont(name string) libplatform.Font {
 	var face C.FT_Face
 	font_name := C.CString("res/font/static/NotoSansKR-Regular.ttf")
 	if res := C.FT_New_Face(plat.ft_lib, font_name, 0, &face); res == C.FT_Err_Unknown_File_Format {

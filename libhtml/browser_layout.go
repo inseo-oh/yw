@@ -6,7 +6,7 @@ import (
 	"strings"
 	cm "yw/libcommon"
 	"yw/libgfx"
-	"yw/libhtml/platform"
+	"yw/libplatform"
 )
 
 type browser_layout_node interface {
@@ -243,7 +243,7 @@ func (bcon browser_layout_block_container_node) get_or_make_ifc() *browser_layou
 //==============================================================================
 
 type browser_layout_tree_builder struct {
-	font platform.Font
+	font libplatform.Font
 }
 
 func (tb browser_layout_tree_builder) make_text(
@@ -390,7 +390,7 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 		// Layout for Text nodes
 		//======================================================================
 		left, top := get_next_position()
-		width, height := platform.MeasureText(tb.font, text.get_text())
+		width, height := libplatform.MeasureText(tb.font, text.get_text())
 		if parent.is_width_auto() {
 			parent.get_rect_p().Width += width
 		}
@@ -510,7 +510,7 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 }
 
 // https://www.w3.org/TR/css-display-3/#initial-containing-block
-func browser_make_layout(root dom_Element, viewport_width, viewport_height float64, plat platform.Platform) browser_layout_node {
+func browser_make_layout(root dom_Element, viewport_width, viewport_height float64, plat libplatform.Platform) browser_layout_node {
 	tb := browser_layout_tree_builder{}
 	tb.font = plat.OpenFont("this_is_not_real_filename.ttf")
 	tb.font.SetTextSize(32)

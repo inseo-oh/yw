@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"yw/libhtml/platform"
+	"yw/libplatform"
 )
 
 type Browser struct{}
 
-func (b *Browser) Init(url_str string, plat platform.Platform) {
+func (b *Browser) Init(url_str string, plat libplatform.Platform) {
 	debug_builtin_stylesheet := false
 
 	// Show a cool banner ------------------------------------------------------

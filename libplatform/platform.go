@@ -1,4 +1,4 @@
-package platform
+package libplatform
 
 type Platform interface {
 	//==========================================================================
