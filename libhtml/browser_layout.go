@@ -40,7 +40,6 @@ type browser_layout_formatting_context interface {
 	get_current_natural_pos() float64
 	set_current_natural_pos(pos float64)
 	increment_natural_position(inc float64)
-	get_primary_axis() browser_layout_formatting_axis
 }
 
 type browser_layout_formatting_context_common struct {
@@ -59,40 +58,6 @@ type browser_layout_write_mode uint8
 const (
 	browser_layout_write_mode_horizontal = browser_layout_write_mode(iota)
 	browser_layout_write_mode_vertical
-)
-
-type browser_layout_formatting_axis uint8
-
-const (
-	browser_layout_formatting_axis_normal   = browser_layout_formatting_axis(iota) // Text writing axis (e.g. English -> normally X-axis)
-	browser_layout_formatting_axis_opposite                                        // Opposite of writing axis
-)
-
-func (a browser_layout_formatting_axis) to_real_axis(mode browser_layout_write_mode) browser_layout_real_axis {
-	switch mode {
-	case browser_layout_write_mode_horizontal:
-		switch a {
-		case browser_layout_formatting_axis_normal:
-			return browser_layout_formatting_axis_x
-		case browser_layout_formatting_axis_opposite:
-			return browser_layout_formatting_axis_y
-		}
-	case browser_layout_write_mode_vertical:
-		switch a {
-		case browser_layout_formatting_axis_normal:
-			return browser_layout_formatting_axis_y
-		case browser_layout_formatting_axis_opposite:
-			return browser_layout_formatting_axis_x
-		}
-	}
-	panic("unreachable")
-}
-
-type browser_layout_real_axis uint8
-
-const (
-	browser_layout_formatting_axis_x = browser_layout_real_axis(iota)
-	browser_layout_formatting_axis_y
 )
 
 func (fctx browser_layout_formatting_context_common) get_current_natural_pos() float64 {
@@ -118,9 +83,6 @@ type browser_layout_block_formatting_context struct {
 func (fctx browser_layout_block_formatting_context) get_formatting_context_type() browser_layout_formatting_context_type {
 	return browser_layout_formatting_context_type_block
 }
-func (fctx browser_layout_block_formatting_context) get_primary_axis() browser_layout_formatting_axis {
-	return browser_layout_formatting_axis_opposite
-}
 
 func browser_layout_make_bfc() *browser_layout_block_formatting_context {
 	bfc := browser_layout_block_formatting_context{}
@@ -141,9 +103,6 @@ type browser_layout_inline_formatting_context struct {
 
 func (fctx browser_layout_inline_formatting_context) get_formatting_context_type() browser_layout_formatting_context_type {
 	return browser_layout_formatting_context_type_inline
-}
-func (fctx browser_layout_inline_formatting_context) get_primary_axis() browser_layout_formatting_axis {
-	return browser_layout_formatting_axis_normal
 }
 
 //==============================================================================
