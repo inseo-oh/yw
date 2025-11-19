@@ -370,6 +370,9 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 		return nil
 	}
 	if text, ok := dom_node.(*dom_Text_s); ok {
+		//======================================================================
+		// Layout for Text nodes
+		//======================================================================
 		color := parent.get_elem().get_computed_style_set().get_color().to_rgba()
 		str := text.get_text()
 		str = strings.TrimSpace(str)
@@ -377,13 +380,14 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 			// Nothing to display
 			return nil
 		}
-		//======================================================================
-		// Layout for Text nodes
-		//======================================================================
+		// Calculate left/top position
 		left, top := get_next_position()
+		// Calculate width/height using dimensions of the text
 		width, height := libplatform.MeasureText(tb.font, str)
 		rect := libgfx.Rect{Left: left, Top: top, Width: width, Height: height}
+		// Make text node
 		text := tb.make_text(parent, str, rect, color)
+		// Check if parent's size is auto and we have to grow its size.
 		inline_axis_size := rect.Width
 		if write_mode == browser_layout_write_mode_vertical {
 			inline_axis_size = rect.Height
@@ -394,8 +398,6 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 		if parent.is_height_auto() {
 			// Increment parent's height if needed.
 			height_diff := rect.Height - parent.get_rect_p().Height
-			log.Println("parent is ", parent)
-			log.Println("height diff", height_diff, rect.Height, parent.get_rect_p().Height)
 			if 0 < height_diff {
 				get_closest_bfc().increment_natural_position(height_diff)
 				parent.get_rect_p().Height += height_diff
@@ -409,13 +411,17 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 		//======================================================================
 		css := elem.get_computed_style_set()
 		compute_box_rect := func() (r libgfx.Rect, width_auto, height_auto bool) {
+			// Calculate left/top position
 			box_left, box_top := get_next_position()
 			box_left += parent.get_rect().Left
 			box_top += parent.get_rect().Top
+
+			// Calculate width/height using `width` and `height` property
 			box_width := css.get_width()
 			box_height := css.get_height()
 			box_width_px := 0.0
 			box_height_px := 0.0
+
 			// If width or height is auto, we start from 0 and expand it as we layout the children.
 			if box_width.tp != css_size_value_type_auto {
 				box_width_px = box_width.compute_used_value(css_number_from_float(parent.get_rect().Width)).length_to_px()
@@ -448,7 +454,7 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 				}
 			}
 
-			// Check if parent is auto and we have to grow its size.
+			// Check if parent's size is auto and we have to grow its size.
 			// XXX: Should we increment width/height if the element uses absolute positioning?
 			switch css_display.outer_mode {
 			case css_display_outer_mode_block:
@@ -469,6 +475,7 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 				}
 			}
 
+			// Increment natural position(if it's not auto)
 			inline_axis_size, inline_axis_auto := box_rect.Width, width_auto
 			block_axis_size, block_axis_auto := box_rect.Height, height_auto
 			if write_mode == browser_layout_write_mode_vertical {
@@ -486,7 +493,6 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 				}
 			}
 
-			log.Println("Initial box size", box_rect)
 			switch css_display.inner_mode {
 			case css_display_inner_mode_flow:
 				//==================================================================
