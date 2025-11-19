@@ -569,6 +569,7 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 		compute_box_rect := func(is_inline bool) (r libgfx.Rect, width_auto, height_auto bool) {
 			// Calculate left/top position
 			box_left, box_top := browser_layout_calc_next_position(parent_node, parent_fctx, write_mode, is_inline)
+			// FIXME: Add BFC/IFC's top, not parent node!
 			box_left += parent_node.get_rect().Left
 			box_top += parent_node.get_rect().Top
 
