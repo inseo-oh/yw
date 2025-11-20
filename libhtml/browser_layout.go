@@ -43,10 +43,12 @@ type browser_layout_formatting_context interface {
 	get_formatting_context_type() browser_layout_formatting_context_type
 	get_current_natural_pos() float64
 	increment_natural_pos(inc float64)
+	get_creator_box() browser_layout_box_node
 }
 
 type browser_layout_formatting_context_common struct {
 	is_dummy_context bool
+	creator_box      browser_layout_box_node
 }
 type browser_layout_formatting_context_type uint8
 
@@ -61,6 +63,10 @@ const (
 	browser_layout_write_mode_horizontal = browser_layout_write_mode(iota)
 	browser_layout_write_mode_vertical
 )
+
+func (fc browser_layout_formatting_context_common) get_creator_box() browser_layout_box_node {
+	return fc.creator_box
+}
 
 // Block Formatting Contexts(BFC for short) are responsible for tracking Y-axis,
 // or more accurately, the opposite axis of writing mode.
@@ -82,8 +88,10 @@ func (bfc *browser_layout_block_formatting_context) increment_natural_pos(pos fl
 	bfc.current_natural_pos += pos
 }
 
-func browser_layout_make_bfc() *browser_layout_block_formatting_context {
+// TODO: Use this thing for every BFC creation, and make similar function for IFC as well.
+func browser_layout_make_bfc(creator_box browser_layout_box_node) *browser_layout_block_formatting_context {
 	bfc := browser_layout_block_formatting_context{}
+	bfc.creator_box = creator_box
 	return &bfc
 }
 
@@ -235,6 +243,7 @@ func (bcon browser_layout_block_container_node) get_node_type() browser_layout_n
 func (bcon *browser_layout_block_container_node) get_or_make_ifc() *browser_layout_inline_formatting_context {
 	if bcon.ifc == nil {
 		bcon.ifc = &browser_layout_inline_formatting_context{}
+		bcon.ifc.creator_box = bcon
 		if bcon.bfc.is_dummy_context {
 			bcon.ifc.is_dummy_context = true
 		}
@@ -281,8 +290,6 @@ func (bcon *browser_layout_block_container_node) add_children(
 		if is_inline[i] && need_anonymous_block_container {
 			// Create anonymous block container
 			box_left, box_top := browser_layout_calc_next_position(bcon, parent_fctx, write_mode, false)
-			box_left += bcon.get_rect().Left
-			box_top += bcon.get_rect().Top
 			box_rect := libgfx.Rect{Left: box_left, Top: box_top, Width: 0, Height: 0}
 			anon_bcon := tb.make_block_container(parent_fctx, bcon, nil, box_rect, true, true)
 			anon_bcon.ifc = bcon.get_or_make_ifc() // Make sure inline nodes share the same IFC
@@ -370,7 +377,7 @@ func (tb browser_layout_tree_builder) make_block_container(
 	bcon.width_auto = width_auto
 	bcon.height_auto = height_auto
 	if parent_fctx.get_formatting_context_type() != browser_layout_formatting_context_type_block {
-		bcon.bfc = browser_layout_make_bfc()
+		bcon.bfc = browser_layout_make_bfc(bcon)
 		bcon.created_bfc = true
 	} else {
 		bcon.bfc = parent_fctx.(*browser_layout_block_formatting_context)
@@ -422,10 +429,11 @@ func browser_layout_calc_next_position(parent_node browser_layout_node, parent_f
 			inline_pos = 0
 			block_pos = bfc.get_current_natural_pos()
 		}
+		base_rect := parent_fctx.get_creator_box().get_rect()
 		if write_mode == browser_layout_write_mode_vertical {
-			return block_pos, inline_pos
+			return base_rect.Left + block_pos, base_rect.Top + inline_pos
 		}
-		return inline_pos, block_pos
+		return base_rect.Left + inline_pos, base_rect.Top + block_pos
 	} else {
 		var x, y float64
 		if len(ifc.line_boxes) != 0 {
@@ -434,10 +442,11 @@ func browser_layout_calc_next_position(parent_node browser_layout_node, parent_f
 			x = 0
 		}
 		y = bfc.get_current_natural_pos()
+		base_rect := parent_fctx.get_creator_box().get_rect()
 		if write_mode == browser_layout_write_mode_vertical {
-			return y, x
+			return base_rect.Left + y, base_rect.Top + x
 		}
-		return x, y
+		return base_rect.Left + x, base_rect.Top + y
 	}
 
 }
@@ -472,20 +481,6 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 	}
 
 	if dry_run {
-		var dummy_fctx browser_layout_formatting_context
-		if parent_fctx.get_formatting_context_type() == browser_layout_formatting_context_type_block {
-			dummy_fctx = &browser_layout_block_formatting_context{
-				browser_layout_formatting_context_common: browser_layout_formatting_context_common{
-					is_dummy_context: true,
-				},
-			}
-		} else {
-			dummy_fctx = &browser_layout_inline_formatting_context{
-				browser_layout_formatting_context_common: browser_layout_formatting_context_common{
-					is_dummy_context: true,
-				},
-			}
-		}
 		dummy_bcon := &browser_layout_block_container_node{}
 		dummy_bcon.elem = parent_node.get_elem()
 		dummy_bcon.bfc = &browser_layout_block_formatting_context{
@@ -493,6 +488,24 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 				is_dummy_context: true,
 			},
 		}
+
+		var dummy_fctx browser_layout_formatting_context
+		if parent_fctx.get_formatting_context_type() == browser_layout_formatting_context_type_block {
+			dummy_fctx = &browser_layout_block_formatting_context{
+				browser_layout_formatting_context_common: browser_layout_formatting_context_common{
+					is_dummy_context: true,
+					creator_box:      dummy_bcon,
+				},
+			}
+		} else {
+			dummy_fctx = &browser_layout_inline_formatting_context{
+				browser_layout_formatting_context_common: browser_layout_formatting_context_common{
+					is_dummy_context: true,
+					creator_box:      dummy_bcon,
+				},
+			}
+		}
+
 		parent_fctx = dummy_fctx
 		parent_node = dummy_bcon
 	}
@@ -569,9 +582,6 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 		compute_box_rect := func(is_inline bool) (r libgfx.Rect, width_auto, height_auto bool) {
 			// Calculate left/top position
 			box_left, box_top := browser_layout_calc_next_position(parent_node, parent_fctx, write_mode, is_inline)
-			// FIXME: Add BFC/IFC's top, not parent node!
-			box_left += parent_node.get_rect().Left
-			box_top += parent_node.get_rect().Top
 
 			// Calculate width/height using `width` and `height` property
 			box_width := css.get_width()
@@ -711,6 +721,7 @@ func browser_make_layout(root dom_Element, viewport_width, viewport_height float
 	bfc := browser_layout_block_formatting_context{}
 	box_rect := libgfx.Rect{Left: 0, Top: 0, Width: viewport_width, Height: viewport_height}
 	icb := tb.make_block_container(&bfc, nil, nil, box_rect, false, false)
+	bfc.creator_box = icb
 	icb.add_children(&bfc, tb, []dom_Node{root}, browser_layout_write_mode_horizontal)
 	return icb
 }
