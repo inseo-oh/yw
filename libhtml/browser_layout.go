@@ -105,8 +105,9 @@ func browser_layout_make_bfc(creator_box browser_layout_box_node) *browser_layou
 // https://www.w3.org/TR/css-inline-3/#inline-formatting-context
 type browser_layout_inline_formatting_context struct {
 	browser_layout_formatting_context_common
-	bcon       *browser_layout_block_container_node
-	line_boxes []browser_layout_line_box
+
+	bcon       *browser_layout_block_container_node // Block container containing this inline node
+	line_boxes []browser_layout_line_box            // List of line boxes
 }
 
 func (ifc browser_layout_inline_formatting_context) get_formatting_context_type() browser_layout_formatting_context_type {
@@ -128,6 +129,9 @@ func (ifc *browser_layout_inline_formatting_context) increment_natural_pos(pos f
 	ifc.get_current_line_box().current_natural_pos += pos
 }
 
+// Line box holds state needed for placing inline contents, such as next inline
+// position(which gets reset when entering new line).
+//
 // https://www.w3.org/TR/css-inline-3/#line-box
 type browser_layout_line_box struct {
 	current_natural_pos float64
