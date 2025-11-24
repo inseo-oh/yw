@@ -16,6 +16,7 @@ type browser_paint_node interface {
 type browser_text_paint_node struct {
 	text_layout_node browser_layout_text_node
 	font             libplatform.Font
+	font_size        float64
 	color            color.RGBA
 }
 
@@ -27,10 +28,11 @@ func (t browser_text_paint_node) paint(dest *image.RGBA) {
 	baseline_x := t.text_layout_node.rect.Left - rect.Left
 	baseline_y := t.text_layout_node.rect.Top - rect.Top // Note that rect.Top would be a negative position
 	// And finally we draw the text for real
+	t.font.SetTextSize(int(t.font_size))
 	t.font.DrawText(text, dest, baseline_x, baseline_y, t.color)
 }
 func (t browser_text_paint_node) String() string {
-	return fmt.Sprintf("text-paint(%v) %v", t.text_layout_node, t.color)
+	return fmt.Sprintf("text-paint(%v) %v %g", t.text_layout_node, t.color, t.font_size)
 }
 
 type browser_grouped_paint_node struct {

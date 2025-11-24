@@ -154,10 +154,11 @@ type browser_layout_line_box struct {
 
 type browser_layout_text_node struct {
 	browser_layout_node_common
-	rect  libgfx.Rect
-	text  string
-	font  libplatform.Font
-	color color.RGBA
+	rect      libgfx.Rect
+	text      string
+	font      libplatform.Font
+	font_size float64
+	color     color.RGBA
 }
 
 func (txt browser_layout_text_node) String() string {
@@ -170,6 +171,7 @@ func (txt browser_layout_text_node) make_paint_node() browser_paint_node {
 	return browser_text_paint_node{
 		text_layout_node: txt,
 		font:             txt.font,
+		font_size:        txt.font_size,
 		color:            txt.color,
 	}
 }
@@ -373,6 +375,7 @@ func (tb browser_layout_tree_builder) make_text(
 	text string,
 	rect libgfx.Rect,
 	color color.RGBA,
+	font_size float64,
 ) *browser_layout_text_node {
 	t := browser_layout_text_node{}
 	t.parent = parent
@@ -380,6 +383,7 @@ func (tb browser_layout_tree_builder) make_text(
 	t.rect = rect
 	t.font = tb.font
 	t.color = color
+	t.font_size = font_size
 	return &t
 }
 func (tb browser_layout_tree_builder) make_inline_box(
@@ -528,6 +532,8 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 		return nil
 	}
 	if text, ok := dom_node.(*dom_Text_s); ok {
+		parent_css := parent_elem.get_computed_style_set()
+
 		//======================================================================
 		// Layout for Text nodes
 		//======================================================================
@@ -544,8 +550,14 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 			ifc.add_line_box(bfc)
 		}
 
+		// Calculate the font size
+		parent_font_size := css_number_from_float(css_preferred_font_size) // STUB
+		font_size := parent_css.get_font_size().calculate_real_font_size(parent_font_size).length_to_px(parent_font_size)
+		tb.font.SetTextSize(int(font_size)) // NOTE: Size we set here will only be used for measuring
+
 		fragment_remaining := str
 		text_nodes := []browser_layout_node{}
+
 		for 0 < len(fragment_remaining) {
 			line_box := ifc.get_current_line_box()
 
@@ -583,8 +595,8 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 			fragment_remaining = fragment_remaining[str_len:]
 
 			// Make text node
-			color := parent_elem.get_computed_style_set().get_color().to_rgba()
-			text_node = tb.make_text(parent_node, fragment, rect, color)
+			color := parent_css.get_color().to_rgba()
+			text_node = tb.make_text(parent_node, fragment, rect, color, font_size)
 
 			if parent_node.is_width_auto() {
 				parent_node.get_rect_p().Width += rect.Width
@@ -626,12 +638,14 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 
 			// If width or height is auto, we start from 0 and expand it as we layout the children.
 			if box_width.tp != css_size_value_type_auto {
-				box_width_px = box_width.compute_used_value(css_number_from_float(parent_node.get_rect().Width)).length_to_px()
+				parent_size := css_number_from_float(parent_node.get_rect().Width)
+				box_width_px = box_width.compute_used_value(parent_size).length_to_px(parent_size)
 			} else {
 				width_auto = true
 			}
 			if box_height.tp != css_size_value_type_auto {
-				box_height_px = box_height.compute_used_value(css_number_from_float(parent_node.get_rect().Height)).length_to_px()
+				parent_size := css_number_from_float(parent_node.get_rect().Height)
+				box_height_px = box_height.compute_used_value(parent_size).length_to_px(parent_size)
 			} else {
 				height_auto = true
 			}

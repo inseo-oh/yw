@@ -35,10 +35,13 @@ func css_length_from_px(px css_number) css_length {
 
 func (l css_length) String() string                                 { return fmt.Sprintf("%v%v", l.value, l.unit) }
 func (l css_length) as_length(container_size css_number) css_length { return l }
-func (l css_length) length_to_px() float64 {
-	if l.unit == css_length_unit_px {
+func (l css_length) length_to_px(container_size css_number) float64 {
+	switch l.unit {
+	case css_length_unit_px:
 		return l.value.to_float()
-	} else {
+	case css_length_unit_em:
+		return container_size.to_float() * l.value.to_float()
+	default:
 		panic("TODO")
 	}
 }

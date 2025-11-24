@@ -3,6 +3,8 @@ package libhtml
 
 import (
 	"fmt"
+	"log"
+	"math"
 	"strconv"
 	"strings"
 	cm "yw/libcommon"
@@ -127,9 +129,13 @@ func (s css_font_style) String() string {
 }
 
 type css_font_size interface {
-	calculate_real_font_size() css_length
+	calculate_real_font_size(parent_font_size css_number) css_length
 	String() string
 }
+
+const (
+	css_preferred_font_size = 14 // XXX: Let user choose this size!
+)
 
 type css_absolute_size uint8
 
@@ -163,8 +169,33 @@ func (s css_absolute_size) String() string {
 	return fmt.Sprintf("<unknown css_absolute_size value %d>", s)
 }
 
-func (s css_absolute_size) calculate_real_font_size() css_length {
-	panic("TODO")
+// https://www.w3.org/TR/css-fonts-3/#absolute-size-value
+var css_absolute_size_map = map[css_absolute_size]float64{
+	css_absolute_size_xx_small: (css_preferred_font_size * 3) / 5,
+	css_absolute_size_x_small:  (css_preferred_font_size * 3) / 4,
+	css_absolute_size_small:    (css_preferred_font_size * 8) / 9,
+	css_absolute_size_medium:   css_preferred_font_size,
+	css_absolute_size_large:    (css_preferred_font_size * 6) / 5,
+	css_absolute_size_x_large:  (css_preferred_font_size * 3) / 2,
+	css_absolute_size_xx_large: (css_preferred_font_size * 2) / 1,
+}
+
+func (s css_absolute_size) calculate_real_font_size(parent_font_size css_number) css_length {
+	return css_length_from_px(css_number_from_float(css_absolute_size_map[s]))
+}
+
+func absolute_size_from_px(font_size css_number) css_absolute_size {
+	size_num := font_size.to_float()
+	min_diff := float64(^0)
+	var res_size css_absolute_size
+	for k, v := range css_absolute_size_map {
+		diff := math.Abs(size_num - v)
+		if diff < min_diff {
+			res_size = k
+			min_diff = diff
+		}
+	}
+	return res_size
 }
 
 type css_relative_size uint8
@@ -184,14 +215,59 @@ func (s css_relative_size) String() string {
 	return fmt.Sprintf("<unknown css_relative_size value %d>", s)
 }
 
-func (s css_relative_size) calculate_real_font_size() css_length {
-	panic("TODO")
+func (s css_relative_size) calculate_real_font_size(parent_font_size css_number) css_length {
+	parent_size_abs := absolute_size_from_px(parent_font_size)
+	var result_size_abs css_absolute_size
+	switch s {
+	case css_relative_size_larger:
+		switch parent_size_abs {
+		case css_absolute_size_xx_small:
+			result_size_abs = css_absolute_size_x_small
+		case css_absolute_size_x_small:
+			result_size_abs = css_absolute_size_small
+		case css_absolute_size_small:
+			result_size_abs = css_absolute_size_medium
+		case css_absolute_size_medium:
+			result_size_abs = css_absolute_size_large
+		case css_absolute_size_large:
+			result_size_abs = css_absolute_size_x_large
+		case css_absolute_size_x_large:
+			result_size_abs = css_absolute_size_xx_large
+		case css_absolute_size_xx_large:
+			result_size_abs = css_absolute_size_xx_large
+		default:
+			log.Panicf("<unknown css_absolute_size value %d>", s)
+		}
+		return result_size_abs.calculate_real_font_size(parent_font_size)
+	case css_relative_size_smaller:
+		switch parent_size_abs {
+		case css_absolute_size_xx_small:
+			result_size_abs = css_absolute_size_xx_small
+		case css_absolute_size_x_small:
+			result_size_abs = css_absolute_size_xx_small
+		case css_absolute_size_small:
+			result_size_abs = css_absolute_size_x_small
+		case css_absolute_size_medium:
+			result_size_abs = css_absolute_size_small
+		case css_absolute_size_large:
+			result_size_abs = css_absolute_size_medium
+		case css_absolute_size_x_large:
+			result_size_abs = css_absolute_size_large
+		case css_absolute_size_xx_large:
+			result_size_abs = css_absolute_size_x_large
+		default:
+			log.Panicf("<unknown css_absolute_size value %d>", s)
+		}
+		return result_size_abs.calculate_real_font_size(parent_font_size)
+	}
+	log.Panicf("<unknown css_relative_size value %d>", s)
+	return css_length_from_px(parent_font_size)
 }
 
 type css_length_font_size struct{ css_length_resolvable }
 
-func (l css_length_font_size) calculate_real_font_size() css_length {
-	panic("TODO")
+func (l css_length_font_size) calculate_real_font_size(parent_font_size css_number) css_length {
+	return l.as_length(parent_font_size)
 }
 
 // https://www.w3.org/TR/css-fonts-3/#propdef-font-family
