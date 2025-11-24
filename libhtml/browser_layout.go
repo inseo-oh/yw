@@ -113,10 +113,14 @@ type browser_layout_inline_formatting_context struct {
 func (ifc browser_layout_inline_formatting_context) get_formatting_context_type() browser_layout_formatting_context_type {
 	return browser_layout_formatting_context_type_inline
 }
-func (ifc *browser_layout_inline_formatting_context) make_line_box(bfc *browser_layout_block_formatting_context) {
+func (ifc *browser_layout_inline_formatting_context) add_line_box(bfc *browser_layout_block_formatting_context) {
 	lb := browser_layout_line_box{}
 	lb.current_line_height = 0
 	lb.initial_block_pos = bfc.get_current_natural_pos()
+	lb.available_width = ifc.bcon.rect.Width
+	if !ifc.is_dummy_context && lb.available_width == 0 {
+		browser_print_layout_tree(ifc.bcon)
+	}
 	ifc.line_boxes = append(ifc.line_boxes, lb)
 }
 func (ifc *browser_layout_inline_formatting_context) get_current_line_box() *browser_layout_line_box {
@@ -126,7 +130,11 @@ func (ifc browser_layout_inline_formatting_context) get_current_natural_pos() fl
 	return ifc.get_current_line_box().current_natural_pos
 }
 func (ifc *browser_layout_inline_formatting_context) increment_natural_pos(pos float64) {
-	ifc.get_current_line_box().current_natural_pos += pos
+	lb := ifc.get_current_line_box()
+	if lb.available_width < lb.current_natural_pos+pos && !ifc.is_dummy_context {
+		panic("content overflow")
+	}
+	lb.current_natural_pos += pos
 }
 
 // Line box holds state needed for placing inline contents, such as next inline
@@ -134,6 +142,7 @@ func (ifc *browser_layout_inline_formatting_context) increment_natural_pos(pos f
 //
 // https://www.w3.org/TR/css-inline-3/#line-box
 type browser_layout_line_box struct {
+	available_width     float64
 	current_natural_pos float64
 	current_line_height float64
 	initial_block_pos   float64
@@ -237,16 +246,18 @@ func (bx *browser_layout_inline_box_node) init_children(
 		panic("this method should be called only once")
 	}
 	for _, child_node := range children {
-		node := tb.make_layout_for_node(bx.parent_bcon.ifc, bx.parent_bcon.bfc, bx.parent_bcon.ifc, write_mode, bx, child_node, false)
-		if cm.IsNil(node) {
+		nodes := tb.make_layout_for_node(bx.parent_bcon.ifc, bx.parent_bcon.bfc, bx.parent_bcon.ifc, write_mode, bx, child_node, false)
+		if len(nodes) == 0 {
 			continue
 		}
-		if sub_bx, ok := node.(browser_layout_box_node); ok {
-			bx.child_boxes = append(bx.child_boxes, sub_bx)
-		} else if txt, ok := node.(*browser_layout_text_node); ok {
-			bx.child_texts = append(bx.child_texts, txt)
-		} else {
-			log.Panicf("unknown node result %v", node)
+		for _, node := range nodes {
+			if sub_bx, ok := node.(browser_layout_box_node); ok {
+				bx.child_boxes = append(bx.child_boxes, sub_bx)
+			} else if txt, ok := node.(*browser_layout_text_node); ok {
+				bx.child_texts = append(bx.child_texts, txt)
+			} else {
+				log.Panicf("unknown node result %v", node)
+			}
 		}
 	}
 }
@@ -290,16 +301,18 @@ func (bcon *browser_layout_block_container_node) init_children(
 	has_inline, has_block := false, false
 	is_inline := make([]bool, len(children))
 	for i, child_node := range children {
-		node := tb.make_layout_for_node(bcon.parent_fctx, bcon.bfc, bcon.ifc, write_mode, bcon, child_node, true)
+		nodes := tb.make_layout_for_node(bcon.parent_fctx, bcon.bfc, bcon.ifc, write_mode, bcon, child_node, true)
 		is_inline[i] = false
-		if cm.IsNil(node) {
+		if len(nodes) == 0 {
 			continue
 		}
-		if node.is_block_level() {
-			has_block = true
-		} else {
-			has_inline = true
-			is_inline[i] = true
+		for _, node := range nodes {
+			if node.is_block_level() {
+				has_block = true
+			} else {
+				has_inline = true
+				is_inline[i] = true
+			}
 		}
 	}
 
@@ -318,29 +331,32 @@ func (bcon *browser_layout_block_container_node) init_children(
 
 	// Now we can layout the children for real
 	for i, child_node := range children {
-		var node browser_layout_node
+		var nodes []browser_layout_node
 		if is_inline[i] && need_anonymous_block_container {
 			// Create anonymous block container
 			box_left, box_top := browser_layout_calc_next_position(bcon.bfc, bcon.ifc, write_mode, false)
-			box_rect := libgfx.Rect{Left: box_left, Top: box_top, Width: 0, Height: 0}
-			anon_bcon := tb.make_block_container(bcon.parent_fctx, bcon.ifc, bcon, nil, box_rect, true, true)
+			box_rect := libgfx.Rect{Left: box_left, Top: box_top, Width: bcon.rect.Width, Height: bcon.rect.Height}
+			anon_bcon := tb.make_block_container(bcon.parent_fctx, bcon.ifc, bcon, nil, box_rect, false, false)
 			anon_bcon.ifc = bcon.ifc
 			anon_bcon.init_children(tb, []dom_Node{child_node}, write_mode)
-			node = anon_bcon
+			nodes = []browser_layout_node{anon_bcon}
 		} else {
 			// Create layout node normally
-			node = tb.make_layout_for_node(bcon.parent_fctx, bcon.bfc, bcon.ifc, write_mode, bcon, child_node, false)
+			nodes = tb.make_layout_for_node(bcon.parent_fctx, bcon.bfc, bcon.ifc, write_mode, bcon, child_node, false)
 		}
-		if cm.IsNil(node) {
+		if len(nodes) == 0 {
 			continue
 		}
-		if bx, ok := node.(browser_layout_box_node); ok {
-			bcon.child_boxes = append(bcon.child_boxes, bx)
-		} else if txt, ok := node.(*browser_layout_text_node); ok {
-			bcon.child_texts = append(bcon.child_texts, txt)
-		} else {
-			log.Panicf("unknown node result %v", node)
+		for _, node := range nodes {
+			if bx, ok := node.(browser_layout_box_node); ok {
+				bcon.child_boxes = append(bcon.child_boxes, bx)
+			} else if txt, ok := node.(*browser_layout_text_node); ok {
+				bcon.child_texts = append(bcon.child_texts, txt)
+			} else {
+				log.Panicf("unknown node result %v", node)
+			}
 		}
+
 	}
 }
 
@@ -457,7 +473,7 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 	parent_node browser_layout_box_node,
 	dom_node dom_Node,
 	dry_run bool,
-) browser_layout_node {
+) []browser_layout_node {
 	var parent_elem dom_Element
 	{
 		curr_node := parent_node
@@ -523,49 +539,76 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 			return nil
 		}
 
-		// Calculate width/height using dimensions of the text
-		width, height := libplatform.MeasureText(tb.font, str)
-
-		// Calculate left/top position
-		left, top := browser_layout_calc_next_position(bfc, ifc, write_mode, true)
-		rect := libgfx.Rect{Left: left, Top: top, Width: width, Height: height}
-
-		// Get color
-		color := parent_elem.get_computed_style_set().get_color().to_rgba()
-
-		// Make text node
-		text_node = tb.make_text(parent_node, str, rect, color)
-
-		// Check if parent's size is auto and we have to grow its size.
-		inline_axis_size := rect.Width
-		if write_mode == browser_layout_write_mode_vertical {
-			inline_axis_size = rect.Height
-		}
-		if parent_node.is_width_auto() {
-			parent_node.get_rect_p().Width += rect.Width
-		}
-
 		// Create line box if needed
 		if len(ifc.line_boxes) == 0 {
-			ifc.make_line_box(bfc)
-			line_box := ifc.get_current_line_box()
-			if parent_node.get_rect_p().Height < line_box.current_line_height {
-				parent_node.get_rect_p().Height = rect.Height
-			}
+			ifc.add_line_box(bfc)
 		}
-		line_box := ifc.get_current_line_box()
-		if parent_node.is_height_auto() {
-			line_box.current_line_height = max(line_box.current_line_height, rect.Height)
 
-			// Increment parent's height if needed.
-			if parent_node.get_rect_p().Height < line_box.current_line_height {
-				diff := line_box.current_line_height - parent_node.get_rect_p().Height
-				parent_node.get_rect_p().Height = line_box.current_line_height
-				bfc.increment_natural_pos(diff)
+		fragment_remaining := str
+		text_nodes := []browser_layout_node{}
+		for 0 < len(fragment_remaining) {
+			line_box := ifc.get_current_line_box()
+
+			var rect libgfx.Rect
+			var inline_axis_size float64
+			str_len := len(fragment_remaining)
+
+			// Calculate left/top position
+			left, top := browser_layout_calc_next_position(bfc, ifc, write_mode, true)
+
+			// Figure out where we should end current fragment, so that we don't overflow the line box.
+			// TODO: We should not do this if we are not doing text wrapping(e.g. whitespace: nowrap).
+			for {
+				// FIXME: This is very brute-force way of fragmenting text.
+				//        We need smarter way to handle this.
+
+				// Calculate width/height using dimensions of the text
+				width, height := libplatform.MeasureText(tb.font, fragment_remaining[:str_len])
+
+				rect = libgfx.Rect{Left: left, Top: top, Width: width, Height: height}
+
+				// Check if parent's size is auto and we have to grow its size.
+				inline_axis_size = rect.Width
+				if write_mode == browser_layout_write_mode_vertical {
+					inline_axis_size = rect.Height
+				}
+				// Check if we overflow beyond available size
+				if ifc.is_dummy_context || line_box.current_natural_pos+inline_axis_size <= line_box.available_width {
+					// If not, we don't have to fragment text further.
+					break
+				}
+				str_len-- // Decrement length and try again
+			}
+			fragment := fragment_remaining[:str_len]
+			fragment_remaining = fragment_remaining[str_len:]
+
+			// Make text node
+			color := parent_elem.get_computed_style_set().get_color().to_rgba()
+			text_node = tb.make_text(parent_node, fragment, rect, color)
+
+			if parent_node.is_width_auto() {
+				parent_node.get_rect_p().Width += rect.Width
+			}
+
+			line_height_diff := max(rect.Height-line_box.current_line_height, 0)
+			if parent_node.is_height_auto() {
+				line_box.current_line_height = max(line_box.current_line_height, rect.Height)
+
+				// Increment parent's height if needed.
+				if parent_node.get_rect_p().Height < line_box.current_line_height {
+					parent_node.get_rect_p().Height = line_box.current_line_height
+				}
+			}
+			ifc.increment_natural_pos(inline_axis_size)
+			text_nodes = append(text_nodes, text_node)
+			bfc.increment_natural_pos(line_height_diff)
+			if len(fragment_remaining) != 0 {
+				// Make a new line
+				ifc.add_line_box(bfc)
 			}
 		}
-		ifc.increment_natural_pos(inline_axis_size)
-		return text_node
+
+		return text_nodes
 	} else if elem, ok := dom_node.(dom_Element); ok {
 		//======================================================================
 		// Layout for Element nodes
@@ -629,13 +672,13 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 				if parent_node.is_width_auto() {
 					parent_node.get_rect_p().Width += box_rect.Width
 					if len(ifc.line_boxes) == 0 {
-						ifc.make_line_box(bfc)
+						ifc.add_line_box(bfc)
 					}
 					ifc.increment_natural_pos(box_rect.Width)
 				}
 				if parent_node.is_height_auto() {
 					if len(ifc.line_boxes) == 0 {
-						ifc.make_line_box(bfc)
+						ifc.add_line_box(bfc)
 					}
 					line_box := ifc.get_current_line_box()
 					line_box.current_line_height = max(line_box.current_line_height, box_rect.Height)
@@ -704,7 +747,7 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 					}
 					box = bcon
 				}
-				return box
+				return []browser_layout_node{box}
 			case css_display_inner_mode_flow_root:
 				//==================================================================
 				// "flow-root" mode (flow-root, inline-block display modes)
@@ -714,7 +757,7 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 				if !dry_run {
 					bcon.init_children(tb, elem.get_children(), write_mode)
 				}
-				return bcon
+				return []browser_layout_node{bcon}
 			default:
 				log.Panicf("TODO: Support display: %v", css_display)
 			}
