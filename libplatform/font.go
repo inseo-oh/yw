@@ -6,8 +6,25 @@ import (
 	"yw/libgfx"
 )
 
+type FontMetrics struct {
+	//
+	// Ascender -> | @    @  LineHeight -> |
+	//             |  @  @                 |
+	// baseline -> |___@@___|              |
+	//                 @    |              |
+	//                @     | <- Descender |
+	//               @      |              |
+	//                                     |
+	//                                     |
+
+	Ascender   float64
+	Descender  float64
+	LineHeight float64
+}
+
 type Font interface {
 	SetTextSize(size int)
+	Metrics() FontMetrics
 	// Note that dest may be nil -- in that case DrawText should perform a dry-run and return resulting size.
 	DrawText(text string, dest *image.RGBA, offset_x, offset_y float64, text_color color.RGBA) libgfx.Rect
 }

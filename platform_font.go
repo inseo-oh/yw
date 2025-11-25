@@ -10,6 +10,7 @@ import (
 	"log"
 	"unsafe"
 	"yw/libgfx"
+	"yw/libplatform"
 )
 
 type ft_font struct {
@@ -19,6 +20,14 @@ type ft_font struct {
 func (fnt ft_font) SetTextSize(size int) {
 	if res := C.FT_Set_Pixel_Sizes(fnt.face, 0, C.FT_UInt(size)); res != C.FT_Err_Ok {
 		log.Printf("Failed to set font size (FT_Set_Pixel_Sizes error %d)", res)
+	}
+}
+func (fnt ft_font) Metrics() libplatform.FontMetrics {
+	raw_metrics := fnt.face.size.metrics
+	return libplatform.FontMetrics{
+		Ascender:   float64(raw_metrics.ascender) / 64.0,
+		Descender:  float64(raw_metrics.descender) / 64.0,
+		LineHeight: float64(raw_metrics.height) / 64.0,
 	}
 }
 func (fnt ft_font) DrawText(text string, dest *image.RGBA, offset_x, offset_y float64, text_color color.RGBA) libgfx.Rect {

@@ -554,6 +554,7 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 		parent_font_size := css_number_from_float(css_preferred_font_size) // STUB
 		font_size := parent_css.get_font_size().calculate_real_font_size(parent_font_size).length_to_px(parent_font_size)
 		tb.font.SetTextSize(int(font_size)) // NOTE: Size we set here will only be used for measuring
+		metrics := tb.font.Metrics()
 
 		fragment_remaining := str
 		text_nodes := []browser_layout_node{}
@@ -575,9 +576,9 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 				//        We need smarter way to handle this.
 
 				// Calculate width/height using dimensions of the text
-				width, height := libplatform.MeasureText(tb.font, fragment_remaining[:str_len])
+				width, _ := libplatform.MeasureText(tb.font, fragment_remaining[:str_len])
 
-				rect = libgfx.Rect{Left: left, Top: top, Width: width, Height: height}
+				rect = libgfx.Rect{Left: left, Top: top, Width: width, Height: metrics.LineHeight}
 
 				// Check if parent's size is auto and we have to grow its size.
 				inline_axis_size = rect.Width

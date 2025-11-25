@@ -21,15 +21,12 @@ type browser_text_paint_node struct {
 }
 
 func (t browser_text_paint_node) paint(dest *image.RGBA) {
-	text := t.text_layout_node.text
-	// First we draw(to nowhere) with 0, 0 as baseline offset.
-	rect := t.font.DrawText(text, nil, 0, 0, color.RGBA{})
-	// Then we figure out where the baseline should be
-	baseline_x := t.text_layout_node.rect.Left - rect.Left
-	baseline_y := t.text_layout_node.rect.Top - rect.Top // Note that rect.Top would be a negative position
-	// And finally we draw the text for real
 	t.font.SetTextSize(int(t.font_size))
-	t.font.DrawText(text, dest, baseline_x, baseline_y, t.color)
+	metrics := t.font.Metrics()
+	x := t.text_layout_node.rect.Left
+	baseline_y := t.text_layout_node.rect.Top + metrics.Ascender
+	text := t.text_layout_node.text
+	t.font.DrawText(text, dest, x, baseline_y, t.color)
 }
 func (t browser_text_paint_node) String() string {
 	return fmt.Sprintf("text-paint(%v) %v %g", t.text_layout_node, t.color, t.font_size)
