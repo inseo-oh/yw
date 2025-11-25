@@ -52,7 +52,9 @@ func (b *Browser) Init(url_str string, plat libplatform.Platform, viewport_img *
 		stylesheet.location = nil
 		stylesheet.parent_stylesheet = nil
 		stylesheet.owner_rule = nil
-		css_add_stylesheet(&stylesheet)
+		doc := html.get_node_document()
+		doc.set_css_stylesheets(append([]*css_stylesheet{&stylesheet}, doc.get_css_stylesheets()...))
+		// css_add_stylesheet(&stylesheet)
 
 		if debug_builtin_stylesheet {
 			log.Println("dump of builtin stylesheet")
