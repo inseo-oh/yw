@@ -1039,6 +1039,9 @@ func (ts *css_token_stream) consume_simple_block(open_token_type, close_token_ty
 		}
 		res_nodes = append(res_nodes, temp_tk)
 	}
+	if cm.IsNil(close_token) {
+		return nil
+	}
 	return &css_ast_simple_block_token{
 		css_token_common{open_token.get_cursor_from(), close_token.get_cursor_to()},
 		block_type, res_nodes,
