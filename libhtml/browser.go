@@ -81,8 +81,9 @@ func (b *Browser) Init(url_str string, plat libplatform.Platform, viewport_img *
 	// Parse the HTML ----------------------------------------------------------
 	html := string(bytes)
 	par := html_make_parser(html)
+	par.document = dom_make_Document()
+	par.document.set_base_url(*url_obj)
 	doc := par.Run()
-	doc.set_base_url(*url_obj)
 
 	// Find the <html> element -------------------------------------------------
 	html_elem := doc.filter_elem_children_by_local_name(dom_name_pair{html_namespace, "html"})[0]

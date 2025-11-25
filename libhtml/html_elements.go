@@ -137,7 +137,7 @@ type html_HTMLLinkElement_s struct {
 }
 
 func html_make_HTMLLinkElement(options dom_element_creation_common_options) html_HTMLLinkElement {
-	return &html_HTMLLinkElement_s{
+	elem := &html_HTMLLinkElement_s{
 		html_HTMLElement: html_make_HTMLElement(options, dom_element_callbacks{
 			get_intrinsic_size: func() (width float64, height float64) {
 				// XXX: Do we need intrinsic size for this?
@@ -145,6 +145,15 @@ func html_make_HTMLLinkElement(options dom_element_creation_common_options) html
 			},
 		}),
 	}
+
+	cbs := elem.get_callbacks()
+
+	// HTML Spec defines precisely when link element should be processed, but this will do the job for now.
+	// (Example: https://html.spec.whatwg.org/multipage/links.html#link-type-stylesheet)
+	cbs.popped_from_stack_of_open_elements = func() {
+		elem.process_link()
+	}
+	return elem
 }
 
 func (elem html_HTMLLinkElement_s) process_link() {
@@ -228,7 +237,8 @@ func (elem html_HTMLLinkElement_s) process_link() {
 	// https://html.spec.whatwg.org/multipage/semantics.html#create-a-link-request
 	create_link_request := func(options link_processing_options) (*http.Request, error) {
 		// STUB
-		return http.NewRequest("GET", options.base_url.String()+options.href, nil)
+		// NOTE: We don't use JoinPath() because the "path" part of URL may not be a real filesystem path.
+		return http.NewRequest("GET", options.base_url.String()+"/"+options.href, nil)
 	}
 
 	if process_linked_resource == nil {
@@ -281,7 +291,61 @@ func (elem html_HTMLLinkElement_s) process_link_type_stylesheet() (
 	linked_resource_fetch_setup_steps func() bool,
 	process_linked_resource func(success bool, response *http.Response, response_bytes []byte),
 ) {
-	return nil, nil, nil
+	process_linked_resource = func(success bool, response *http.Response, response_bytes []byte) {
+		// NOTE: All the step numbers(S#.) are based on spec from when this was initially written(2025.11.25)
+
+		// S1.
+		// TODO: If the resource's Content-Type metadata is not text/css, then set success to false.
+
+		// S2.
+		// TODO: If el no longer creates an external resource link that contributes to the styling processing model, or if, since the resource in question was fetched, it has become appropriate to fetch it again, then:
+
+		// S3.
+		if sheet := css_associated_stylesheet(elem); sheet != nil {
+			css_remove_stylesheet(sheet)
+		}
+
+		// S4.
+		if success {
+			url_str := response.Request.URL.String()
+			// S4-1.
+			text := css_decode_bytes(response_bytes)
+			tokens, err := css_tokenize(text)
+			if err != nil {
+				log.Printf("<link %s>: failed to tokenize stylesheet: %v", url_str, err)
+				return
+			}
+			stylesheet := css_parse_stylesheet(tokens, &url_str)
+			stylesheet.tp = "text/css"
+			stylesheet.owner_node = elem
+			stylesheet.location = &url_str
+			// TODO: Set stylesheet.media once we implement that
+			if dom_node_is_in_document_tree(elem) {
+				if attr, ok := elem.get_attribute_without_namespace("title"); ok {
+					stylesheet.title = attr
+				}
+			}
+			stylesheet.alternate_flag = false   // TODO: Set if the link is an alternative style sheet and el's explicitly enabled is false; unset otherwise.
+			stylesheet.origin_clean_flag = true // TODO: Set if the resource is CORS-same-origin; unset otherwise.
+			stylesheet.parent_stylesheet = nil
+			stylesheet.owner_rule = nil
+			css_add_stylesheet(&stylesheet)
+			log.Printf("<link %s>: stylesheet loaded", url_str)
+		} else {
+			// S5.
+			// TODO: Otherwise, fire an event named error at el.
+		}
+
+		// S6.
+		if elem.contributes_script_blocking_style_sheet() {
+			// TODO: append element to its node document's script-blocking style sheet set.
+			panic("TODO[https://html.spec.whatwg.org/multipage/links.html#link-type-stylesheet]")
+		}
+
+		// S7.
+		// TODO: Unblock rendering on el.
+	}
+	return nil, nil, process_linked_resource
 }
 
 //------------------------------------------------------------------------------
