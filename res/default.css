@@ -347,43 +347,55 @@ pre[dir='auto' i] {
 /*******************************************************************************
  * https://html.spec.whatwg.org/multipage/rendering.html#sections-and-headings
  ******************************************************************************/
+
+/*
+ * NOTE: HTML Spec uses :heading, :heading(), but we don't have support for that, so we use old h1~h6 instead.
+ * (MDN Says it's experimental technology, and as of writing this comment, it's only available in Firefox Nightly)
+ */
 article,
 aside,
-:heading,
+/* :heading, */
+h1, h2, h3, h4, h5, h6,
 hgroup,
 nav,
 section {
     display: block;
 }
 
-:heading {
+/* :heading { */
+h1, h2, h3, h4, h5, h6 {
     font-weight: bold;
 }
 
-:heading(1) {
+/* :heading(1) { */
+h1 {
     margin-block: 0.67em;
     font-size: 2em;
 }
-:heading(2) {
+/* :heading(2) { */
+h2 {
     margin-block: 0.83em;
     font-size: 1.5em;
 }
-:heading(3) {
+/* :heading(3) { */
+h3 {
     margin-block: 1em;
     font-size: 1.17em;
 }
-:heading(4) {
+/* :heading(4) { */
+h4 {
     margin-block: 1.33em;
     font-size: 1em;
 }
-:heading(5) {
+h5 {
     margin-block: 1.67em;
     font-size: 0.83em;
 }
-:heading(6) {
+h6 {
     font-size: 0.67em;
     margin-block: 2.33em;
 }
+/* I'm not even sure what these are supposed to match, as there is no <h7>, <h8>, <h9> in HTML. */
 :heading(7) {
     font-size: 0.67em;
     margin-block: 2.33em;
