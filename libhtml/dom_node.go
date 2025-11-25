@@ -15,10 +15,11 @@ type dom_Node_s struct {
 	callbacks     dom_node_callbacks
 }
 type dom_node_callbacks struct {
-	run_insertion_steps        func()
-	run_children_changed_steps func()
-	run_post_connection_steps  func()
-	run_adopting_steps         func(old_doc dom_Document)
+	run_insertion_steps                func()
+	run_children_changed_steps         func()
+	run_post_connection_steps          func()
+	run_adopting_steps                 func(old_doc dom_Document)
+	popped_from_stack_of_open_elements func()
 }
 type dom_Node interface {
 	get_callbacks() *dom_node_callbacks

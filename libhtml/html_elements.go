@@ -309,8 +309,10 @@ func html_make_HTMLStyleElement(options dom_element_creation_common_options) htm
 	// From 4.2.6. The style element(https://html.spec.whatwg.org/multipage/semantics.html#the-style-element)
 	// The user agent must run the update a style block algorithm whenever any of the following conditions occur:
 	//  - The element is popped off the stack of open elements of an HTML parser or XML parser.
+	cbs.popped_from_stack_of_open_elements = func() {
+		elem.update_style_block()
+	}
 	//  - The element is not on the stack of open elements of an HTML parser or XML parser, and it becomes connected or disconnected.
-
 	//  - The element's children changed steps run.
 	cbs.run_children_changed_steps = func() {
 		elem.update_style_block()

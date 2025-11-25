@@ -286,6 +286,10 @@ func (p *html_parser) pop_node_from_soe() dom_Element {
 	// When the current node is removed from the stack of open elements, process internal resource links given the current node's node document.
 	node := p.stack_of_open_elems[len(p.stack_of_open_elems)-1]
 	p.stack_of_open_elems = p.stack_of_open_elems[:len(p.stack_of_open_elems)-1]
+	cb := node.get_callbacks().popped_from_stack_of_open_elements
+	if cb != nil {
+		cb()
+	}
 	return node
 }
 func (p *html_parser) remove_from_soe(idx int) {
