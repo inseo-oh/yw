@@ -222,23 +222,27 @@ func html_make_HTMLBodyElement(options dom_element_creation_common_options) html
 	})
 
 	cbs := elem.get_callbacks()
-	cbs.get_presentational_hints = func() []css_declaration {
+	cbs.get_presentational_hints = func() []css_style_rule {
 		decls := []css_declaration{}
 
 		// https://html.spec.whatwg.org/multipage/rendering.html#the-page
 		if attr, ok := elem.get_attribute_without_namespace("bgcolor"); ok {
 			color, ok := html_parse_legacy_color_value(attr)
 			if ok {
-				decls = append(decls, css_declaration{"background-color", color})
+				decls = append(decls, css_declaration{"background-color", color, false})
 			}
 		}
 		if attr, ok := elem.get_attribute_without_namespace("text"); ok {
 			color, ok := html_parse_legacy_color_value(attr)
 			if ok {
-				decls = append(decls, css_declaration{"color", color})
+				decls = append(decls, css_declaration{"color", color, false})
 			}
 		}
-		return decls
+		rule := css_style_rule{
+			selector_list: []css_selector{css_node_ptr_selector{elem}},
+			declarations:  decls,
+		}
+		return []css_style_rule{rule}
 
 	}
 	return elem

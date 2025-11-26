@@ -76,27 +76,15 @@ func css_number_from_float(v float64) css_number {
 }
 
 type css_style_rule struct {
-	selector_list []css_complex_selector
+	selector_list []css_selector
 	declarations  []css_declaration
 	at_rules      []css_at_rule
 }
 
-func (r css_style_rule) apply_style_rules(roots []dom_Node) {
-	// First we figure out where this style rule should be applied to
-	selected_elements := css_match_selector_against_tree(r.selector_list, roots)
-
-	for _, node := range selected_elements {
-		elem := node.(dom_Element)
-		for _, decl := range r.declarations {
-			decl.apply_style_rules(elem)
-		}
-
-	}
-}
-
 type css_declaration struct {
-	name  string
-	value css_property_value
+	name         string
+	value        css_property_value
+	is_important bool
 }
 
 func (d css_declaration) apply_style_rules(elem dom_Element) {

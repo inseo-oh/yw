@@ -20,7 +20,7 @@ type dom_node_callbacks struct {
 	run_post_connection_steps          func()
 	run_adopting_steps                 func(old_doc dom_Document)
 	popped_from_stack_of_open_elements func()
-	get_presentational_hints           func() []css_declaration
+	get_presentational_hints           func() []css_style_rule
 }
 type dom_Node interface {
 	get_callbacks() *dom_node_callbacks

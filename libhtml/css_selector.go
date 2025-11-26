@@ -710,6 +710,25 @@ func (s css_complex_selector) match_against_element(element dom_Element) bool {
 	return s.base.match_against_element(element)
 }
 
+// Special internal CSS selector that matches DOM node pointer directly.
+type css_node_ptr_selector struct {
+	element dom_Element
+}
+
+func (sel css_node_ptr_selector) equals(other css_selector) bool {
+	if other_sel, ok := other.(css_node_ptr_selector); !ok {
+		return false
+	} else {
+		return other_sel.element == sel.element
+	}
+}
+func (sel css_node_ptr_selector) match_against_element(element dom_Element) bool {
+	return sel.element == element
+}
+func (sel css_node_ptr_selector) String() string {
+	return sel.element.String()
+}
+
 func (ts *css_token_stream) parse_complex_selector() (*css_complex_selector, error) {
 	old_cursor := ts.cursor
 	base, err := ts.parse_compound_selector()
@@ -755,14 +774,14 @@ func (ts *css_token_stream) parse_complex_selector() (*css_complex_selector, err
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-complex-selector-list
 //
 // Returns nil if not found
-func (ts *css_token_stream) parse_complex_selector_list() ([]css_complex_selector, error) {
+func (ts *css_token_stream) parse_complex_selector_list() ([]css_selector, error) {
 	sel_list, err := css_accept_comma_separated_repetion(ts, 0, func(ts *css_token_stream) (*css_complex_selector, error) {
 		return ts.parse_complex_selector()
 	})
 	if sel_list == nil {
 		return nil, err
 	}
-	out := []css_complex_selector{}
+	out := []css_selector{}
 	for _, s := range sel_list {
 		out = append(out, *s)
 	}
@@ -770,23 +789,23 @@ func (ts *css_token_stream) parse_complex_selector_list() ([]css_complex_selecto
 }
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-selector-list
-func (ts *css_token_stream) parse_selector_list() ([]css_complex_selector, error) {
+func (ts *css_token_stream) parse_selector_list() ([]css_selector, error) {
 	return ts.parse_complex_selector_list()
 }
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#parse-a-selector
-func css_parse_selector(src string) ([]css_complex_selector, error) {
+func css_parse_selector(src string) ([]css_selector, error) {
 	tokens, err := css_tokenize(src)
 	if tokens == nil && err != nil {
 		return nil, err
 	}
-	return css_parse(tokens, func(ts *css_token_stream) ([]css_complex_selector, error) {
+	return css_parse(tokens, func(ts *css_token_stream) ([]css_selector, error) {
 		return ts.parse_selector_list()
 	})
 }
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#match-a-selector-against-an-element
-func css_match_selector_against_element(selector []css_complex_selector, element dom_Element) bool {
+func css_match_selector_against_element(selector []css_selector, element dom_Element) bool {
 	for _, s := range selector {
 		if s.match_against_element(element) {
 			return true
@@ -796,7 +815,7 @@ func css_match_selector_against_element(selector []css_complex_selector, element
 }
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#match-a-selector-against-a-tree
-func css_match_selector_against_tree(selector []css_complex_selector, roots []dom_Node) []dom_Node {
+func css_match_selector_against_tree(selector []css_selector, roots []dom_Node) []dom_Node {
 	selector_match_list := []dom_Node{}
 	for _, root := range roots {
 		candiate_elems := []dom_Node{}

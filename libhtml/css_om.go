@@ -193,33 +193,3 @@ func css_associated_stylesheet(node dom_Element) *css_stylesheet {
 	}
 	return nil
 }
-
-func css_apply_style_rules(doc_or_sr dom_DocumentOrShadowRoot) {
-	rules := []css_style_rule{}
-	for _, sheet := range doc_or_sr.get_css_stylesheets() {
-		rules = append(rules, sheet.style_rules...)
-	}
-	// Apply styles from HTML tags first
-	elems := []dom_Element{}
-	for _, n := range dom_node_inclusive_descendants(doc_or_sr) {
-		if elem, ok := n.(dom_Element); ok {
-			elems = append(elems, elem)
-		}
-	}
-	// Apply presentational hints
-	for _, elem := range elems {
-		cbs := elem.get_callbacks()
-		if cbs.get_presentational_hints != nil {
-			decls := cbs.get_presentational_hints()
-			for _, decl := range decls {
-				decl.apply_style_rules(elem)
-			}
-		}
-	}
-
-	// TODO: Apply specificity, !important, etc...
-	for _, rule := range rules {
-		rule.apply_style_rules([]dom_Node{doc_or_sr})
-	}
-
-}

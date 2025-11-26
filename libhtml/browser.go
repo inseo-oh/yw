@@ -36,7 +36,7 @@ func (b *Browser) Init(url_str string, plat libplatform.Platform, viewport_img *
 	}
 	// TODO: Can't we pass dom_Document instead?
 	// Also, should <html> own the default stylesheet?
-	init_default_css := func(html html_HTMLElement) {
+	init_default_css := func(html html_HTMLElement) css_stylesheet {
 		log.Println("Parsing default CSS")
 		stylesheet := css_parse_stylesheet(tokens, nil)
 		stylesheet.tp = "text/css"
@@ -52,15 +52,13 @@ func (b *Browser) Init(url_str string, plat libplatform.Platform, viewport_img *
 		stylesheet.location = nil
 		stylesheet.parent_stylesheet = nil
 		stylesheet.owner_rule = nil
-		doc := html.get_node_document()
-		doc.set_css_stylesheets(append([]*css_stylesheet{&stylesheet}, doc.get_css_stylesheets()...))
 		// css_add_stylesheet(&stylesheet)
 
 		if debug_builtin_stylesheet {
 			log.Println("dump of builtin stylesheet")
 			stylesheet.dump()
 		}
-
+		return stylesheet
 	}
 
 	// Fetch the document ------------------------------------------------------
@@ -87,13 +85,13 @@ func (b *Browser) Init(url_str string, plat libplatform.Platform, viewport_img *
 
 	// Find the <html> element -------------------------------------------------
 	html_elem := doc.filter_elem_children_by_local_name(dom_name_pair{html_namespace, "html"})[0]
-	init_default_css(html_elem.(html_HTMLElement))
+	ua_stylesheet := init_default_css(html_elem.(html_HTMLElement))
 
 	// Find the <head> element -------------------------------------------------
 	head_elem := html_elem.filter_elem_children_by_local_name(dom_name_pair{html_namespace, "head"})[0]
 
 	// Apply style rules -------------------------------------------------------
-	css_apply_style_rules(doc)
+	css_apply_style_rules(&ua_stylesheet, doc)
 	log.Println("Style rules applied")
 
 	// Do something with it ----------------------------------------------------

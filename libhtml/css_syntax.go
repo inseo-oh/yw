@@ -1660,7 +1660,7 @@ func css_parse_style_rules_from_nodes(rule_nodes []css_token) []css_style_rule {
 					log.Printf("extra junk at the end for property: %v (token list: %v)", decl_node.name, inner_as.tokens[inner_as.cursor:])
 					continue
 				}
-				decls = append(decls, css_declaration{decl_node.name, value})
+				decls = append(decls, css_declaration{decl_node.name, value, decl_node.important})
 			} else if content.get_token_type() == css_token_type_ast_at_rule {
 				rule_node := content.(css_ast_at_rule_token)
 				at_rules = append(at_rules, css_at_rule{rule_node.name, rule_node.prelude, rule_node.body})
