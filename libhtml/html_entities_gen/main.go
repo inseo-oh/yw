@@ -82,9 +82,12 @@ func main() {
 	sb.WriteString("}\n")
 
 	log.Printf("Formatting generated source")
-	formatted, err := format.Source([]byte(sb.String()))
+	unformatted := []byte(sb.String())
+	formatted, err := format.Source(unformatted)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		log.Println("Formatting error -- Writing unformatted source code instead")
+		formatted = unformatted
 	}
 	log.Printf("Writing output to %s", *out_file)
 	err = os.WriteFile(*out_file, formatted, 0644)
