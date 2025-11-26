@@ -4,6 +4,7 @@ package libhtml
 
 import (
 	"fmt"
+	cm "yw/libcommon"
 )
 
 type css_border_color_shorthand struct {
@@ -1017,7 +1018,7 @@ var css_property_descriptors_map = map[string]css_property_descriptor{
 			return ts.parse_css_padding_shorthand()
 		},
 	},
-	"font-family ": {
+	"font-family": {
 		initial: css_font_family_list{[]css_font_family{{css_font_family_type_sans_serif, ""}}},
 		apply_func: func(dest *css_computed_style_set, value any) {
 			v := value.(css_font_family_list)
@@ -1135,6 +1136,16 @@ func (css *css_computed_style_set) get_color() css_color {
 	}
 	return *css.color
 }
+func (css *css_computed_style_set) inherit_color_from_parent(parent dom_Element) {
+	parent_css := parent.get_computed_style_set()
+	if !cm.IsNil(parent_css.color) {
+		css.color = parent_css.color
+	} else if parent_parent := parent.get_parent(); !cm.IsNil(parent_parent) {
+		if elem, ok := parent_parent.(dom_Element); ok {
+			css.inherit_color_from_parent(elem)
+		}
+	}
+}
 func (css *css_computed_style_set) get_width() css_size_value {
 	if css.width == nil {
 		initial := css_property_descriptors_map["width"].initial.(css_size_value)
@@ -1190,6 +1201,16 @@ func (css *css_computed_style_set) get_visibility() css_visibility {
 		css.visibility = &initial
 	}
 	return *css.visibility
+}
+func (css *css_computed_style_set) inherit_visibility_from_parent(parent dom_Element) {
+	parent_css := parent.get_computed_style_set()
+	if !cm.IsNil(parent_css.visibility) {
+		css.visibility = parent_css.visibility
+	} else if parent_parent := parent.get_parent(); !cm.IsNil(parent_parent) {
+		if elem, ok := parent_parent.(dom_Element); ok {
+			css.inherit_visibility_from_parent(elem)
+		}
+	}
 }
 func (css *css_computed_style_set) get_background_color() css_color {
 	if css.background_color == nil {
@@ -1410,10 +1431,20 @@ func (css *css_computed_style_set) get_padding() css_padding_shorthand {
 }
 func (css *css_computed_style_set) get_font_family() css_font_family_list {
 	if css.font_family == nil {
-		initial := css_property_descriptors_map["font-family "].initial.(css_font_family_list)
+		initial := css_property_descriptors_map["font-family"].initial.(css_font_family_list)
 		css.font_family = &initial
 	}
 	return *css.font_family
+}
+func (css *css_computed_style_set) inherit_font_family_from_parent(parent dom_Element) {
+	parent_css := parent.get_computed_style_set()
+	if !cm.IsNil(parent_css.font_family) {
+		css.font_family = parent_css.font_family
+	} else if parent_parent := parent.get_parent(); !cm.IsNil(parent_parent) {
+		if elem, ok := parent_parent.(dom_Element); ok {
+			css.inherit_font_family_from_parent(elem)
+		}
+	}
 }
 func (css *css_computed_style_set) get_font_weight() css_font_weight {
 	if css.font_weight == nil {
@@ -1422,12 +1453,32 @@ func (css *css_computed_style_set) get_font_weight() css_font_weight {
 	}
 	return *css.font_weight
 }
+func (css *css_computed_style_set) inherit_font_weight_from_parent(parent dom_Element) {
+	parent_css := parent.get_computed_style_set()
+	if !cm.IsNil(parent_css.font_weight) {
+		css.font_weight = parent_css.font_weight
+	} else if parent_parent := parent.get_parent(); !cm.IsNil(parent_parent) {
+		if elem, ok := parent_parent.(dom_Element); ok {
+			css.inherit_font_weight_from_parent(elem)
+		}
+	}
+}
 func (css *css_computed_style_set) get_font_stretch() css_font_stretch {
 	if css.font_stretch == nil {
 		initial := css_property_descriptors_map["font-stretch"].initial.(css_font_stretch)
 		css.font_stretch = &initial
 	}
 	return *css.font_stretch
+}
+func (css *css_computed_style_set) inherit_font_stretch_from_parent(parent dom_Element) {
+	parent_css := parent.get_computed_style_set()
+	if !cm.IsNil(parent_css.font_stretch) {
+		css.font_stretch = parent_css.font_stretch
+	} else if parent_parent := parent.get_parent(); !cm.IsNil(parent_parent) {
+		if elem, ok := parent_parent.(dom_Element); ok {
+			css.inherit_font_stretch_from_parent(elem)
+		}
+	}
 }
 func (css *css_computed_style_set) get_font_style() css_font_style {
 	if css.font_style == nil {
@@ -1436,6 +1487,16 @@ func (css *css_computed_style_set) get_font_style() css_font_style {
 	}
 	return *css.font_style
 }
+func (css *css_computed_style_set) inherit_font_style_from_parent(parent dom_Element) {
+	parent_css := parent.get_computed_style_set()
+	if !cm.IsNil(parent_css.font_style) {
+		css.font_style = parent_css.font_style
+	} else if parent_parent := parent.get_parent(); !cm.IsNil(parent_parent) {
+		if elem, ok := parent_parent.(dom_Element); ok {
+			css.inherit_font_style_from_parent(elem)
+		}
+	}
+}
 func (css *css_computed_style_set) get_font_size() css_font_size {
 	if css.font_size == nil {
 		initial := css_property_descriptors_map["font-size"].initial.(css_font_size)
@@ -1443,10 +1504,40 @@ func (css *css_computed_style_set) get_font_size() css_font_size {
 	}
 	return *css.font_size
 }
+func (css *css_computed_style_set) inherit_font_size_from_parent(parent dom_Element) {
+	parent_css := parent.get_computed_style_set()
+	if !cm.IsNil(parent_css.font_size) {
+		css.font_size = parent_css.font_size
+	} else if parent_parent := parent.get_parent(); !cm.IsNil(parent_parent) {
+		if elem, ok := parent_parent.(dom_Element); ok {
+			css.inherit_font_size_from_parent(elem)
+		}
+	}
+}
 func (css *css_computed_style_set) get_font() css_font_shorthand {
 	if css.font == nil {
 		initial := css_property_descriptors_map["font"].initial.(css_font_shorthand)
 		css.font = &initial
 	}
 	return *css.font
+}
+func (css *css_computed_style_set) inherit_font_from_parent(parent dom_Element) {
+	parent_css := parent.get_computed_style_set()
+	if !cm.IsNil(parent_css.font) {
+		css.font = parent_css.font
+	} else if parent_parent := parent.get_parent(); !cm.IsNil(parent_parent) {
+		if elem, ok := parent_parent.(dom_Element); ok {
+			css.inherit_font_from_parent(elem)
+		}
+	}
+}
+func (css *css_computed_style_set) inherit_properties_from_parent(parent dom_Element) {
+	css.inherit_color_from_parent(parent)
+	css.inherit_visibility_from_parent(parent)
+	css.inherit_font_family_from_parent(parent)
+	css.inherit_font_weight_from_parent(parent)
+	css.inherit_font_stretch_from_parent(parent)
+	css.inherit_font_style_from_parent(parent)
+	css.inherit_font_size_from_parent(parent)
+	css.inherit_font_from_parent(parent)
 }

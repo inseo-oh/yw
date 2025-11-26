@@ -1,6 +1,8 @@
 // Implementation of Cascading and Inheritance Level 4 (https://www.w3.org/TR/css-cascade-4)
 package libhtml
 
+import cm "yw/libcommon"
+
 func css_apply_style_rules(ua_stylesheet *css_stylesheet, doc_or_sr dom_DocumentOrShadowRoot) {
 	// https://www.w3.org/TR/css-cascade-4/#cascade-origin
 
@@ -34,6 +36,13 @@ func css_apply_style_rules(ua_stylesheet *css_stylesheet, doc_or_sr dom_Document
 	add_decl := func(group *[]decl_entry, rule css_style_rule, decl css_declaration) {
 		*group = append(*group, decl_entry{rule, decl})
 	}
+	elems := []dom_Element{}
+	for _, n := range dom_node_inclusive_descendants(doc_or_sr) {
+		if elem, ok := n.(dom_Element); ok {
+			elems = append(elems, elem)
+		}
+	}
+
 	// User agent declarations -------------------------------------------------
 	for _, rule := range ua_stylesheet.style_rules {
 		for _, decl := range rule.declarations {
@@ -57,12 +66,6 @@ func css_apply_style_rules(ua_stylesheet *css_stylesheet, doc_or_sr dom_Document
 		}
 	}
 	// Presentional hints ------------------------------------------------------
-	elems := []dom_Element{}
-	for _, n := range dom_node_inclusive_descendants(doc_or_sr) {
-		if elem, ok := n.(dom_Element); ok {
-			elems = append(elems, elem)
-		}
-	}
 	for _, elem := range elems {
 		cbs := elem.get_callbacks()
 		if cbs.get_presentational_hints != nil {
@@ -91,6 +94,14 @@ func css_apply_style_rules(ua_stylesheet *css_stylesheet, doc_or_sr dom_Document
 			for _, node := range selected_elements {
 				elem := node.(dom_Element)
 				decl_entry.decl.apply_style_rules(elem)
+			}
+		}
+	}
+	// Inherit missing values from parent --------------------------------------
+	for _, elem := range elems {
+		if parent := elem.get_parent(); !cm.IsNil(parent) {
+			if parent_elem, ok := parent.(dom_Element); ok {
+				elem.get_computed_style_set().inherit_properties_from_parent(parent_elem)
 			}
 		}
 	}

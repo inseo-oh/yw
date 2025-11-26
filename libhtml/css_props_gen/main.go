@@ -19,6 +19,7 @@ type css_prop interface {
 	get_name() string
 	get_type() css_type
 	get_initial_value() string
+	is_inheritable() bool
 }
 
 // A CSS property
@@ -26,11 +27,13 @@ type css_prop_simple struct {
 	name          string   // Name of the property
 	tp            css_type // Type of the property value
 	initial_value string   // Initial value (Go expression)
+	inheritable   bool     // Can inherit?
 }
 
 func (p css_prop_simple) get_name() string          { return p.name }
 func (p css_prop_simple) get_type() css_type        { return p.tp }
 func (p css_prop_simple) get_initial_value() string { return p.initial_value }
+func (p css_prop_simple) is_inheritable() bool      { return p.inheritable }
 
 // Shorthand properties for top, right, bottom, left values.
 // These take 1~4 values of the same type, and assigned to top, right, bottom, left accordingly.
@@ -41,6 +44,7 @@ type css_prop_shorthand_sides struct {
 	prop_right  css_prop // Right property
 	prop_bottom css_prop // Bottom property
 	prop_left   css_prop // Left property
+	inheritable bool     // Can inherit?
 }
 
 func (p css_prop_shorthand_sides) get_type_name() string {
@@ -66,13 +70,15 @@ func (p css_prop_shorthand_sides) get_initial_value() string {
 		p.prop_left.get_initial_value(),
 	)
 }
+func (p css_prop_shorthand_sides) is_inheritable() bool { return p.inheritable }
 
 // Shorthand properties for multiple types of properties
 // These simply take any of accepted properties in any other, and fills with default values for absent ones.
 // Examples: border, font
 type css_prop_shorthand_any struct {
-	name  string // Name of the property
-	props []css_prop
+	name        string // Name of the property
+	props       []css_prop
+	inheritable bool // Can inherit?
 }
 
 func (p css_prop_shorthand_any) get_type_name() string {
@@ -100,6 +106,7 @@ func (p css_prop_shorthand_any) get_initial_value() string {
 	sb.WriteString("}")
 	return sb.String()
 }
+func (p css_prop_shorthand_any) is_inheritable() bool { return p.inheritable }
 
 func go_ident_name_of_prop(prop css_prop) string {
 	return strings.ReplaceAll(prop.get_name(), "-", "_")
@@ -119,6 +126,7 @@ func main() {
 	sb.WriteString( /*     */ "\n")
 	sb.WriteString( /*     */ "import (\n")
 	sb.WriteString( /*     */ "\t\"fmt\"\n")
+	sb.WriteString( /*     */ "\tcm \"yw/libcommon\"\n")
 	sb.WriteString( /*     */ ")\n")
 	sb.WriteString( /*     */ "\n")
 	// Define shorthand struct and parser functions ----------------------------
@@ -254,9 +262,30 @@ func main() {
 		sb_inner.WriteString(fmt.Sprintf("\t\tcss.%s = &initial\n", go_ident_name_of_prop(prop)))
 		sb_inner.WriteString( /*      */ "\t}\n")
 		sb_inner.WriteString( /*      */ fmt.Sprintf("\treturn *css.%s\n", go_ident_name_of_prop(prop)))
-		sb_inner.WriteString("}\n")
+		sb_inner.WriteString( /*      */ "}\n")
+		if prop.is_inheritable() {
+			sb_inner.WriteString(fmt.Sprintf("func (css *css_computed_style_set) inherit_%s_from_parent(parent dom_Element) {\n", go_ident_name_of_prop(prop)))
+			sb_inner.WriteString( /*      */ "\tparent_css := parent.get_computed_style_set()\n")
+			sb_inner.WriteString(fmt.Sprintf("\tif !cm.IsNil(parent_css.%s) {\n", go_ident_name_of_prop(prop)))
+			sb_inner.WriteString(fmt.Sprintf("\t\tcss.%s = parent_css.%s\n", go_ident_name_of_prop(prop), go_ident_name_of_prop(prop)))
+			sb_inner.WriteString( /*      */ "\t} else if parent_parent := parent.get_parent(); !cm.IsNil(parent_parent) {\n")
+			sb_inner.WriteString( /*      */ "\t\tif elem, ok := parent_parent.(dom_Element); ok {\n")
+			sb_inner.WriteString(fmt.Sprintf("\t\t\tcss.inherit_%s_from_parent(elem)\n", go_ident_name_of_prop(prop)))
+			sb_inner.WriteString( /*      */ "\t\t}\n")
+			sb_inner.WriteString( /*      */ "\t}\n")
+			sb_inner.WriteString( /*      */ "}\n")
+		}
 		sb.WriteString(sb_inner.String())
 	}
+	sb.WriteString( /*      */ "func (css *css_computed_style_set) inherit_properties_from_parent(parent dom_Element) {\n")
+	for _, prop := range props {
+		sb_inner := strings.Builder{}
+		if prop.is_inheritable() {
+			sb_inner.WriteString(fmt.Sprintf("css.inherit_%s_from_parent(parent)\n", go_ident_name_of_prop(prop)))
+		}
+		sb.WriteString(sb_inner.String())
+	}
+	sb.WriteString( /*      */ "}\n")
 	log.Printf("Formatting generated source")
 	formatted, err := format.Source([]byte(sb.String()))
 	if err != nil {
