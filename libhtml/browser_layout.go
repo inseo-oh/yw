@@ -573,10 +573,13 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 		//======================================================================
 		var text_node *browser_layout_text_node
 		str := text.get_text()
-		str = strings.TrimSpace(str)
 		if str == "" {
 			// Nothing to display
 			return nil
+		}
+		str = strings.TrimSpace(str)
+		if str == "" {
+			str = " "
 		}
 
 		// Create line box if needed
