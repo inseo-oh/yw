@@ -143,7 +143,7 @@ func html_parse_legacy_color_value(input string) (css_color, bool) {
 		green, err2 := strconv.ParseInt(string(input_cps[2]), 16, 8)
 		blue, err3 := strconv.ParseInt(string(input_cps[3]), 16, 8)
 		if err1 == nil && err2 == nil && err3 == nil {
-			return css_color_from_rgba(uint8(red), uint8(blue), uint8(green), 255), true
+			return css_color_from_rgba(uint8(red), uint8(green), uint8(blue), 255), true
 		}
 	}
 	// Now we assume the format is #rrggbb -------------------------------------
@@ -206,7 +206,7 @@ func html_parse_legacy_color_value(input string) (css_color, bool) {
 	if err1 != nil || err2 != nil || err3 != nil {
 		panic("unreachable")
 	}
-	return css_color_from_rgba(uint8(red), uint8(blue), uint8(green), 255), true
+	return css_color_from_rgba(uint8(red), uint8(green), uint8(blue), 255), true
 }
 
 // ------------------------------------------------------------------------------
