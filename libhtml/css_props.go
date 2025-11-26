@@ -1532,12 +1532,28 @@ func (css *css_computed_style_set) inherit_font_from_parent(parent dom_Element) 
 	}
 }
 func (css *css_computed_style_set) inherit_properties_from_parent(parent dom_Element) {
-	css.inherit_color_from_parent(parent)
-	css.inherit_visibility_from_parent(parent)
-	css.inherit_font_family_from_parent(parent)
-	css.inherit_font_weight_from_parent(parent)
-	css.inherit_font_stretch_from_parent(parent)
-	css.inherit_font_style_from_parent(parent)
-	css.inherit_font_size_from_parent(parent)
-	css.inherit_font_from_parent(parent)
+	if cm.IsNil(css.color) {
+		css.inherit_color_from_parent(parent)
+	}
+	if cm.IsNil(css.visibility) {
+		css.inherit_visibility_from_parent(parent)
+	}
+	if cm.IsNil(css.font_family) {
+		css.inherit_font_family_from_parent(parent)
+	}
+	if cm.IsNil(css.font_weight) {
+		css.inherit_font_weight_from_parent(parent)
+	}
+	if cm.IsNil(css.font_stretch) {
+		css.inherit_font_stretch_from_parent(parent)
+	}
+	if cm.IsNil(css.font_style) {
+		css.inherit_font_style_from_parent(parent)
+	}
+	if cm.IsNil(css.font_size) {
+		css.inherit_font_size_from_parent(parent)
+	}
+	if cm.IsNil(css.font) {
+		css.inherit_font_from_parent(parent)
+	}
 }

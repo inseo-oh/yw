@@ -281,7 +281,9 @@ func main() {
 	for _, prop := range props {
 		sb_inner := strings.Builder{}
 		if prop.is_inheritable() {
-			sb_inner.WriteString(fmt.Sprintf("css.inherit_%s_from_parent(parent)\n", go_ident_name_of_prop(prop)))
+			sb_inner.WriteString(fmt.Sprintf("\tif cm.IsNil(css.%s) {\n", go_ident_name_of_prop(prop)))
+			sb_inner.WriteString(fmt.Sprintf("\t\tcss.inherit_%s_from_parent(parent)\n", go_ident_name_of_prop(prop)))
+			sb_inner.WriteString( /*      */ "\t}\n")
 		}
 		sb.WriteString(sb_inner.String())
 	}
