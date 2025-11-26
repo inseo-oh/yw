@@ -1620,6 +1620,7 @@ func css_parse_stylesheet(input []css_token, location *string) css_stylesheet {
 // https://www.w3.org/TR/2021/CRD-css-syntax-3-20211224/#style-rules
 func css_parse_style_rules_from_nodes(rule_nodes []css_token) []css_style_rule {
 	style_rules := []css_style_rule{}
+	print_raw_rule_nodes := false
 	for _, n := range rule_nodes {
 		if n.get_token_type() != css_token_type_ast_qualified_rule {
 			continue
@@ -1633,7 +1634,9 @@ func css_parse_style_rules_from_nodes(rule_nodes []css_token) []css_style_rule {
 			continue
 		}
 		if len(selector_list) == 0 {
-			log.Panic("having no selectors after successfully parsing it isn't possible")
+			log.Println("FIXME: having no selectors after successfully parsing it isn't possible")
+			print_raw_rule_nodes = true
+			continue
 		}
 		contents_stream := css_token_stream{tokens: qrule.body}
 		contents := contents_stream.consume_style_block_contents()
@@ -1670,6 +1673,11 @@ func css_parse_style_rules_from_nodes(rule_nodes []css_token) []css_style_rule {
 		}
 
 		style_rules = append(style_rules, css_style_rule{selector_list, decls, at_rules})
+	}
+	if print_raw_rule_nodes {
+		log.Println("=============== BEGIN: Raw rule nodes ===============")
+		log.Println(rule_nodes)
+		log.Println("=============== END:   Raw rule nodes ===============")
 	}
 	return style_rules
 }
