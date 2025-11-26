@@ -265,7 +265,17 @@ type css_delim_token struct {
 func (t css_delim_token) get_token_type() css_token_type { return css_token_type_delim }
 func (t css_delim_token) String() string                 { return fmt.Sprintf("%c", t.value) }
 
+// https://www.w3.org/TR/2021/CRD-css-syntax-3-20211224/#css-filter-code-points
+func css_filter_codepoints(src string) string {
+	src = strings.ReplaceAll(src, "\r\n", "\n")
+	src = strings.ReplaceAll(src, "\r", "\n")
+	src = strings.ReplaceAll(src, "\u000c", "\n")
+	return src
+}
+
 func css_tokenize(src string) ([]css_token, error) {
+	src = css_filter_codepoints(src)
+
 	tkh := cm.TokenizerHelper{Str: []rune(src)}
 
 	// https://www.w3.org/TR/2021/CRD-css-syntax-3-20211224/#ident-start-code-point
