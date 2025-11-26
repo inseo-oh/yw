@@ -240,13 +240,21 @@ func (bx *browser_layout_box_node_common) increment_if_needed(min_width, min_hei
 }
 func (bx browser_layout_box_node_common) make_paint_node() browser_paint_node {
 	paintables := []browser_paint_node{}
+
+	var color = css_color_transparent()
+	if bx.elem != nil {
+		color = bx.elem.get_computed_style_set().get_background_color()
+	}
+	log.Println(color)
+	rgba_color := color.to_rgba()
+
 	for _, child := range bx.get_child_boxes() {
 		paintables = append(paintables, child.make_paint_node())
 	}
 	for _, child := range bx.get_child_texts() {
 		paintables = append(paintables, child.make_paint_node())
 	}
-	return browser_grouped_paint_node{items: paintables}
+	return browser_box_paint_node{items: paintables, background_color: rgba_color, rect: bx.rect}
 }
 
 // https://www.w3.org/TR/css-display-3/#inline-box
