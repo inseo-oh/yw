@@ -38,6 +38,8 @@ func dom_create_element(
 		}
 		if namespace != nil && *namespace == html_namespace && local_name == "html" {
 			factory_fn = func(opt dom_element_creation_common_options) dom_Element { return html_make_HTMLHtmlElement(opt) }
+		} else if namespace != nil && *namespace == html_namespace && local_name == "body" {
+			factory_fn = func(opt dom_element_creation_common_options) dom_Element { return html_make_HTMLBodyElement(opt) }
 		} else if namespace != nil && *namespace == html_namespace && local_name == "link" {
 			factory_fn = func(opt dom_element_creation_common_options) dom_Element { return html_make_HTMLLinkElement(opt) }
 		} else if namespace != nil && *namespace == html_namespace && local_name == "style" {
