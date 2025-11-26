@@ -185,11 +185,12 @@ type browser_layout_box_node interface {
 	browser_layout_node
 	get_elem() dom_Element
 	get_rect() libgfx.Rect
-	get_rect_p() *libgfx.Rect
 	get_child_boxes() []browser_layout_box_node
 	get_child_texts() []*browser_layout_text_node
 	is_width_auto() bool
 	is_height_auto() bool
+	increment_size(width, height float64)
+	increment_if_needed(width, height float64)
 }
 type browser_layout_box_node_common struct {
 	browser_layout_node_common
@@ -201,9 +202,8 @@ type browser_layout_box_node_common struct {
 	child_texts []*browser_layout_text_node
 }
 
-func (bx browser_layout_box_node_common) get_elem() dom_Element     { return bx.elem }
-func (bx browser_layout_box_node_common) get_rect() libgfx.Rect     { return bx.rect }
-func (bx *browser_layout_box_node_common) get_rect_p() *libgfx.Rect { return &bx.rect }
+func (bx browser_layout_box_node_common) get_elem() dom_Element { return bx.elem }
+func (bx browser_layout_box_node_common) get_rect() libgfx.Rect { return bx.rect }
 func (bx browser_layout_box_node_common) get_child_boxes() []browser_layout_box_node {
 	return bx.child_boxes
 }
@@ -212,6 +212,32 @@ func (bx browser_layout_box_node_common) get_child_texts() []*browser_layout_tex
 }
 func (bx browser_layout_box_node_common) is_width_auto() bool  { return bx.width_auto }
 func (bx browser_layout_box_node_common) is_height_auto() bool { return bx.height_auto }
+func (bx *browser_layout_box_node_common) increment_size(width, height float64) {
+	if width == 0 && height == 0 {
+		return
+	}
+	bx.rect.Width += width
+	bx.rect.Height += height
+	parent := bx.get_parent()
+	if !cm.IsNil(parent) {
+		if parent, ok := parent.(browser_layout_box_node); ok {
+			w := width
+			h := height
+			if !parent.is_width_auto() {
+				w = 0
+			}
+			if !parent.is_height_auto() {
+				h = 0
+			}
+			parent.increment_size(w, h)
+		}
+	}
+}
+func (bx *browser_layout_box_node_common) increment_if_needed(min_width, min_height float64) {
+	w_diff := max(min_width-bx.rect.Width, 0)
+	h_diff := max(min_height-bx.rect.Height, 0)
+	bx.increment_size(w_diff, h_diff)
+}
 func (bx browser_layout_box_node_common) make_paint_node() browser_paint_node {
 	paintables := []browser_paint_node{}
 	for _, child := range bx.get_child_boxes() {
@@ -600,17 +626,15 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 			text_node = tb.make_text(parent_node, fragment, rect, color, font_size)
 
 			if parent_node.is_width_auto() {
-				parent_node.get_rect_p().Width += rect.Width
+				parent_node.increment_size(rect.Width, 0)
+				// parent_node.get_rect().Width += rect.Width
 			}
 
 			line_height_diff := max(rect.Height-line_box.current_line_height, 0)
 			if parent_node.is_height_auto() {
 				line_box.current_line_height = max(line_box.current_line_height, rect.Height)
-
 				// Increment parent's height if needed.
-				if parent_node.get_rect_p().Height < line_box.current_line_height {
-					parent_node.get_rect_p().Height = line_box.current_line_height
-				}
+				parent_node.increment_if_needed(0, line_box.current_line_height)
 			}
 			ifc.increment_natural_pos(inline_axis_size)
 			text_nodes = append(text_nodes, text_node)
@@ -677,15 +701,18 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 			switch css_display.outer_mode {
 			case css_display_outer_mode_block:
 				if parent_node.is_width_auto() {
-					parent_node.get_rect_p().Width = max(parent_node.get_rect_p().Width, box_rect.Width)
+					parent_node.increment_if_needed(box_rect.Width, 0)
+					// parent_node.get_rect().Width = max(parent_node.get_rect().Width, box_rect.Width)
 				}
 				if parent_node.is_height_auto() {
-					parent_node.get_rect_p().Height += box_rect.Height
+					parent_node.increment_size(0, box_rect.Height)
+					// parent_node.get_rect().Height += box_rect.Height
 					bfc.increment_natural_pos(box_rect.Height)
 				}
 			case css_display_outer_mode_inline:
 				if parent_node.is_width_auto() {
-					parent_node.get_rect_p().Width += box_rect.Width
+					parent_node.increment_size(box_rect.Width, 0)
+					// parent_node.get_rect().Width += box_rect.Width
 					if len(ifc.line_boxes) == 0 {
 						ifc.add_line_box(bfc)
 					}
@@ -699,9 +726,10 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 					line_box.current_line_height = max(line_box.current_line_height, box_rect.Height)
 
 					// Increment parent's height if needed.
-					if parent_node.get_rect_p().Height < line_box.current_line_height {
-						diff := line_box.current_line_height - parent_node.get_rect_p().Height
-						parent_node.get_rect_p().Height = line_box.current_line_height
+					if parent_node.get_rect().Height < line_box.current_line_height {
+						diff := line_box.current_line_height - parent_node.get_rect().Height
+						parent_node.increment_if_needed(0, line_box.current_line_height)
+						// parent_node.get_rect().Height = line_box.current_line_height
 						bfc.increment_natural_pos(diff)
 					}
 				}
