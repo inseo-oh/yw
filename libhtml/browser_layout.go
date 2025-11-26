@@ -245,7 +245,6 @@ func (bx browser_layout_box_node_common) make_paint_node() browser_paint_node {
 	if bx.elem != nil {
 		color = bx.elem.get_computed_style_set().get_background_color()
 	}
-	log.Println(color)
 	rgba_color := color.to_rgba()
 
 	for _, child := range bx.get_child_boxes() {
