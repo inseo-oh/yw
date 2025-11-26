@@ -3,6 +3,7 @@ package libhtml
 
 import (
 	"fmt"
+	"log"
 	cm "yw/libcommon"
 )
 
@@ -41,9 +42,13 @@ func (l css_length) length_to_px(container_size css_number) float64 {
 		return l.value.to_float()
 	case css_length_unit_em:
 		return container_size.to_float() * l.value.to_float()
+	case css_length_unit_pt:
+		// STUB -- For now we treat pt and px as the same thing.
+		return l.value.to_float()
 	default:
-		panic("TODO")
+		log.Panicf("TODO: %v", l)
 	}
+	return 0
 }
 
 // Returns nil if not found
