@@ -10,7 +10,6 @@ import (
 	"log"
 	"unsafe"
 	"yw/libgfx"
-	"yw/libplatform"
 )
 
 type ft_font struct {
@@ -22,9 +21,9 @@ func (fnt ft_font) SetTextSize(size int) {
 		log.Printf("Failed to set font size (FT_Set_Pixel_Sizes error %d)", res)
 	}
 }
-func (fnt ft_font) Metrics() libplatform.FontMetrics {
+func (fnt ft_font) Metrics() libgfx.FontMetrics {
 	raw_metrics := fnt.face.size.metrics
-	return libplatform.FontMetrics{
+	return libgfx.FontMetrics{
 		Ascender:   float64(raw_metrics.ascender) / 64.0,
 		Descender:  float64(raw_metrics.descender) / 64.0,
 		LineHeight: float64(raw_metrics.height) / 64.0,

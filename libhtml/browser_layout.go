@@ -14,7 +14,7 @@ import (
 type browser_layout_node interface {
 	get_node_type() browser_layout_node_type
 	get_parent() browser_layout_node
-	make_paint_node() browser_paint_node
+	make_paint_node() libgfx.PaintNode
 	is_block_level() bool
 	String() string
 }
@@ -156,7 +156,7 @@ type browser_layout_text_node struct {
 	browser_layout_node_common
 	rect      libgfx.Rect
 	text      string
-	font      libplatform.Font
+	font      libgfx.Font
 	font_size float64
 	color     color.RGBA
 }
@@ -167,12 +167,14 @@ func (txt browser_layout_text_node) String() string {
 func (txt browser_layout_text_node) get_node_type() browser_layout_node_type {
 	return browser_layout_node_type_text
 }
-func (txt browser_layout_text_node) make_paint_node() browser_paint_node {
-	return browser_text_paint_node{
-		text_layout_node: txt,
-		font:             txt.font,
-		font_size:        txt.font_size,
-		color:            txt.color,
+func (txt browser_layout_text_node) make_paint_node() libgfx.PaintNode {
+	return libgfx.TextPaint{
+		Left:  txt.rect.Left,
+		Top:   txt.rect.Top,
+		Text:  txt.text,
+		Font:  txt.font,
+		Size:  txt.font_size,
+		Color: txt.color,
 	}
 }
 func (txt browser_layout_text_node) is_block_level() bool { return false }
@@ -238,8 +240,8 @@ func (bx *browser_layout_box_node_common) increment_if_needed(min_width, min_hei
 	h_diff := max(min_height-bx.rect.Height, 0)
 	bx.increment_size(w_diff, h_diff)
 }
-func (bx browser_layout_box_node_common) make_paint_node() browser_paint_node {
-	paintables := []browser_paint_node{}
+func (bx browser_layout_box_node_common) make_paint_node() libgfx.PaintNode {
+	paint_nodes := []libgfx.PaintNode{}
 
 	var color = css_color_transparent()
 	if bx.elem != nil {
@@ -248,12 +250,12 @@ func (bx browser_layout_box_node_common) make_paint_node() browser_paint_node {
 	rgba_color := color.to_rgba()
 
 	for _, child := range bx.get_child_boxes() {
-		paintables = append(paintables, child.make_paint_node())
+		paint_nodes = append(paint_nodes, child.make_paint_node())
 	}
 	for _, child := range bx.get_child_texts() {
-		paintables = append(paintables, child.make_paint_node())
+		paint_nodes = append(paint_nodes, child.make_paint_node())
 	}
-	return browser_box_paint_node{items: paintables, background_color: rgba_color, rect: bx.rect}
+	return libgfx.BoxPaint{Items: paint_nodes, Color: rgba_color, Rect: bx.rect}
 }
 
 // https://www.w3.org/TR/css-display-3/#inline-box
@@ -400,7 +402,7 @@ func (bcon *browser_layout_block_container_node) init_children(
 //==============================================================================
 
 type browser_layout_tree_builder struct {
-	font libplatform.Font
+	font libgfx.Font
 }
 
 func (tb browser_layout_tree_builder) make_text(
@@ -612,7 +614,7 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 				//        We need smarter way to handle this.
 
 				// Calculate width/height using dimensions of the text
-				width, _ := libplatform.MeasureText(tb.font, fragment_remaining[:str_len])
+				width, _ := libgfx.MeasureText(tb.font, fragment_remaining[:str_len])
 
 				rect = libgfx.Rect{Left: left, Top: top, Width: width, Height: metrics.LineHeight}
 
@@ -712,21 +714,16 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 			case css_display_outer_mode_block:
 				if parent_node.is_width_auto() {
 					parent_node.increment_if_needed(box_rect.Width, 0)
-					// parent_node.get_rect().Width = max(parent_node.get_rect().Width, box_rect.Width)
 				}
 				if parent_node.is_height_auto() {
 					parent_node.increment_size(0, box_rect.Height)
-					// parent_node.get_rect().Height += box_rect.Height
-					bfc.increment_natural_pos(box_rect.Height)
 				}
 			case css_display_outer_mode_inline:
 				if parent_node.is_width_auto() {
 					parent_node.increment_size(box_rect.Width, 0)
-					// parent_node.get_rect().Width += box_rect.Width
 					if len(ifc.line_boxes) == 0 {
 						ifc.add_line_box(bfc)
 					}
-					ifc.increment_natural_pos(box_rect.Width)
 				}
 				if parent_node.is_height_auto() {
 					if len(ifc.line_boxes) == 0 {
@@ -737,29 +734,8 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 
 					// Increment parent's height if needed.
 					if parent_node.get_rect().Height < line_box.current_line_height {
-						diff := line_box.current_line_height - parent_node.get_rect().Height
 						parent_node.increment_if_needed(0, line_box.current_line_height)
-						// parent_node.get_rect().Height = line_box.current_line_height
-						bfc.increment_natural_pos(diff)
 					}
-				}
-			}
-
-			// Increment natural position(if it's NOT auto)
-			inline_axis_size, inline_axis_auto := box_rect.Width, width_auto
-			block_axis_size, block_axis_auto := box_rect.Height, height_auto
-			if write_mode == browser_layout_write_mode_vertical {
-				inline_axis_size, block_axis_size = block_axis_size, inline_axis_size
-				inline_axis_auto, block_axis_auto = block_axis_auto, inline_axis_auto
-			}
-			switch css_display.outer_mode {
-			case css_display_outer_mode_inline:
-				if !inline_axis_auto {
-					ifc.increment_natural_pos(inline_axis_size)
-				}
-			case css_display_outer_mode_block:
-				if !block_axis_auto {
-					bfc.increment_natural_pos(block_axis_size)
 				}
 			}
 
@@ -813,6 +789,19 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 				return []browser_layout_node{bcon}
 			default:
 				log.Panicf("TODO: Support display: %v", css_display)
+			}
+
+			// Increment natural position
+			inline_axis_size := box_rect.Width
+			block_axis_size := box_rect.Height
+			if write_mode == browser_layout_write_mode_vertical {
+				inline_axis_size, block_axis_size = block_axis_size, inline_axis_size
+			}
+			switch css_display.outer_mode {
+			case css_display_outer_mode_inline:
+				ifc.increment_natural_pos(inline_axis_size)
+			case css_display_outer_mode_block:
+				bfc.increment_natural_pos(block_axis_size)
 			}
 		default:
 			log.Panicf("TODO: Support display: %v", css_display)

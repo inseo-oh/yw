@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"yw/libgfx"
 	"yw/libplatform"
 )
 
@@ -109,9 +110,9 @@ func (b *Browser) Init(url_str string, plat libplatform.Platform, viewport_img *
 	browser_print_layout_tree(icb)
 	log.Println("Made layout. Making paint tree...")
 	paint := icb.make_paint_node()
-	browser_print_paint_tree(paint)
+	libgfx.PrintPaintTree(paint)
 	log.Println("Painting...")
-	paint.paint(viewport_img)
+	paint.Paint(viewport_img)
 
 	log.Println("DONE")
 }

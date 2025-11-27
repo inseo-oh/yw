@@ -1,9 +1,8 @@
-package libplatform
+package libgfx
 
 import (
 	"image"
 	"image/color"
-	"yw/libgfx"
 )
 
 type FontMetrics struct {
@@ -26,7 +25,7 @@ type Font interface {
 	SetTextSize(size int)
 	Metrics() FontMetrics
 	// Note that dest may be nil -- in that case DrawText should perform a dry-run and return resulting size.
-	DrawText(text string, dest *image.RGBA, offset_x, offset_y float64, text_color color.RGBA) libgfx.Rect
+	DrawText(text string, dest *image.RGBA, offset_x, offset_y float64, text_color color.RGBA) Rect
 }
 
 func MeasureText(font Font, text string) (width, height float64) {
