@@ -18,6 +18,7 @@ var (
 	type_font_stretch     = css_type{"css_font_stretch", "parse_font_stretch"}
 	type_font_style       = css_type{"css_font_style", "parse_font_style"}
 	type_font_size        = css_type{"css_font_size", "parse_font_size"}
+	type_text_transform   = css_type{"css_text_transform", "parse_text_transform"}
 )
 
 // ==============================================================================
@@ -139,4 +140,9 @@ var props = []css_prop{
 	prop_font_size,
 	// https://www.w3.org/TR/css-fonts-3/#font-prop
 	css_prop_shorthand_any{"font", []css_prop{prop_font_family, prop_font_weight, prop_font_stretch, prop_font_style, prop_font_size}, true},
+	//==========================================================================
+	// https://www.w3.org/TR/css-text-3/
+	//==========================================================================
+	// https://www.w3.org/TR/css-text-3/#text-transform-property
+	css_prop_simple{"text-transform", type_text_transform, "css_text_transform{tp: css_text_transform_type_none}", true},
 }

@@ -582,6 +582,12 @@ func (tb layout_tree_builder) make_layout_for_node(
 		//======================================================================
 		var text_node *layout_text_node
 		str := text.get_text()
+
+		// Apply text-transform
+		if v := parent_css.get_text_transform(); !cm.IsNil(v) {
+			str = v.apply(str)
+		}
+
 		if str == "" {
 			// Nothing to display
 			return nil

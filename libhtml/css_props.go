@@ -1127,6 +1127,16 @@ var css_property_descriptors_map = map[string]css_property_descriptor{
 			return ts.parse_css_font_shorthand()
 		},
 	},
+	"text-transform": {
+		initial: css_text_transform{tp: css_text_transform_type_none},
+		apply_func: func(dest *css_computed_style_set, value any) {
+			v := value.(css_text_transform)
+			dest.text_transform = &v
+		},
+		parse_func: func(ts *css_token_stream) (css_property_value, bool) {
+			return ts.parse_text_transform()
+		},
+	},
 }
 
 type css_computed_style_set struct {
@@ -1176,6 +1186,7 @@ type css_computed_style_set struct {
 	font_style              *css_font_style
 	font_size               *css_font_size
 	font_shorthand          *css_font_shorthand
+	text_transform          *css_text_transform
 }
 
 func (css *css_computed_style_set) get_color() css_color {
@@ -1508,6 +1519,23 @@ func (css *css_computed_style_set) inherit_font_shorthand_from_parent(parent dom
 		}
 	}
 }
+func (css *css_computed_style_set) get_text_transform() css_text_transform {
+	if css.text_transform == nil {
+		initial := css_property_descriptors_map["text-transform"].initial.(css_text_transform)
+		css.text_transform = &initial
+	}
+	return *css.text_transform
+}
+func (css *css_computed_style_set) inherit_text_transform_from_parent(parent dom_Element) {
+	parent_css := parent.get_computed_style_set()
+	if !cm.IsNil(parent_css.text_transform) {
+		css.text_transform = parent_css.text_transform
+	} else if parent_parent := parent.get_parent(); !cm.IsNil(parent_parent) {
+		if elem, ok := parent_parent.(dom_Element); ok {
+			css.inherit_text_transform_from_parent(elem)
+		}
+	}
+}
 func (css *css_computed_style_set) inherit_properties_from_parent(parent dom_Element) {
 	if cm.IsNil(css.color) {
 		css.inherit_color_from_parent(parent)
@@ -1532,5 +1560,8 @@ func (css *css_computed_style_set) inherit_properties_from_parent(parent dom_Ele
 	}
 	if cm.IsNil(css.font_shorthand) {
 		css.inherit_font_shorthand_from_parent(parent)
+	}
+	if cm.IsNil(css.text_transform) {
+		css.inherit_text_transform_from_parent(parent)
 	}
 }
