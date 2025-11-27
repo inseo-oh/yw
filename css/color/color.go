@@ -167,15 +167,15 @@ type Color struct {
 type Type uint8
 
 func NewCanvasText() Color {
-	return NewColorFromRgba(0, 0, 0, 255)
+	return NewRgba(0, 0, 0, 255)
 }
 func NewCurrentColor() Color {
 	return Color{TypeCurrentColor, nil}
 }
 func NewTransparent() Color {
-	return NewColorFromRgba(0, 0, 0, 0)
+	return NewRgba(0, 0, 0, 0)
 }
-func NewColorFromRgba(r, g, b, a uint8) Color {
+func NewRgba(r, g, b, a uint8) Color {
 	return Color{TypeRgb, []css.Num{
 		css.NumFromInt(int64(r)),
 		css.NumFromInt(int64(g)),
