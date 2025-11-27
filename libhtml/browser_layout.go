@@ -116,7 +116,12 @@ func (ifc browser_layout_inline_formatting_context) get_formatting_context_type(
 func (ifc *browser_layout_inline_formatting_context) add_line_box(bfc *browser_layout_block_formatting_context) {
 	lb := browser_layout_line_box{}
 	lb.current_line_height = 0
-	lb.initial_block_pos = bfc.get_current_natural_pos()
+	if len(ifc.line_boxes) != 0 {
+		last_lb := ifc.get_current_line_box()
+		lb.initial_block_pos = last_lb.initial_block_pos + last_lb.current_line_height
+	} else {
+		lb.initial_block_pos = bfc.get_current_natural_pos()
+	}
 	lb.available_width = ifc.bcon.rect.Width
 	if !ifc.is_dummy_context && lb.available_width == 0 {
 		browser_print_layout_tree(ifc.bcon)
@@ -130,6 +135,9 @@ func (ifc browser_layout_inline_formatting_context) get_current_natural_pos() fl
 	return ifc.get_current_line_box().current_natural_pos
 }
 func (ifc *browser_layout_inline_formatting_context) increment_natural_pos(pos float64) {
+	if len(ifc.line_boxes) == 0 {
+		ifc.add_line_box(ifc.bcon.bfc)
+	}
 	lb := ifc.get_current_line_box()
 	if lb.available_width < lb.current_natural_pos+pos && !ifc.is_dummy_context {
 		panic("content overflow")
@@ -642,15 +650,13 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 				// parent_node.get_rect().Width += rect.Width
 			}
 
-			line_height_diff := max(rect.Height-line_box.current_line_height, 0)
+			line_box.current_line_height = max(line_box.current_line_height, rect.Height)
 			if parent_node.is_height_auto() {
-				line_box.current_line_height = max(line_box.current_line_height, rect.Height)
 				// Increment parent's height if needed.
 				parent_node.increment_if_needed(0, line_box.current_line_height)
 			}
 			ifc.increment_natural_pos(inline_axis_size)
 			text_nodes = append(text_nodes, text_node)
-			bfc.increment_natural_pos(line_height_diff)
 			if len(fragment_remaining) != 0 {
 				// Make a new line
 				ifc.add_line_box(bfc)
@@ -776,6 +782,21 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 					}
 					box = bcon
 				}
+
+				// Increment natural position
+				inline_axis_size := box.get_rect().Width
+				block_axis_size := box.get_rect().Height
+				if write_mode == browser_layout_write_mode_vertical {
+					inline_axis_size, block_axis_size = block_axis_size, inline_axis_size
+				}
+				switch css_display.outer_mode {
+				case css_display_outer_mode_inline:
+					_ = inline_axis_size
+					// ifc.increment_natural_pos(inline_axis_size)
+				case css_display_outer_mode_block:
+					bfc.increment_natural_pos(block_axis_size)
+				}
+
 				return []browser_layout_node{box}
 			case css_display_inner_mode_flow_root:
 				//==================================================================
@@ -786,23 +807,25 @@ func (tb browser_layout_tree_builder) make_layout_for_node(
 				if !dry_run {
 					bcon.init_children(tb, elem.get_children(), write_mode)
 				}
+
+				// Increment natural position
+				inline_axis_size := bcon.get_rect().Width
+				block_axis_size := bcon.get_rect().Height
+				if write_mode == browser_layout_write_mode_vertical {
+					inline_axis_size, block_axis_size = block_axis_size, inline_axis_size
+				}
+				switch css_display.outer_mode {
+				case css_display_outer_mode_inline:
+					ifc.increment_natural_pos(inline_axis_size)
+				case css_display_outer_mode_block:
+					bfc.increment_natural_pos(block_axis_size)
+				}
+
 				return []browser_layout_node{bcon}
 			default:
 				log.Panicf("TODO: Support display: %v", css_display)
 			}
 
-			// Increment natural position
-			inline_axis_size := box_rect.Width
-			block_axis_size := box_rect.Height
-			if write_mode == browser_layout_write_mode_vertical {
-				inline_axis_size, block_axis_size = block_axis_size, inline_axis_size
-			}
-			switch css_display.outer_mode {
-			case css_display_outer_mode_inline:
-				ifc.increment_natural_pos(inline_axis_size)
-			case css_display_outer_mode_block:
-				bfc.increment_natural_pos(block_axis_size)
-			}
 		default:
 			log.Panicf("TODO: Support display: %v", css_display)
 		}
