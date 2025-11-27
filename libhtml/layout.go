@@ -835,7 +835,7 @@ func (tb layout_tree_builder) make_layout_for_node(
 }
 
 // https://www.w3.org/TR/css-display-3/#initial-containing-block
-func browser_make_layout(root dom_Element, viewport_width, viewport_height float64, plat libplatform.Platform) layout_node {
+func make_layout(root dom_Element, viewport_width, viewport_height float64, plat libplatform.Platform) layout_node {
 	tb := layout_tree_builder{}
 	tb.font = plat.OpenFont("this_is_not_real_filename.ttf")
 	tb.font.SetTextSize(32)

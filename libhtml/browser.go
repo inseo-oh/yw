@@ -106,7 +106,7 @@ func (b *Browser) Init(url_str string, plat libplatform.Platform, viewport_img *
 		}
 	}
 
-	icb := browser_make_layout(html_elem, float64(viewport_size.X), float64(viewport_size.Y), plat)
+	icb := make_layout(html_elem, float64(viewport_size.X), float64(viewport_size.Y), plat)
 	browser_print_layout_tree(icb)
 	log.Println("Made layout. Making paint tree...")
 	paint := icb.make_paint_node()
