@@ -53,7 +53,7 @@ func (g browser_box_paint_node) paint(dest *image.RGBA) {
 	}
 }
 func (t browser_box_paint_node) String() string {
-	return fmt.Sprintf("box-paint(color=%v, %d items)", t.background_color, len(t.items))
+	return fmt.Sprintf("box-paint(color=%v, rect=%v, %d items)", t.background_color, t.rect, len(t.items))
 }
 
 func browser_print_paint_tree(node browser_paint_node) {
