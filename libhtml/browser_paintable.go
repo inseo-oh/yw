@@ -47,7 +47,7 @@ func (g browser_box_paint_node) paint(dest *image.RGBA) {
 			color_img.Set(x_off, y_off, g.background_color)
 		}
 	}
-	draw.Draw(dest, image.Rect(0, 0, int(g.rect.Width)-1, int(g.rect.Height)-1), color_img, image.Point{int(g.rect.Left), int(g.rect.Top)}, draw.Over)
+	draw.Draw(dest, image.Rect(int(g.rect.Left), int(g.rect.Top), int(g.rect.Left+g.rect.Width)-1, int(g.rect.Top+g.rect.Height)-1), color_img, image.Point{0, 0}, draw.Over)
 	for _, item := range g.items {
 		item.paint(dest)
 	}
