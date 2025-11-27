@@ -384,40 +384,49 @@ func (sh css_border_left_shorthand) String() string {
 }
 
 type css_border_shorthand struct {
-	border_width css_length
-	border_style css_line_style
-	border_color css_color
+	border_width_shorthand css_border_width_shorthand
+	border_style_shorthand css_border_style_shorthand
+	border_color_shorthand css_border_color_shorthand
 }
 
 func (ts *css_token_stream) parse_css_border_shorthand() (css_border_shorthand, bool) {
-	out := css_border_shorthand{css_line_width_medium(), css_line_style_none, css_color_currentColor()}
-	got_border_width := false
-	got_border_style := false
-	got_border_color := false
+	out := css_border_shorthand{css_border_width_shorthand{css_line_width_medium(), css_line_width_medium(), css_line_width_medium(), css_line_width_medium()}, css_border_style_shorthand{css_line_style_none, css_line_style_none, css_line_style_none, css_line_style_none}, css_border_color_shorthand{css_color_currentColor(), css_color_currentColor(), css_color_currentColor(), css_color_currentColor()}}
+	got_border_width_shorthand := false
+	got_border_style_shorthand := false
+	got_border_color_shorthand := false
 	got_any := false
 	for {
 		valid := false
-		if !got_border_width {
+		if !got_border_width_shorthand {
 			ts.skip_whitespaces()
 			if res, ok := ts.parse_line_width(); ok {
-				out.border_width = res
-				got_border_width = true
+				out.border_width_shorthand.left = res
+				out.border_width_shorthand.top = res
+				out.border_width_shorthand.right = res
+				out.border_width_shorthand.bottom = res
+				got_border_width_shorthand = true
 				valid = true
 			}
 		}
-		if !got_border_style {
+		if !got_border_style_shorthand {
 			ts.skip_whitespaces()
 			if res, ok := ts.parse_line_style(); ok {
-				out.border_style = res
-				got_border_style = true
+				out.border_style_shorthand.left = res
+				out.border_style_shorthand.top = res
+				out.border_style_shorthand.right = res
+				out.border_style_shorthand.bottom = res
+				got_border_style_shorthand = true
 				valid = true
 			}
 		}
-		if !got_border_color {
+		if !got_border_color_shorthand {
 			ts.skip_whitespaces()
 			if res, ok := ts.parse_color(); ok {
-				out.border_color = res
-				got_border_color = true
+				out.border_color_shorthand.left = res
+				out.border_color_shorthand.top = res
+				out.border_color_shorthand.right = res
+				out.border_color_shorthand.bottom = res
+				got_border_color_shorthand = true
 				valid = true
 			}
 		}
@@ -435,9 +444,9 @@ func (ts *css_token_stream) parse_css_border_shorthand() (css_border_shorthand, 
 
 func (sh css_border_shorthand) String() string {
 	return fmt.Sprintf("%v %v %v",
-		sh.border_width,
-		sh.border_style,
-		sh.border_color,
+		sh.border_width_shorthand,
+		sh.border_style_shorthand,
+		sh.border_color_shorthand,
 	)
 }
 
@@ -762,7 +771,11 @@ var css_property_descriptors_map = map[string]css_property_descriptor{
 		initial: css_border_color_shorthand{css_color_currentColor(), css_color_currentColor(), css_color_currentColor(), css_color_currentColor()},
 		apply_func: func(dest *css_computed_style_set, value any) {
 			v := value.(css_border_color_shorthand)
-			dest.border_color = &v
+			dest.border_color_shorthand = &v
+			dest.border_top_color = &v.top
+			dest.border_right_color = &v.right
+			dest.border_bottom_color = &v.bottom
+			dest.border_left_color = &v.left
 		},
 		parse_func: func(ts *css_token_stream) (css_property_value, bool) {
 			return ts.parse_css_border_color_shorthand()
@@ -812,7 +825,11 @@ var css_property_descriptors_map = map[string]css_property_descriptor{
 		initial: css_border_style_shorthand{css_line_style_none, css_line_style_none, css_line_style_none, css_line_style_none},
 		apply_func: func(dest *css_computed_style_set, value any) {
 			v := value.(css_border_style_shorthand)
-			dest.border_style = &v
+			dest.border_style_shorthand = &v
+			dest.border_top_style = &v.top
+			dest.border_right_style = &v.right
+			dest.border_bottom_style = &v.bottom
+			dest.border_left_style = &v.left
 		},
 		parse_func: func(ts *css_token_stream) (css_property_value, bool) {
 			return ts.parse_css_border_style_shorthand()
@@ -862,7 +879,11 @@ var css_property_descriptors_map = map[string]css_property_descriptor{
 		initial: css_border_width_shorthand{css_line_width_medium(), css_line_width_medium(), css_line_width_medium(), css_line_width_medium()},
 		apply_func: func(dest *css_computed_style_set, value any) {
 			v := value.(css_border_width_shorthand)
-			dest.border_width = &v
+			dest.border_width_shorthand = &v
+			dest.border_top_width = &v.top
+			dest.border_right_width = &v.right
+			dest.border_bottom_width = &v.bottom
+			dest.border_left_width = &v.left
 		},
 		parse_func: func(ts *css_token_stream) (css_property_value, bool) {
 			return ts.parse_css_border_width_shorthand()
@@ -872,7 +893,10 @@ var css_property_descriptors_map = map[string]css_property_descriptor{
 		initial: css_border_top_shorthand{css_line_width_medium(), css_line_style_none, css_color_currentColor()},
 		apply_func: func(dest *css_computed_style_set, value any) {
 			v := value.(css_border_top_shorthand)
-			dest.border_top = &v
+			dest.border_top_shorthand = &v
+			dest.border_top_width = &v.border_top_width
+			dest.border_top_style = &v.border_top_style
+			dest.border_top_color = &v.border_top_color
 		},
 		parse_func: func(ts *css_token_stream) (css_property_value, bool) {
 			return ts.parse_css_border_top_shorthand()
@@ -882,7 +906,10 @@ var css_property_descriptors_map = map[string]css_property_descriptor{
 		initial: css_border_right_shorthand{css_line_width_medium(), css_line_style_none, css_color_currentColor()},
 		apply_func: func(dest *css_computed_style_set, value any) {
 			v := value.(css_border_right_shorthand)
-			dest.border_right = &v
+			dest.border_right_shorthand = &v
+			dest.border_right_width = &v.border_right_width
+			dest.border_right_style = &v.border_right_style
+			dest.border_right_color = &v.border_right_color
 		},
 		parse_func: func(ts *css_token_stream) (css_property_value, bool) {
 			return ts.parse_css_border_right_shorthand()
@@ -892,7 +919,10 @@ var css_property_descriptors_map = map[string]css_property_descriptor{
 		initial: css_border_bottom_shorthand{css_line_width_medium(), css_line_style_none, css_color_currentColor()},
 		apply_func: func(dest *css_computed_style_set, value any) {
 			v := value.(css_border_bottom_shorthand)
-			dest.border_bottom = &v
+			dest.border_bottom_shorthand = &v
+			dest.border_bottom_width = &v.border_bottom_width
+			dest.border_bottom_style = &v.border_bottom_style
+			dest.border_bottom_color = &v.border_bottom_color
 		},
 		parse_func: func(ts *css_token_stream) (css_property_value, bool) {
 			return ts.parse_css_border_bottom_shorthand()
@@ -902,17 +932,23 @@ var css_property_descriptors_map = map[string]css_property_descriptor{
 		initial: css_border_left_shorthand{css_line_width_medium(), css_line_style_none, css_color_currentColor()},
 		apply_func: func(dest *css_computed_style_set, value any) {
 			v := value.(css_border_left_shorthand)
-			dest.border_left = &v
+			dest.border_left_shorthand = &v
+			dest.border_left_width = &v.border_left_width
+			dest.border_left_style = &v.border_left_style
+			dest.border_left_color = &v.border_left_color
 		},
 		parse_func: func(ts *css_token_stream) (css_property_value, bool) {
 			return ts.parse_css_border_left_shorthand()
 		},
 	},
 	"border": {
-		initial: css_border_shorthand{css_line_width_medium(), css_line_style_none, css_color_currentColor()},
+		initial: css_border_shorthand{css_border_width_shorthand{css_line_width_medium(), css_line_width_medium(), css_line_width_medium(), css_line_width_medium()}, css_border_style_shorthand{css_line_style_none, css_line_style_none, css_line_style_none, css_line_style_none}, css_border_color_shorthand{css_color_currentColor(), css_color_currentColor(), css_color_currentColor(), css_color_currentColor()}},
 		apply_func: func(dest *css_computed_style_set, value any) {
 			v := value.(css_border_shorthand)
-			dest.border = &v
+			dest.border_shorthand = &v
+			dest.border_width_shorthand = &v.border_width_shorthand
+			dest.border_style_shorthand = &v.border_style_shorthand
+			dest.border_color_shorthand = &v.border_color_shorthand
 		},
 		parse_func: func(ts *css_token_stream) (css_property_value, bool) {
 			return ts.parse_css_border_shorthand()
@@ -962,7 +998,11 @@ var css_property_descriptors_map = map[string]css_property_descriptor{
 		initial: css_margin_shorthand{css_margin{css_length{css_number_from_int(0), css_length_unit_px}}, css_margin{css_length{css_number_from_int(0), css_length_unit_px}}, css_margin{css_length{css_number_from_int(0), css_length_unit_px}}, css_margin{css_length{css_number_from_int(0), css_length_unit_px}}},
 		apply_func: func(dest *css_computed_style_set, value any) {
 			v := value.(css_margin_shorthand)
-			dest.margin = &v
+			dest.margin_shorthand = &v
+			dest.margin_top = &v.top
+			dest.margin_right = &v.right
+			dest.margin_bottom = &v.bottom
+			dest.margin_left = &v.left
 		},
 		parse_func: func(ts *css_token_stream) (css_property_value, bool) {
 			return ts.parse_css_margin_shorthand()
@@ -1012,7 +1052,11 @@ var css_property_descriptors_map = map[string]css_property_descriptor{
 		initial: css_padding_shorthand{css_length{css_number_from_int(0), css_length_unit_px}, css_length{css_number_from_int(0), css_length_unit_px}, css_length{css_number_from_int(0), css_length_unit_px}, css_length{css_number_from_int(0), css_length_unit_px}},
 		apply_func: func(dest *css_computed_style_set, value any) {
 			v := value.(css_padding_shorthand)
-			dest.padding = &v
+			dest.padding_shorthand = &v
+			dest.padding_top = &v.top
+			dest.padding_right = &v.right
+			dest.padding_bottom = &v.bottom
+			dest.padding_left = &v.left
 		},
 		parse_func: func(ts *css_token_stream) (css_property_value, bool) {
 			return ts.parse_css_padding_shorthand()
@@ -1072,7 +1116,12 @@ var css_property_descriptors_map = map[string]css_property_descriptor{
 		initial: css_font_shorthand{css_font_family_list{[]css_font_family{{css_font_family_type_sans_serif, ""}}}, css_font_weight_normal, css_font_stretch_normal, css_font_style_normal, css_absolute_size_medium},
 		apply_func: func(dest *css_computed_style_set, value any) {
 			v := value.(css_font_shorthand)
-			dest.font = &v
+			dest.font_shorthand = &v
+			dest.font_family = &v.font_family
+			dest.font_weight = &v.font_weight
+			dest.font_stretch = &v.font_stretch
+			dest.font_style = &v.font_style
+			dest.font_size = &v.font_size
 		},
 		parse_func: func(ts *css_token_stream) (css_property_value, bool) {
 			return ts.parse_css_font_shorthand()
@@ -1081,52 +1130,52 @@ var css_property_descriptors_map = map[string]css_property_descriptor{
 }
 
 type css_computed_style_set struct {
-	color               *css_color
-	width               *css_size_value
-	height              *css_size_value
-	min_width           *css_size_value
-	min_height          *css_size_value
-	max_width           *css_size_value
-	max_height          *css_size_value
-	display             *css_display
-	visibility          *css_visibility
-	background_color    *css_color
-	border_top_color    *css_color
-	border_right_color  *css_color
-	border_bottom_color *css_color
-	border_left_color   *css_color
-	border_color        *css_border_color_shorthand
-	border_top_style    *css_line_style
-	border_right_style  *css_line_style
-	border_bottom_style *css_line_style
-	border_left_style   *css_line_style
-	border_style        *css_border_style_shorthand
-	border_top_width    *css_length
-	border_right_width  *css_length
-	border_bottom_width *css_length
-	border_left_width   *css_length
-	border_width        *css_border_width_shorthand
-	border_top          *css_border_top_shorthand
-	border_right        *css_border_right_shorthand
-	border_bottom       *css_border_bottom_shorthand
-	border_left         *css_border_left_shorthand
-	border              *css_border_shorthand
-	margin_top          *css_margin
-	margin_right        *css_margin
-	margin_bottom       *css_margin
-	margin_left         *css_margin
-	margin              *css_margin_shorthand
-	padding_top         *css_length_resolvable
-	padding_right       *css_length_resolvable
-	padding_bottom      *css_length_resolvable
-	padding_left        *css_length_resolvable
-	padding             *css_padding_shorthand
-	font_family         *css_font_family_list
-	font_weight         *css_font_weight
-	font_stretch        *css_font_stretch
-	font_style          *css_font_style
-	font_size           *css_font_size
-	font                *css_font_shorthand
+	color                   *css_color
+	width                   *css_size_value
+	height                  *css_size_value
+	min_width               *css_size_value
+	min_height              *css_size_value
+	max_width               *css_size_value
+	max_height              *css_size_value
+	display                 *css_display
+	visibility              *css_visibility
+	background_color        *css_color
+	border_top_color        *css_color
+	border_right_color      *css_color
+	border_bottom_color     *css_color
+	border_left_color       *css_color
+	border_color_shorthand  *css_border_color_shorthand
+	border_top_style        *css_line_style
+	border_right_style      *css_line_style
+	border_bottom_style     *css_line_style
+	border_left_style       *css_line_style
+	border_style_shorthand  *css_border_style_shorthand
+	border_top_width        *css_length
+	border_right_width      *css_length
+	border_bottom_width     *css_length
+	border_left_width       *css_length
+	border_width_shorthand  *css_border_width_shorthand
+	border_top_shorthand    *css_border_top_shorthand
+	border_right_shorthand  *css_border_right_shorthand
+	border_bottom_shorthand *css_border_bottom_shorthand
+	border_left_shorthand   *css_border_left_shorthand
+	border_shorthand        *css_border_shorthand
+	margin_top              *css_margin
+	margin_right            *css_margin
+	margin_bottom           *css_margin
+	margin_left             *css_margin
+	margin_shorthand        *css_margin_shorthand
+	padding_top             *css_length_resolvable
+	padding_right           *css_length_resolvable
+	padding_bottom          *css_length_resolvable
+	padding_left            *css_length_resolvable
+	padding_shorthand       *css_padding_shorthand
+	font_family             *css_font_family_list
+	font_weight             *css_font_weight
+	font_stretch            *css_font_stretch
+	font_style              *css_font_style
+	font_size               *css_font_size
+	font_shorthand          *css_font_shorthand
 }
 
 func (css *css_computed_style_set) get_color() css_color {
@@ -1247,13 +1296,6 @@ func (css *css_computed_style_set) get_border_left_color() css_color {
 	}
 	return *css.border_left_color
 }
-func (css *css_computed_style_set) get_border_color() css_border_color_shorthand {
-	if css.border_color == nil {
-		initial := css_property_descriptors_map["border-color"].initial.(css_border_color_shorthand)
-		css.border_color = &initial
-	}
-	return *css.border_color
-}
 func (css *css_computed_style_set) get_border_top_style() css_line_style {
 	if css.border_top_style == nil {
 		initial := css_property_descriptors_map["border-top-style"].initial.(css_line_style)
@@ -1281,13 +1323,6 @@ func (css *css_computed_style_set) get_border_left_style() css_line_style {
 		css.border_left_style = &initial
 	}
 	return *css.border_left_style
-}
-func (css *css_computed_style_set) get_border_style() css_border_style_shorthand {
-	if css.border_style == nil {
-		initial := css_property_descriptors_map["border-style"].initial.(css_border_style_shorthand)
-		css.border_style = &initial
-	}
-	return *css.border_style
 }
 func (css *css_computed_style_set) get_border_top_width() css_length {
 	if css.border_top_width == nil {
@@ -1317,48 +1352,6 @@ func (css *css_computed_style_set) get_border_left_width() css_length {
 	}
 	return *css.border_left_width
 }
-func (css *css_computed_style_set) get_border_width() css_border_width_shorthand {
-	if css.border_width == nil {
-		initial := css_property_descriptors_map["border-width"].initial.(css_border_width_shorthand)
-		css.border_width = &initial
-	}
-	return *css.border_width
-}
-func (css *css_computed_style_set) get_border_top() css_border_top_shorthand {
-	if css.border_top == nil {
-		initial := css_property_descriptors_map["border-top"].initial.(css_border_top_shorthand)
-		css.border_top = &initial
-	}
-	return *css.border_top
-}
-func (css *css_computed_style_set) get_border_right() css_border_right_shorthand {
-	if css.border_right == nil {
-		initial := css_property_descriptors_map["border-right"].initial.(css_border_right_shorthand)
-		css.border_right = &initial
-	}
-	return *css.border_right
-}
-func (css *css_computed_style_set) get_border_bottom() css_border_bottom_shorthand {
-	if css.border_bottom == nil {
-		initial := css_property_descriptors_map["border-bottom"].initial.(css_border_bottom_shorthand)
-		css.border_bottom = &initial
-	}
-	return *css.border_bottom
-}
-func (css *css_computed_style_set) get_border_left() css_border_left_shorthand {
-	if css.border_left == nil {
-		initial := css_property_descriptors_map["border-left"].initial.(css_border_left_shorthand)
-		css.border_left = &initial
-	}
-	return *css.border_left
-}
-func (css *css_computed_style_set) get_border() css_border_shorthand {
-	if css.border == nil {
-		initial := css_property_descriptors_map["border"].initial.(css_border_shorthand)
-		css.border = &initial
-	}
-	return *css.border
-}
 func (css *css_computed_style_set) get_margin_top() css_margin {
 	if css.margin_top == nil {
 		initial := css_property_descriptors_map["margin-top"].initial.(css_margin)
@@ -1387,13 +1380,6 @@ func (css *css_computed_style_set) get_margin_left() css_margin {
 	}
 	return *css.margin_left
 }
-func (css *css_computed_style_set) get_margin() css_margin_shorthand {
-	if css.margin == nil {
-		initial := css_property_descriptors_map["margin"].initial.(css_margin_shorthand)
-		css.margin = &initial
-	}
-	return *css.margin
-}
 func (css *css_computed_style_set) get_padding_top() css_length_resolvable {
 	if css.padding_top == nil {
 		initial := css_property_descriptors_map["padding-top"].initial.(css_length_resolvable)
@@ -1421,13 +1407,6 @@ func (css *css_computed_style_set) get_padding_left() css_length_resolvable {
 		css.padding_left = &initial
 	}
 	return *css.padding_left
-}
-func (css *css_computed_style_set) get_padding() css_padding_shorthand {
-	if css.padding == nil {
-		initial := css_property_descriptors_map["padding"].initial.(css_padding_shorthand)
-		css.padding = &initial
-	}
-	return *css.padding
 }
 func (css *css_computed_style_set) get_font_family() css_font_family_list {
 	if css.font_family == nil {
@@ -1514,20 +1493,18 @@ func (css *css_computed_style_set) inherit_font_size_from_parent(parent dom_Elem
 		}
 	}
 }
-func (css *css_computed_style_set) get_font() css_font_shorthand {
-	if css.font == nil {
-		initial := css_property_descriptors_map["font"].initial.(css_font_shorthand)
-		css.font = &initial
-	}
-	return *css.font
-}
-func (css *css_computed_style_set) inherit_font_from_parent(parent dom_Element) {
+func (css *css_computed_style_set) inherit_font_shorthand_from_parent(parent dom_Element) {
 	parent_css := parent.get_computed_style_set()
-	if !cm.IsNil(parent_css.font) {
-		css.font = parent_css.font
+	if !cm.IsNil(parent_css.font_shorthand) {
+		css.font_family = &parent_css.font_shorthand.font_family
+		css.font_weight = &parent_css.font_shorthand.font_weight
+		css.font_stretch = &parent_css.font_shorthand.font_stretch
+		css.font_style = &parent_css.font_shorthand.font_style
+		css.font_size = &parent_css.font_shorthand.font_size
+		css.font_shorthand = parent_css.font_shorthand
 	} else if parent_parent := parent.get_parent(); !cm.IsNil(parent_parent) {
 		if elem, ok := parent_parent.(dom_Element); ok {
-			css.inherit_font_from_parent(elem)
+			css.inherit_font_shorthand_from_parent(elem)
 		}
 	}
 }
@@ -1553,7 +1530,7 @@ func (css *css_computed_style_set) inherit_properties_from_parent(parent dom_Ele
 	if cm.IsNil(css.font_size) {
 		css.inherit_font_size_from_parent(parent)
 	}
-	if cm.IsNil(css.font) {
-		css.inherit_font_from_parent(parent)
+	if cm.IsNil(css.font_shorthand) {
+		css.inherit_font_shorthand_from_parent(parent)
 	}
 }

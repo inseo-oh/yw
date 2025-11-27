@@ -43,9 +43,9 @@ var (
 	prop_border_bottom_width = css_prop_simple{"border-bottom-width", type_line_width, "css_line_width_medium()", false}
 	prop_border_left_width   = css_prop_simple{"border-left-width", type_line_width, "css_line_width_medium()", false}
 	// https://www.w3.org/TR/css-backgrounds-3/#border-shorthands
-	prop_border_shorthand_color = css_prop_simple{"border-color", prop_border_top_color.tp, prop_border_top_color.initial_value, false}
-	prop_border_shorthand_style = css_prop_simple{"border-style", prop_border_top_style.tp, prop_border_top_style.initial_value, false}
-	prop_border_shorthand_width = css_prop_simple{"border-width", prop_border_top_width.tp, prop_border_top_width.initial_value, false}
+	prop_border_color = css_prop_shorthand_sides{"border-color", prop_border_top_color, prop_border_right_color, prop_border_bottom_color, prop_border_left_color, false}
+	prop_border_style = css_prop_shorthand_sides{"border-style", prop_border_top_style, prop_border_right_style, prop_border_bottom_style, prop_border_left_style, false}
+	prop_border_width = css_prop_shorthand_sides{"border-width", prop_border_top_width, prop_border_right_width, prop_border_bottom_width, prop_border_left_width, false}
 	//==========================================================================
 	// https://www.w3.org/TR/css-box-3/
 	//==========================================================================
@@ -104,20 +104,17 @@ var props = []css_prop{
 	// https://www.w3.org/TR/css-backgrounds-3/#background-color
 	css_prop_simple{"background-color", type_color, "css_color_transparent()", false},
 	// https://www.w3.org/TR/css-backgrounds-3/#border-color
-	prop_border_top_color, prop_border_right_color, prop_border_bottom_color, prop_border_left_color,
-	css_prop_shorthand_sides{"border-color", prop_border_top_color, prop_border_right_color, prop_border_bottom_color, prop_border_left_color, false},
+	prop_border_top_color, prop_border_right_color, prop_border_bottom_color, prop_border_left_color, prop_border_color,
 	// https://www.w3.org/TR/css-backgrounds-3/#border-style
-	prop_border_top_style, prop_border_right_style, prop_border_bottom_style, prop_border_left_style,
-	css_prop_shorthand_sides{"border-style", prop_border_top_style, prop_border_right_style, prop_border_bottom_style, prop_border_left_style, false},
+	prop_border_top_style, prop_border_right_style, prop_border_bottom_style, prop_border_left_style, prop_border_style,
 	// https://www.w3.org/TR/css-backgrounds-3/#border-width
-	prop_border_top_width, prop_border_right_width, prop_border_bottom_width, prop_border_left_width,
-	css_prop_shorthand_sides{"border-width", prop_border_top_width, prop_border_right_width, prop_border_bottom_width, prop_border_left_width, false},
+	prop_border_top_width, prop_border_right_width, prop_border_bottom_width, prop_border_left_width, prop_border_width,
 	// https://www.w3.org/TR/css-backgrounds-3/#border-shorthands
 	css_prop_shorthand_any{"border-top", []css_prop{prop_border_top_width, prop_border_top_style, prop_border_top_color}, false},
 	css_prop_shorthand_any{"border-right", []css_prop{prop_border_right_width, prop_border_right_style, prop_border_right_color}, false},
 	css_prop_shorthand_any{"border-bottom", []css_prop{prop_border_bottom_width, prop_border_bottom_style, prop_border_bottom_color}, false},
 	css_prop_shorthand_any{"border-left", []css_prop{prop_border_left_width, prop_border_left_style, prop_border_left_color}, false},
-	css_prop_shorthand_any{"border", []css_prop{prop_border_shorthand_width, prop_border_shorthand_style, prop_border_shorthand_color}, false},
+	css_prop_shorthand_any{"border", []css_prop{prop_border_width, prop_border_style, prop_border_color}, false},
 	//==========================================================================
 	// https://www.w3.org/TR/css-box-3/
 	//==========================================================================

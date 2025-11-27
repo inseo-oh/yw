@@ -20,6 +20,7 @@ type css_prop interface {
 	get_type() css_type
 	get_initial_value() string
 	is_inheritable() bool
+	is_shorthand() bool
 }
 
 // A CSS property
@@ -34,9 +35,13 @@ func (p css_prop_simple) get_name() string          { return p.name }
 func (p css_prop_simple) get_type() css_type        { return p.tp }
 func (p css_prop_simple) get_initial_value() string { return p.initial_value }
 func (p css_prop_simple) is_inheritable() bool      { return p.inheritable }
+func (p css_prop_simple) is_shorthand() bool        { return false }
 
 // Shorthand properties for top, right, bottom, left values.
 // These take 1~4 values of the same type, and assigned to top, right, bottom, left accordingly.
+//
+// EXCEPTION: When this is used inside css_prop_shorthand_any, it accepts single value that sets all four sides.
+
 // Examples: border-color, padding, margin
 type css_prop_shorthand_sides struct {
 	name        string   // Name of the property
@@ -71,6 +76,7 @@ func (p css_prop_shorthand_sides) get_initial_value() string {
 	)
 }
 func (p css_prop_shorthand_sides) is_inheritable() bool { return p.inheritable }
+func (p css_prop_shorthand_sides) is_shorthand() bool   { return true }
 
 // Shorthand properties for multiple types of properties
 // These simply take any of accepted properties in any other, and fills with default values for absent ones.
@@ -107,9 +113,16 @@ func (p css_prop_shorthand_any) get_initial_value() string {
 	return sb.String()
 }
 func (p css_prop_shorthand_any) is_inheritable() bool { return p.inheritable }
+func (p css_prop_shorthand_any) is_shorthand() bool   { return true }
 
 func go_ident_name_of_prop(prop css_prop) string {
-	return strings.ReplaceAll(prop.get_name(), "-", "_")
+	s := strings.ReplaceAll(prop.get_name(), "-", "_")
+	if prop.is_shorthand() {
+		// We explicitly name shorthand properties ~_shorthand to avoid confusion.
+		return s + "_shorthand"
+	} else {
+		return s
+	}
 }
 
 var pkg = flag.String("pkg", "libhtml", "Package name to use")
@@ -199,8 +212,16 @@ func main() {
 			for _, prop := range sh.props {
 				sb_inner.WriteString(fmt.Sprintf("\t\tif !got_%s {\n", go_ident_name_of_prop(prop)))
 				sb_inner.WriteString( /*      */ "\t\t\tts.skip_whitespaces()\n")
-				sb_inner.WriteString(fmt.Sprintf("\t\t\tif res, ok := ts.%s(); ok {\n", prop.get_type().parse_method))
-				sb_inner.WriteString(fmt.Sprintf("\t\t\t\tout.%s = res\n", go_ident_name_of_prop(prop)))
+				if sides, ok := prop.(css_prop_shorthand_sides); ok {
+					sb_inner.WriteString(fmt.Sprintf("\t\t\tif res, ok := ts.%s(); ok {\n", sides.prop_top.get_type().parse_method))
+					sb_inner.WriteString(fmt.Sprintf("\t\t\t\tout.%s.left = res\n", go_ident_name_of_prop(prop)))
+					sb_inner.WriteString(fmt.Sprintf("\t\t\t\tout.%s.top = res\n", go_ident_name_of_prop(prop)))
+					sb_inner.WriteString(fmt.Sprintf("\t\t\t\tout.%s.right = res\n", go_ident_name_of_prop(prop)))
+					sb_inner.WriteString(fmt.Sprintf("\t\t\t\tout.%s.bottom = res\n", go_ident_name_of_prop(prop)))
+				} else {
+					sb_inner.WriteString(fmt.Sprintf("\t\t\tif res, ok := ts.%s(); ok {\n", prop.get_type().parse_method))
+					sb_inner.WriteString(fmt.Sprintf("\t\t\t\tout.%s = res\n", go_ident_name_of_prop(prop)))
+				}
 				sb_inner.WriteString(fmt.Sprintf("\t\t\t\tgot_%s = true\n", go_ident_name_of_prop(prop)))
 				sb_inner.WriteString( /*      */ "\t\t\t\tvalid = true\n")
 				sb_inner.WriteString( /*      */ "\t\t\t}\n")
@@ -236,6 +257,17 @@ func main() {
 		sb_inner.WriteString( /*      */ "\t\tapply_func: func(dest *css_computed_style_set, value any) {\n")
 		sb_inner.WriteString(fmt.Sprintf("\t\t\tv := value.(%s)\n", prop.get_type().type_name))
 		sb_inner.WriteString(fmt.Sprintf("\t\t\tdest.%s = &v\n", go_ident_name_of_prop(prop)))
+		if sh, ok := prop.(css_prop_shorthand_sides); ok {
+			sb_inner.WriteString(fmt.Sprintf("\t\t\tdest.%s = &v.top\n", go_ident_name_of_prop(sh.prop_top)))
+			sb_inner.WriteString(fmt.Sprintf("\t\t\tdest.%s = &v.right\n", go_ident_name_of_prop(sh.prop_right)))
+			sb_inner.WriteString(fmt.Sprintf("\t\t\tdest.%s = &v.bottom\n", go_ident_name_of_prop(sh.prop_bottom)))
+			sb_inner.WriteString(fmt.Sprintf("\t\t\tdest.%s = &v.left\n", go_ident_name_of_prop(sh.prop_left)))
+		}
+		if sh, ok := prop.(css_prop_shorthand_any); ok {
+			for _, sh_prop := range sh.props {
+				sb_inner.WriteString(fmt.Sprintf("\t\t\tdest.%s = &v.%s\n", go_ident_name_of_prop(sh_prop), go_ident_name_of_prop(sh_prop)))
+			}
+		}
 		sb_inner.WriteString( /*      */ "\t\t},\n")
 		sb_inner.WriteString( /*      */ "\t\tparse_func: func(ts *css_token_stream) (css_property_value, bool) {\n")
 		sb_inner.WriteString(fmt.Sprintf("\t\t\treturn ts.%s()\n", prop.get_type().parse_method))
@@ -256,17 +288,30 @@ func main() {
 	// Write css_computed_style_set methods ------------------------------------
 	for _, prop := range props {
 		sb_inner := strings.Builder{}
-		sb_inner.WriteString(fmt.Sprintf("func (css *css_computed_style_set) get_%s() %s {\n", go_ident_name_of_prop(prop), prop.get_type().type_name))
-		sb_inner.WriteString(fmt.Sprintf("\tif css.%s == nil {\n", go_ident_name_of_prop(prop)))
-		sb_inner.WriteString(fmt.Sprintf("\t\tinitial := css_property_descriptors_map[%s].initial.(%s)\n", strconv.Quote(prop.get_name()), prop.get_type().type_name))
-		sb_inner.WriteString(fmt.Sprintf("\t\tcss.%s = &initial\n", go_ident_name_of_prop(prop)))
-		sb_inner.WriteString( /*      */ "\t}\n")
-		sb_inner.WriteString( /*      */ fmt.Sprintf("\treturn *css.%s\n", go_ident_name_of_prop(prop)))
-		sb_inner.WriteString( /*      */ "}\n")
+		if !prop.is_shorthand() {
+			sb_inner.WriteString(fmt.Sprintf("func (css *css_computed_style_set) get_%s() %s {\n", go_ident_name_of_prop(prop), prop.get_type().type_name))
+			sb_inner.WriteString(fmt.Sprintf("\tif css.%s == nil {\n", go_ident_name_of_prop(prop)))
+			sb_inner.WriteString(fmt.Sprintf("\t\tinitial := css_property_descriptors_map[%s].initial.(%s)\n", strconv.Quote(prop.get_name()), prop.get_type().type_name))
+			sb_inner.WriteString(fmt.Sprintf("\t\tcss.%s = &initial\n", go_ident_name_of_prop(prop)))
+			sb_inner.WriteString( /*      */ "\t}\n")
+			sb_inner.WriteString( /*      */ fmt.Sprintf("\treturn *css.%s\n", go_ident_name_of_prop(prop)))
+			sb_inner.WriteString( /*      */ "}\n")
+		}
 		if prop.is_inheritable() {
 			sb_inner.WriteString(fmt.Sprintf("func (css *css_computed_style_set) inherit_%s_from_parent(parent dom_Element) {\n", go_ident_name_of_prop(prop)))
 			sb_inner.WriteString( /*      */ "\tparent_css := parent.get_computed_style_set()\n")
 			sb_inner.WriteString(fmt.Sprintf("\tif !cm.IsNil(parent_css.%s) {\n", go_ident_name_of_prop(prop)))
+			if sh, ok := prop.(css_prop_shorthand_sides); ok {
+				sb_inner.WriteString(fmt.Sprintf("\t\t\tcss.%s = &parent_css.%s.top\n", go_ident_name_of_prop(sh.prop_top), go_ident_name_of_prop(prop)))
+				sb_inner.WriteString(fmt.Sprintf("\t\t\tcss.%s = &parent_css.%s.right\n", go_ident_name_of_prop(sh.prop_right), go_ident_name_of_prop(prop)))
+				sb_inner.WriteString(fmt.Sprintf("\t\t\tcss.%s = &parent_css.%s.bottom\n", go_ident_name_of_prop(sh.prop_bottom), go_ident_name_of_prop(prop)))
+				sb_inner.WriteString(fmt.Sprintf("\t\t\tcss.%s = &parent_css.%s.left\n", go_ident_name_of_prop(sh.prop_left), go_ident_name_of_prop(prop)))
+			}
+			if sh, ok := prop.(css_prop_shorthand_any); ok {
+				for _, sh_prop := range sh.props {
+					sb_inner.WriteString(fmt.Sprintf("\t\t\tcss.%s = &parent_css.%s.%s\n", go_ident_name_of_prop(sh_prop), go_ident_name_of_prop(prop), go_ident_name_of_prop(sh_prop)))
+				}
+			}
 			sb_inner.WriteString(fmt.Sprintf("\t\tcss.%s = parent_css.%s\n", go_ident_name_of_prop(prop), go_ident_name_of_prop(prop)))
 			sb_inner.WriteString( /*      */ "\t} else if parent_parent := parent.get_parent(); !cm.IsNil(parent_parent) {\n")
 			sb_inner.WriteString( /*      */ "\t\tif elem, ok := parent_parent.(dom_Element); ok {\n")
