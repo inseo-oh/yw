@@ -209,7 +209,7 @@ func (c Color) ToRgba() color.RGBA {
 	case TypeColorFn:
 		panic("TODO")
 	}
-	log.Panicf("<unknown css_color type %v>", c.Type)
+	log.Panicf("<bad Color type %v>", c.Type)
 	panic("unreachable")
 }
 
