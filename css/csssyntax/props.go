@@ -8,6 +8,7 @@ import (
 	"github.com/inseo-oh/yw/css/csscolor"
 	"github.com/inseo-oh/yw/css/fonts"
 	"github.com/inseo-oh/yw/css/props"
+	"github.com/inseo-oh/yw/css/textdecor"
 	"github.com/inseo-oh/yw/css/values"
 )
 
@@ -492,6 +493,50 @@ func (ts *tokenStream) parseFontShorthand() (props.FontShorthand, bool) {
 	return out, true
 }
 
+func (ts *tokenStream) parseTextDecorationShorthand() (props.TextDecorationShorthand, bool) {
+	out := props.TextDecorationShorthand{TextDecorationLine: textdecor.NoLine, TextDecorationStyle: textdecor.Solid, TextDecorationColor: csscolor.NewCurrentColor()}
+	gotTextDecorationLine := false
+	gotTextDecorationStyle := false
+	gotTextDecorationColor := false
+	gotAny := false
+	for {
+		valid := false
+		if !gotTextDecorationLine {
+			ts.skipWhitespaces()
+			if res, ok := ts.parseTextDecorationLine(); ok {
+				out.TextDecorationLine = res
+				gotTextDecorationLine = true
+				valid = true
+			}
+		}
+		if !gotTextDecorationStyle {
+			ts.skipWhitespaces()
+			if res, ok := ts.parseTextDecorationStyle(); ok {
+				out.TextDecorationStyle = res
+				gotTextDecorationStyle = true
+				valid = true
+			}
+		}
+		if !gotTextDecorationColor {
+			ts.skipWhitespaces()
+			if res, ok := ts.parseColor(); ok {
+				out.TextDecorationColor = res
+				gotTextDecorationColor = true
+				valid = true
+			}
+		}
+		ts.skipWhitespaces()
+		if !valid {
+			break
+		}
+		gotAny = true
+	}
+	if !gotAny {
+		return out, false
+	}
+	return out, true
+}
+
 var parseFuncMap = map[string]func(ts *tokenStream) (props.PropertyValue, bool){
 	"color": func(ts *tokenStream) (props.PropertyValue, bool) {
 		return ts.parseColor()
@@ -633,5 +678,20 @@ var parseFuncMap = map[string]func(ts *tokenStream) (props.PropertyValue, bool){
 	},
 	"text-transform": func(ts *tokenStream) (props.PropertyValue, bool) {
 		return ts.parseTextTransform()
+	},
+	"text-decoration-line": func(ts *tokenStream) (props.PropertyValue, bool) {
+		return ts.parseTextDecorationLine()
+	},
+	"text-decoration-style": func(ts *tokenStream) (props.PropertyValue, bool) {
+		return ts.parseTextDecorationStyle()
+	},
+	"text-decoration-color": func(ts *tokenStream) (props.PropertyValue, bool) {
+		return ts.parseColor()
+	},
+	"text-decoration": func(ts *tokenStream) (props.PropertyValue, bool) {
+		return ts.parseTextDecorationShorthand()
+	},
+	"text-underline-position": func(ts *tokenStream) (props.PropertyValue, bool) {
+		return ts.parseTextDecorationPosition()
 	},
 }

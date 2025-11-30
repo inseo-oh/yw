@@ -19,6 +19,7 @@ var requiredImports = []string{
 	"github.com/inseo-oh/yw/css/backgrounds",
 	"github.com/inseo-oh/yw/css/values",
 	"github.com/inseo-oh/yw/css/fonts",
+	"github.com/inseo-oh/yw/css/textdecor",
 }
 
 var (

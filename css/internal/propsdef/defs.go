@@ -4,21 +4,24 @@ package propsdef
 // List of CSS value types
 // ==============================================================================
 var (
-	typeColor          = CssType{"csscolor.Color", "parseColor"}
-	typeSizeOrAuto     = CssType{"sizing.Size", "parseSizeOrAuto"}
-	typeSizeOrNone     = CssType{"sizing.Size", "parseSizeOrNone"}
-	typeDisplay        = CssType{"display.Display", "parseDisplay"}
-	typeVisibility     = CssType{"display.Visibility", "parseVisibility"}
-	typeLineStyle      = CssType{"backgrounds.LineStyle", "parseLineStyle"}
-	typeLineWidth      = CssType{"values.Length", "parseLineWidth"}
-	typeMargin         = CssType{"box.Margin", "parseMargin"}
-	typePadding        = CssType{"values.LengthResolvable", "parsePadding"}
-	typeFontFamilyList = CssType{"fonts.FamilyList", "parseFontFamily"}
-	typeFontWeight     = CssType{"fonts.Weight", "parseFontWeight"}
-	typeFontStretch    = CssType{"fonts.Stretch", "parseFontStretch"}
-	typeFontStyle      = CssType{"fonts.Style", "parseFontStyle"}
-	typeFontSize       = CssType{"fonts.Size", "parseFontSize"}
-	typeTextTransform  = CssType{"text.Transform", "parseTextTransform"}
+	typeColor                  = CssType{"csscolor.Color", "parseColor"}
+	typeSizeOrAuto             = CssType{"sizing.Size", "parseSizeOrAuto"}
+	typeSizeOrNone             = CssType{"sizing.Size", "parseSizeOrNone"}
+	typeDisplay                = CssType{"display.Display", "parseDisplay"}
+	typeVisibility             = CssType{"display.Visibility", "parseVisibility"}
+	typeLineStyle              = CssType{"backgrounds.LineStyle", "parseLineStyle"}
+	typeLineWidth              = CssType{"values.Length", "parseLineWidth"}
+	typeMargin                 = CssType{"box.Margin", "parseMargin"}
+	typePadding                = CssType{"values.LengthResolvable", "parsePadding"}
+	typeFontFamilyList         = CssType{"fonts.FamilyList", "parseFontFamily"}
+	typeFontWeight             = CssType{"fonts.Weight", "parseFontWeight"}
+	typeFontStretch            = CssType{"fonts.Stretch", "parseFontStretch"}
+	typeFontStyle              = CssType{"fonts.Style", "parseFontStyle"}
+	typeFontSize               = CssType{"fonts.Size", "parseFontSize"}
+	typeTextTransform          = CssType{"text.Transform", "parseTextTransform"}
+	typeTextDecorationLine     = CssType{"textdecor.LineFlags", "parseTextDecorationLine"}
+	typeTextDecorationStyle    = CssType{"textdecor.Style", "parseTextDecorationStyle"}
+	typeTextDecorationPosition = CssType{"textdecor.PositionFlags", "parseTextDecorationPosition"}
 )
 
 // ==============================================================================
@@ -73,6 +76,15 @@ var (
 	propFontStyle = SimpleProp{"font-style", typeFontStyle, "fonts.NormalStyle", true}
 	// https://www.w3.org/TR/css-fonts-3/#propdef-font-size
 	propFontSize = SimpleProp{"font-size", typeFontSize, "fonts.MediumSize", true}
+	//==========================================================================
+	// https://www.w3.org/TR/css-text-decor-3/
+	//==========================================================================
+	// https://www.w3.org/TR/css-text-decor-3/#text-decoration-line-property
+	propTextDecorationLine = SimpleProp{"text-decoration-line", typeTextDecorationLine, "textdecor.NoLine", false}
+	// https://www.w3.org/TR/css-text-decor-3/#text-decoration-style-property
+	propTextDecorationStyle = SimpleProp{"text-decoration-style", typeTextDecorationStyle, "textdecor.Solid", false}
+	// https://www.w3.org/TR/css-text-decor-3/#text-decoration-color-property
+	propTextDecorationColor = SimpleProp{"text-decoration-color", typeColor, "csscolor.NewCurrentColor()", false}
 )
 var Props = []CssProp{
 	//==========================================================================
@@ -145,4 +157,12 @@ var Props = []CssProp{
 	//==========================================================================
 	// https://www.w3.org/TR/css-text-3/#text-transform-property
 	SimpleProp{"text-transform", typeTextTransform, "text.Transform{Type: text.NoTransform}", true},
+	//==========================================================================
+	// https://www.w3.org/TR/css-text-decor-3/
+	//==========================================================================
+	propTextDecorationLine, propTextDecorationStyle, propTextDecorationColor,
+	// https://www.w3.org/TR/css-text-decor-3/#propdef-text-decoration
+	ShorthandAnyProp{"text-decoration", []CssProp{propTextDecorationLine, propTextDecorationStyle, propTextDecorationColor}, false},
+	// https://www.w3.org/TR/css-text-decor-3/#propdef-text-underline-position
+	SimpleProp{"text-underline-position", typeTextDecorationPosition, "textdecor.PositionAuto", true},
 }

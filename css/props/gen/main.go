@@ -24,6 +24,7 @@ var requiredImports = []string{
 	"github.com/inseo-oh/yw/css/sizing",
 	"github.com/inseo-oh/yw/css/display",
 	"github.com/inseo-oh/yw/css/text",
+	"github.com/inseo-oh/yw/css/textdecor",
 }
 
 var (

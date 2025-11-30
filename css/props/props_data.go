@@ -4,7 +4,6 @@ package props
 
 import (
 	"fmt"
-
 	"github.com/inseo-oh/yw/css"
 	"github.com/inseo-oh/yw/css/backgrounds"
 	"github.com/inseo-oh/yw/css/box"
@@ -13,6 +12,7 @@ import (
 	"github.com/inseo-oh/yw/css/fonts"
 	"github.com/inseo-oh/yw/css/sizing"
 	"github.com/inseo-oh/yw/css/text"
+	"github.com/inseo-oh/yw/css/textdecor"
 	"github.com/inseo-oh/yw/css/values"
 	"github.com/inseo-oh/yw/util"
 )
@@ -157,6 +157,20 @@ func (sh FontShorthand) String() string {
 		sh.FontStretch,
 		sh.FontStyle,
 		sh.FontSize,
+	)
+}
+
+type TextDecorationShorthand struct {
+	TextDecorationLine  textdecor.LineFlags
+	TextDecorationStyle textdecor.Style
+	TextDecorationColor csscolor.Color
+}
+
+func (sh TextDecorationShorthand) String() string {
+	return fmt.Sprintf("%v %v %v",
+		sh.TextDecorationLine,
+		sh.TextDecorationStyle,
+		sh.TextDecorationColor,
 	)
 }
 
@@ -530,56 +544,99 @@ var DescriptorsMap = map[string]Descriptor{
 			dest.TextTransformValue = &v
 		},
 	},
+	"text-decoration-line": {
+		Initial: textdecor.NoLine,
+		ApplyFunc: func(dest *ComputedStyleSet, value any) {
+			v := value.(textdecor.LineFlags)
+			dest.TextDecorationLineValue = &v
+		},
+	},
+	"text-decoration-style": {
+		Initial: textdecor.Solid,
+		ApplyFunc: func(dest *ComputedStyleSet, value any) {
+			v := value.(textdecor.Style)
+			dest.TextDecorationStyleValue = &v
+		},
+	},
+	"text-decoration-color": {
+		Initial: csscolor.NewCurrentColor(),
+		ApplyFunc: func(dest *ComputedStyleSet, value any) {
+			v := value.(csscolor.Color)
+			dest.TextDecorationColorValue = &v
+		},
+	},
+	"text-decoration": {
+		Initial: TextDecorationShorthand{TextDecorationLine: textdecor.NoLine, TextDecorationStyle: textdecor.Solid, TextDecorationColor: csscolor.NewCurrentColor()},
+		ApplyFunc: func(dest *ComputedStyleSet, value any) {
+			v := value.(TextDecorationShorthand)
+			dest.TextDecorationShorthandValue = &v
+			dest.TextDecorationLineValue = &v.TextDecorationLine
+			dest.TextDecorationStyleValue = &v.TextDecorationStyle
+			dest.TextDecorationColorValue = &v.TextDecorationColor
+		},
+	},
+	"text-underline-position": {
+		Initial: textdecor.PositionAuto,
+		ApplyFunc: func(dest *ComputedStyleSet, value any) {
+			v := value.(textdecor.PositionFlags)
+			dest.TextUnderlinePositionValue = &v
+		},
+	},
 }
 
 type ComputedStyleSet struct {
-	ColorValue                 *csscolor.Color
-	WidthValue                 *sizing.Size
-	HeightValue                *sizing.Size
-	MinWidthValue              *sizing.Size
-	MinHeightValue             *sizing.Size
-	MaxWidthValue              *sizing.Size
-	MaxHeightValue             *sizing.Size
-	DisplayValue               *display.Display
-	VisibilityValue            *display.Visibility
-	BackgroundColorValue       *csscolor.Color
-	BorderTopColorValue        *csscolor.Color
-	BorderRightColorValue      *csscolor.Color
-	BorderBottomColorValue     *csscolor.Color
-	BorderLeftColorValue       *csscolor.Color
-	BorderColorShorthandValue  *BorderColorShorthand
-	BorderTopStyleValue        *backgrounds.LineStyle
-	BorderRightStyleValue      *backgrounds.LineStyle
-	BorderBottomStyleValue     *backgrounds.LineStyle
-	BorderLeftStyleValue       *backgrounds.LineStyle
-	BorderStyleShorthandValue  *BorderStyleShorthand
-	BorderTopWidthValue        *values.Length
-	BorderRightWidthValue      *values.Length
-	BorderBottomWidthValue     *values.Length
-	BorderLeftWidthValue       *values.Length
-	BorderWidthShorthandValue  *BorderWidthShorthand
-	BorderTopShorthandValue    *BorderTopShorthand
-	BorderRightShorthandValue  *BorderRightShorthand
-	BorderBottomShorthandValue *BorderBottomShorthand
-	BorderLeftShorthandValue   *BorderLeftShorthand
-	BorderShorthandValue       *BorderShorthand
-	MarginTopValue             *box.Margin
-	MarginRightValue           *box.Margin
-	MarginBottomValue          *box.Margin
-	MarginLeftValue            *box.Margin
-	MarginShorthandValue       *MarginShorthand
-	PaddingTopValue            *values.LengthResolvable
-	PaddingRightValue          *values.LengthResolvable
-	PaddingBottomValue         *values.LengthResolvable
-	PaddingLeftValue           *values.LengthResolvable
-	PaddingShorthandValue      *PaddingShorthand
-	FontFamilyValue            *fonts.FamilyList
-	FontWeightValue            *fonts.Weight
-	FontStretchValue           *fonts.Stretch
-	FontStyleValue             *fonts.Style
-	FontSizeValue              *fonts.Size
-	FontShorthandValue         *FontShorthand
-	TextTransformValue         *text.Transform
+	ColorValue                   *csscolor.Color
+	WidthValue                   *sizing.Size
+	HeightValue                  *sizing.Size
+	MinWidthValue                *sizing.Size
+	MinHeightValue               *sizing.Size
+	MaxWidthValue                *sizing.Size
+	MaxHeightValue               *sizing.Size
+	DisplayValue                 *display.Display
+	VisibilityValue              *display.Visibility
+	BackgroundColorValue         *csscolor.Color
+	BorderTopColorValue          *csscolor.Color
+	BorderRightColorValue        *csscolor.Color
+	BorderBottomColorValue       *csscolor.Color
+	BorderLeftColorValue         *csscolor.Color
+	BorderColorShorthandValue    *BorderColorShorthand
+	BorderTopStyleValue          *backgrounds.LineStyle
+	BorderRightStyleValue        *backgrounds.LineStyle
+	BorderBottomStyleValue       *backgrounds.LineStyle
+	BorderLeftStyleValue         *backgrounds.LineStyle
+	BorderStyleShorthandValue    *BorderStyleShorthand
+	BorderTopWidthValue          *values.Length
+	BorderRightWidthValue        *values.Length
+	BorderBottomWidthValue       *values.Length
+	BorderLeftWidthValue         *values.Length
+	BorderWidthShorthandValue    *BorderWidthShorthand
+	BorderTopShorthandValue      *BorderTopShorthand
+	BorderRightShorthandValue    *BorderRightShorthand
+	BorderBottomShorthandValue   *BorderBottomShorthand
+	BorderLeftShorthandValue     *BorderLeftShorthand
+	BorderShorthandValue         *BorderShorthand
+	MarginTopValue               *box.Margin
+	MarginRightValue             *box.Margin
+	MarginBottomValue            *box.Margin
+	MarginLeftValue              *box.Margin
+	MarginShorthandValue         *MarginShorthand
+	PaddingTopValue              *values.LengthResolvable
+	PaddingRightValue            *values.LengthResolvable
+	PaddingBottomValue           *values.LengthResolvable
+	PaddingLeftValue             *values.LengthResolvable
+	PaddingShorthandValue        *PaddingShorthand
+	FontFamilyValue              *fonts.FamilyList
+	FontWeightValue              *fonts.Weight
+	FontStretchValue             *fonts.Stretch
+	FontStyleValue               *fonts.Style
+	FontSizeValue                *fonts.Size
+	FontShorthandValue           *FontShorthand
+	TextTransformValue           *text.Transform
+	TextDecorationLineValue      *textdecor.LineFlags
+	TextDecorationStyleValue     *textdecor.Style
+	TextDecorationColorValue     *csscolor.Color
+	TextDecorationShorthandValue *TextDecorationShorthand
+	TextUnderlinePositionValue   *textdecor.PositionFlags
 }
 
 func (css *ComputedStyleSet) Color() csscolor.Color {
@@ -911,6 +968,42 @@ func (css *ComputedStyleSet) inheritTextTransformFromParent(parentSrc ComputedSt
 		css.inheritTextTransformFromParent(parentParentSrc)
 	}
 }
+func (css *ComputedStyleSet) TextDecorationLine() textdecor.LineFlags {
+	if css.TextDecorationLineValue == nil {
+		initial := DescriptorsMap["text-decoration-line"].Initial.(textdecor.LineFlags)
+		css.TextDecorationLineValue = &initial
+	}
+	return *css.TextDecorationLineValue
+}
+func (css *ComputedStyleSet) TextDecorationStyle() textdecor.Style {
+	if css.TextDecorationStyleValue == nil {
+		initial := DescriptorsMap["text-decoration-style"].Initial.(textdecor.Style)
+		css.TextDecorationStyleValue = &initial
+	}
+	return *css.TextDecorationStyleValue
+}
+func (css *ComputedStyleSet) TextDecorationColor() csscolor.Color {
+	if css.TextDecorationColorValue == nil {
+		initial := DescriptorsMap["text-decoration-color"].Initial.(csscolor.Color)
+		css.TextDecorationColorValue = &initial
+	}
+	return *css.TextDecorationColorValue
+}
+func (css *ComputedStyleSet) TextUnderlinePosition() textdecor.PositionFlags {
+	if css.TextUnderlinePositionValue == nil {
+		initial := DescriptorsMap["text-underline-position"].Initial.(textdecor.PositionFlags)
+		css.TextUnderlinePositionValue = &initial
+	}
+	return *css.TextUnderlinePositionValue
+}
+func (css *ComputedStyleSet) inheritTextUnderlinePositionFromParent(parentSrc ComputedStyleSetSource) {
+	parentCss := parentSrc.ComputedStyleSet()
+	if !util.IsNil(parentCss.TextUnderlinePositionValue) {
+		css.TextUnderlinePositionValue = parentCss.TextUnderlinePositionValue
+	} else if parentParentSrc := parentSrc.ParentSource(); !util.IsNil(parentParentSrc) {
+		css.inheritTextUnderlinePositionFromParent(parentParentSrc)
+	}
+}
 func (css *ComputedStyleSet) InheritPropertiesFromParent(parentSrc ComputedStyleSetSource) {
 	if util.IsNil(css.ColorValue) {
 		css.inheritColorFromParent(parentSrc)
@@ -938,5 +1031,8 @@ func (css *ComputedStyleSet) InheritPropertiesFromParent(parentSrc ComputedStyle
 	}
 	if util.IsNil(css.TextTransformValue) {
 		css.inheritTextTransformFromParent(parentSrc)
+	}
+	if util.IsNil(css.TextUnderlinePositionValue) {
+		css.inheritTextUnderlinePositionFromParent(parentSrc)
 	}
 }
