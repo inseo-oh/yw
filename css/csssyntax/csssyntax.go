@@ -972,15 +972,14 @@ func (ts *tokenStream) consumeDelimTokenWith(d rune) *delimToken {
 	v := tk.(delimToken)
 	return &v
 }
-func (ts *tokenStream) consumeIdentTokenWith(i string) *identToken {
+func (ts *tokenStream) consumeIdentTokenWith(i string) bool {
 	oldCursor := ts.cursor
 	tk := ts.consumeTokenWith(tokenTypeIdent)
 	if tk == nil || tk.(identToken).value != i {
 		ts.cursor = oldCursor
-		return nil
+		return false
 	}
-	v := tk.(identToken)
-	return &v
+	return true
 }
 func (ts *tokenStream) consumeSimpleBlockWith(tp simpleBlockType) *simpleBlockToken {
 	oldCursor := ts.cursor

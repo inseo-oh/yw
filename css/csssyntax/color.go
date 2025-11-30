@@ -174,7 +174,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 			} else if num := ts.parsePercentage(); num != nil {
 				per := num.Value.Clamp(css.NumFromInt(0), css.NumFromInt(100)).ToFloat()
 				v = css.NumFromFloat((per / 100) * 255)
-			} else if tk := ts.consumeIdentTokenWith("none"); !util.IsNil(tk) {
+			} else if ts.consumeIdentTokenWith("none") {
 				panic("TODO")
 			} else {
 				return csscolor.Color{}, false
@@ -259,12 +259,12 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 		ts.cursor = oldCursor
 	}
 	// Try transparent ---------------------------------------------------------
-	if ts.consumeIdentTokenWith("transparent") != nil {
+	if ts.consumeIdentTokenWith("transparent") {
 		c := csscolor.Transparent()
 		return c, true
 	}
 	// Try currentColor --------------------------------------------------------
-	if ts.consumeIdentTokenWith("currentColor") != nil {
+	if ts.consumeIdentTokenWith("currentColor") {
 		return csscolor.Color{Type: csscolor.TypeCurrentColor}, true
 	}
 	// TODO: Try system colors

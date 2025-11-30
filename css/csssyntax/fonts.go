@@ -26,19 +26,19 @@ func (ts *tokenStream) parseFamilyName() (string, bool) {
 
 // https://www.w3.org/TR/css-fonts-3/#generic-family-value
 func (ts *tokenStream) parseGenericFamily() (fonts.FamilyType, bool) {
-	if !util.IsNil(ts.consumeIdentTokenWith("serif")) {
+	if ts.consumeIdentTokenWith("serif") {
 		return fonts.Serif, true
 	}
-	if !util.IsNil(ts.consumeIdentTokenWith("sans-serif")) {
+	if ts.consumeIdentTokenWith("sans-serif") {
 		return fonts.SansSerif, true
 	}
-	if !util.IsNil(ts.consumeIdentTokenWith("cursive")) {
+	if ts.consumeIdentTokenWith("cursive") {
 		return fonts.Cursive, true
 	}
-	if !util.IsNil(ts.consumeIdentTokenWith("fantasy")) {
+	if ts.consumeIdentTokenWith("fantasy") {
 		return fonts.Fantasy, true
 	}
-	if !util.IsNil(ts.consumeIdentTokenWith("monospace")) {
+	if ts.consumeIdentTokenWith("monospace") {
 		return fonts.Monospace, true
 	}
 	return 0, false
@@ -67,10 +67,10 @@ func (ts *tokenStream) parseFontFamily() (fonts.FamilyList, bool) {
 
 // https://www.w3.org/TR/css-fonts-3/#propdef-font-weight
 func (ts *tokenStream) parseFontWeight() (fonts.Weight, bool) {
-	if !util.IsNil(ts.consumeIdentTokenWith("normal")) {
+	if ts.consumeIdentTokenWith("normal") {
 		return fonts.NormalWeight, true
 	}
-	if !util.IsNil(ts.consumeIdentTokenWith("bold")) {
+	if ts.consumeIdentTokenWith("bold") {
 		return fonts.Bold, true
 	}
 	if n := ts.parseNumber(); n != nil {
@@ -88,31 +88,31 @@ func (ts *tokenStream) parseFontWeight() (fonts.Weight, bool) {
 
 // https://www.w3.org/TR/css-fonts-3/#propdef-font-stretch
 func (ts *tokenStream) parseFontStretch() (fonts.Stretch, bool) {
-	if !util.IsNil(ts.consumeIdentTokenWith("ultra-condensed")) {
+	if ts.consumeIdentTokenWith("ultra-condensed") {
 		return fonts.UltraCondensed, true
 	}
-	if !util.IsNil(ts.consumeIdentTokenWith("extra-condensed")) {
+	if ts.consumeIdentTokenWith("extra-condensed") {
 		return fonts.ExtraCondensed, true
 	}
-	if !util.IsNil(ts.consumeIdentTokenWith("condensed")) {
+	if ts.consumeIdentTokenWith("condensed") {
 		return fonts.Condensed, true
 	}
-	if !util.IsNil(ts.consumeIdentTokenWith("semi-condensed")) {
+	if ts.consumeIdentTokenWith("semi-condensed") {
 		return fonts.SemiCondensed, true
 	}
-	if !util.IsNil(ts.consumeIdentTokenWith("normal")) {
+	if ts.consumeIdentTokenWith("normal") {
 		return fonts.NormalStretch, true
 	}
-	if !util.IsNil(ts.consumeIdentTokenWith("semi-expanded")) {
+	if ts.consumeIdentTokenWith("semi-expanded") {
 		return fonts.SemiExpanded, true
 	}
-	if !util.IsNil(ts.consumeIdentTokenWith("expanded")) {
+	if ts.consumeIdentTokenWith("expanded") {
 		return fonts.Expanded, true
 	}
-	if !util.IsNil(ts.consumeIdentTokenWith("extra-expanded")) {
+	if ts.consumeIdentTokenWith("extra-expanded") {
 		return fonts.ExtraExpanded, true
 	}
-	if !util.IsNil(ts.consumeIdentTokenWith("ultra-expanded")) {
+	if ts.consumeIdentTokenWith("ultra-expanded") {
 		return fonts.UltraExpanded, true
 	}
 	return 0, false
@@ -120,13 +120,13 @@ func (ts *tokenStream) parseFontStretch() (fonts.Stretch, bool) {
 
 // https://www.w3.org/TR/css-fonts-3/#propdef-font-style
 func (ts *tokenStream) parseFontStyle() (fonts.Style, bool) {
-	if !util.IsNil(ts.consumeIdentTokenWith("normal")) {
+	if ts.consumeIdentTokenWith("normal") {
 		return fonts.NormalStyle, true
 	}
-	if !util.IsNil(ts.consumeIdentTokenWith("italic")) {
+	if ts.consumeIdentTokenWith("italic") {
 		return fonts.Italic, true
 	}
-	if !util.IsNil(ts.consumeIdentTokenWith("oblique")) {
+	if ts.consumeIdentTokenWith("oblique") {
 		return fonts.Oblique, true
 	}
 	return 0, false
@@ -134,25 +134,25 @@ func (ts *tokenStream) parseFontStyle() (fonts.Style, bool) {
 
 // https://www.w3.org/TR/css-fonts-3/#absolute-size-value
 func (ts *tokenStream) parseAbsoluteSize() (fonts.AbsoluteSize, bool) {
-	if !util.IsNil(ts.consumeIdentTokenWith("xx-small")) {
+	if ts.consumeIdentTokenWith("xx-small") {
 		return fonts.XXSmall, true
 	}
-	if !util.IsNil(ts.consumeIdentTokenWith("x-small")) {
+	if ts.consumeIdentTokenWith("x-small") {
 		return fonts.XSmall, true
 	}
-	if !util.IsNil(ts.consumeIdentTokenWith("small")) {
+	if ts.consumeIdentTokenWith("small") {
 		return fonts.Small, true
 	}
-	if !util.IsNil(ts.consumeIdentTokenWith("medium")) {
+	if ts.consumeIdentTokenWith("medium") {
 		return fonts.MediumSize, true
 	}
-	if !util.IsNil(ts.consumeIdentTokenWith("large")) {
+	if ts.consumeIdentTokenWith("large") {
 		return fonts.Large, true
 	}
-	if !util.IsNil(ts.consumeIdentTokenWith("x-large")) {
+	if ts.consumeIdentTokenWith("x-large") {
 		return fonts.XLarge, true
 	}
-	if !util.IsNil(ts.consumeIdentTokenWith("xx-large")) {
+	if ts.consumeIdentTokenWith("xx-large") {
 		return fonts.XXLarge, true
 	}
 	return 0, false
@@ -160,9 +160,9 @@ func (ts *tokenStream) parseAbsoluteSize() (fonts.AbsoluteSize, bool) {
 
 // https://www.w3.org/TR/css-fonts-3/#relative-size-value
 func (ts *tokenStream) parseRelativeSize() (fonts.RelativeSize, bool) {
-	if !util.IsNil(ts.consumeIdentTokenWith("larger")) {
+	if ts.consumeIdentTokenWith("larger") {
 		return fonts.Larger, true
-	} else if !util.IsNil(ts.consumeIdentTokenWith("smaller")) {
+	} else if ts.consumeIdentTokenWith("smaller") {
 		return fonts.Smaller, true
 	}
 	return 0, false

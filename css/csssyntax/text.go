@@ -2,12 +2,11 @@ package csssyntax
 
 import (
 	"github.com/inseo-oh/yw/css/text"
-	"github.com/inseo-oh/yw/util"
 )
 
 // https://www.w3.org/TR/css-text-3/#propdef-text-transform
 func (ts *tokenStream) parseTextTransform() (text.Transform, bool) {
-	if !util.IsNil(ts.consumeIdentTokenWith("none")) {
+	if ts.consumeIdentTokenWith("none") {
 		return text.Transform{Type: text.NoTransform}, true
 	}
 	out := text.Transform{Type: text.OriginalCaps}
@@ -19,15 +18,15 @@ func (ts *tokenStream) parseTextTransform() (text.Transform, bool) {
 		valid := false
 		if !gotType {
 			ts.skipWhitespaces()
-			if !util.IsNil(ts.consumeIdentTokenWith("capitalize")) {
+			if ts.consumeIdentTokenWith("capitalize") {
 				out.Type = text.Capitalize
 				gotType = true
 				valid = true
-			} else if !util.IsNil(ts.consumeIdentTokenWith("uppercase")) {
+			} else if ts.consumeIdentTokenWith("uppercase") {
 				out.Type = text.Uppercase
 				gotType = true
 				valid = true
-			} else if !util.IsNil(ts.consumeIdentTokenWith("lowercase")) {
+			} else if ts.consumeIdentTokenWith("lowercase") {
 				out.Type = text.Lowercase
 				gotType = true
 				valid = true
@@ -35,7 +34,7 @@ func (ts *tokenStream) parseTextTransform() (text.Transform, bool) {
 		}
 		if !gotIsFullWidth {
 			ts.skipWhitespaces()
-			if !util.IsNil(ts.consumeIdentTokenWith("full-width")) {
+			if ts.consumeIdentTokenWith("full-width") {
 				out.FullWidth = true
 				gotIsFullWidth = true
 				valid = true
@@ -43,7 +42,7 @@ func (ts *tokenStream) parseTextTransform() (text.Transform, bool) {
 		}
 		if !gotIsFullKana {
 			ts.skipWhitespaces()
-			if !util.IsNil(ts.consumeIdentTokenWith("full-size-kana")) {
+			if ts.consumeIdentTokenWith("full-size-kana") {
 				out.FullSizeKana = true
 				gotIsFullWidth = true
 				valid = true
