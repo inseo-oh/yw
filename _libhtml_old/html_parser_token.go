@@ -7,7 +7,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	cm "yw/util"
+
+	cm "github.com/inseo-oh/yw/util"
 )
 
 type html_token interface {

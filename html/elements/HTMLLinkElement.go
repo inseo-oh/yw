@@ -5,10 +5,11 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"yw/css/cssom"
-	"yw/css/csssyntax"
-	"yw/dom"
-	"yw/html/urlfetch"
+
+	"github.com/inseo-oh/yw/css/cssom"
+	"github.com/inseo-oh/yw/css/csssyntax"
+	"github.com/inseo-oh/yw/dom"
+	"github.com/inseo-oh/yw/html/urlfetch"
 )
 
 // STUB

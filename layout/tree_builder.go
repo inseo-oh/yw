@@ -4,14 +4,15 @@ import (
 	"image/color"
 	"log"
 	"strings"
-	"yw/css"
-	"yw/css/cssom"
-	"yw/css/display"
-	"yw/css/fonts"
-	"yw/css/sizing"
-	"yw/dom"
-	"yw/gfx"
-	"yw/util"
+
+	"github.com/inseo-oh/yw/css"
+	"github.com/inseo-oh/yw/css/cssom"
+	"github.com/inseo-oh/yw/css/display"
+	"github.com/inseo-oh/yw/css/fonts"
+	"github.com/inseo-oh/yw/css/sizing"
+	"github.com/inseo-oh/yw/dom"
+	"github.com/inseo-oh/yw/gfx"
+	"github.com/inseo-oh/yw/util"
 )
 
 type treeBuilder struct {

@@ -6,8 +6,9 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"yw/dom"
-	"yw/util"
+
+	"github.com/inseo-oh/yw/dom"
+	"github.com/inseo-oh/yw/util"
 )
 
 type htmlToken interface {

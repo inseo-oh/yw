@@ -6,8 +6,9 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"yw/namespaces"
-	"yw/util"
+
+	"github.com/inseo-oh/yw/namespaces"
+	"github.com/inseo-oh/yw/util"
 )
 
 type Element interface {

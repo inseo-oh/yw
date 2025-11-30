@@ -4,7 +4,8 @@ package libhtml
 import (
 	"fmt"
 	"log"
-	cm "yw/util"
+
+	cm "github.com/inseo-oh/yw/util"
 )
 
 // Returns nil if not found

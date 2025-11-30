@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"image/color"
 	"log"
-	"yw/css"
+
+	"github.com/inseo-oh/yw/css"
 )
 
 // https://www.w3.org/TR/css-color-4/#named-colors

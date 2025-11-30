@@ -2,8 +2,9 @@ package cssom
 
 import (
 	"log"
-	"yw/css/props"
-	"yw/dom"
+
+	"github.com/inseo-oh/yw/css/props"
+	"github.com/inseo-oh/yw/dom"
 )
 
 type Declaration struct {

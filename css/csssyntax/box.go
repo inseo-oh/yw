@@ -1,9 +1,9 @@
 package csssyntax
 
 import (
-	"yw/css/box"
-	"yw/css/values"
-	"yw/util"
+	"github.com/inseo-oh/yw/css/box"
+	"github.com/inseo-oh/yw/css/values"
+	"github.com/inseo-oh/yw/util"
 )
 
 func (ts *tokenStream) parseMargin() (box.Margin, bool) {

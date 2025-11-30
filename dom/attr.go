@@ -2,7 +2,8 @@ package dom
 
 import (
 	"fmt"
-	"yw/namespaces"
+
+	"github.com/inseo-oh/yw/namespaces"
 )
 
 type Attr interface {

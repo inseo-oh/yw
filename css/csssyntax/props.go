@@ -3,12 +3,12 @@
 package csssyntax
 
 import (
-	"yw/css/backgrounds"
-	"yw/css/box"
-	"yw/css/csscolor"
-	"yw/css/fonts"
-	"yw/css/props"
-	"yw/css/values"
+	"github.com/inseo-oh/yw/css/backgrounds"
+	"github.com/inseo-oh/yw/css/box"
+	"github.com/inseo-oh/yw/css/csscolor"
+	"github.com/inseo-oh/yw/css/fonts"
+	"github.com/inseo-oh/yw/css/props"
+	"github.com/inseo-oh/yw/css/values"
 )
 
 func (ts *tokenStream) parseBorderColorShorthand() (props.BorderColorShorthand, bool) {

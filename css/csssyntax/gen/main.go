@@ -8,15 +8,16 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"yw/css/internal/propsdef"
+
+	"github.com/inseo-oh/yw/css/internal/propsdef"
 )
 
 var requiredImports = []string{
-	"yw/css/csscolor",
-	"yw/css/box",
-	"yw/css/backgrounds",
-	"yw/css/values",
-	"yw/css/fonts",
+	"github.com/inseo-oh/yw/css/csscolor",
+	"github.com/inseo-oh/yw/css/box",
+	"github.com/inseo-oh/yw/css/backgrounds",
+	"github.com/inseo-oh/yw/css/values",
+	"github.com/inseo-oh/yw/css/fonts",
 }
 
 var (
@@ -34,7 +35,7 @@ func main() {
 	sb.WriteString(fmt.Sprintf("package %s\n", *pkg))
 	sb.WriteString( /*      */ "\n")
 	sb.WriteString( /*      */ "import (\n")
-	sb.WriteString(fmt.Sprintf("\t%s\n", strconv.Quote("yw/css/props")))
+	sb.WriteString(fmt.Sprintf("\t%s\n", strconv.Quote("github.com/inseo-oh/yw/css/props")))
 	for _, imp := range requiredImports {
 		sb.WriteString(fmt.Sprintf("\t%s\n", strconv.Quote(imp)))
 	}

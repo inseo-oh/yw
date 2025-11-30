@@ -1,8 +1,8 @@
 package csssyntax
 
 import (
-	"yw/css/display"
-	"yw/util"
+	"github.com/inseo-oh/yw/css/display"
+	"github.com/inseo-oh/yw/util"
 )
 
 // https://www.w3.org/TR/css-display-3/#typedef-display-outside

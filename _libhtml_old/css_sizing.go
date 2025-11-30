@@ -4,7 +4,8 @@ package libhtml
 import (
 	"fmt"
 	"log"
-	cm "yw/util"
+
+	cm "github.com/inseo-oh/yw/util"
 )
 
 // https://www.w3.org/TR/2021/WD-css-sizing-3-20211217/#sizing-values

@@ -8,16 +8,17 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"yw/css/cascade"
-	"yw/css/cssom"
-	"yw/css/csssyntax"
-	"yw/dom"
-	"yw/gfx"
-	"yw/html/elements"
-	"yw/html/htmlparser"
-	"yw/layout"
-	"yw/namespaces"
-	"yw/platform"
+
+	"github.com/inseo-oh/yw/css/cascade"
+	"github.com/inseo-oh/yw/css/cssom"
+	"github.com/inseo-oh/yw/css/csssyntax"
+	"github.com/inseo-oh/yw/dom"
+	"github.com/inseo-oh/yw/gfx"
+	"github.com/inseo-oh/yw/html/elements"
+	"github.com/inseo-oh/yw/html/htmlparser"
+	"github.com/inseo-oh/yw/layout"
+	"github.com/inseo-oh/yw/namespaces"
+	"github.com/inseo-oh/yw/platform"
 )
 
 type Browser struct{}

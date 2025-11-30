@@ -2,7 +2,8 @@ package libhtml
 
 import (
 	"testing"
-	cm "yw/util"
+
+	cm "github.com/inseo-oh/yw/util"
 )
 
 func TestCssColor(t *testing.T) {

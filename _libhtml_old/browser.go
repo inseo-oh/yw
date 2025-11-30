@@ -8,8 +8,9 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"yw/gfx"
-	"yw/platform"
+
+	"github.com/inseo-oh/yw/gfx"
+	"github.com/inseo-oh/yw/platform"
 )
 
 type Browser struct{}

@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"image/color"
 	"strconv"
-	"yw/gfx"
+
+	"github.com/inseo-oh/yw/gfx"
 )
 
 type Text struct {

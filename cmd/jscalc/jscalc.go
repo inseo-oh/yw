@@ -2,8 +2,9 @@ package main
 
 import (
 	"log"
-	"yw/es/escompiler"
-	"yw/es/vm"
+
+	"github.com/inseo-oh/yw/es/escompiler"
+	"github.com/inseo-oh/yw/es/vm"
 )
 
 func main() {

@@ -1,9 +1,9 @@
 package cssom
 
 import (
-	"yw/css/props"
-	"yw/dom"
-	"yw/util"
+	"github.com/inseo-oh/yw/css/props"
+	"github.com/inseo-oh/yw/dom"
+	"github.com/inseo-oh/yw/util"
 )
 
 type DocumentOrShadowRootData struct {

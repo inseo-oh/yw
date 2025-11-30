@@ -4,8 +4,9 @@ import (
 	"flag"
 	"log"
 	"os"
-	"yw/dom"
-	"yw/html/htmlparser"
+
+	"github.com/inseo-oh/yw/dom"
+	"github.com/inseo-oh/yw/html/htmlparser"
 )
 
 var filename = flag.String("file", "", "Name of the HTML file")

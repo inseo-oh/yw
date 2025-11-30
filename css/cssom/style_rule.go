@@ -1,6 +1,6 @@
 package cssom
 
-import "yw/css/selector"
+import "github.com/inseo-oh/yw/css/selector"
 
 type StyleRule struct {
 	SelectorList []selector.Selector

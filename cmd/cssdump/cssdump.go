@@ -6,7 +6,8 @@ import (
 	"log"
 	"os"
 	"strings"
-	"yw/css/csssyntax"
+
+	"github.com/inseo-oh/yw/css/csssyntax"
 )
 
 var filename = flag.String("file", "", "Name of the CSS file")

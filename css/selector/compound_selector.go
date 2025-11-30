@@ -3,7 +3,8 @@ package selector
 import (
 	"fmt"
 	"strings"
-	"yw/dom"
+
+	"github.com/inseo-oh/yw/dom"
 )
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-compound-selector

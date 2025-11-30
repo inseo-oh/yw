@@ -3,8 +3,9 @@ package htmlparser
 import (
 	"log"
 	"testing"
-	"yw/dom"
-	"yw/namespaces"
+
+	"github.com/inseo-oh/yw/dom"
+	"github.com/inseo-oh/yw/namespaces"
 )
 
 func TestHtmlTokenizer(t *testing.T) {

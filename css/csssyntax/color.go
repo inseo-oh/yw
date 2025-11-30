@@ -3,10 +3,11 @@ package csssyntax
 import (
 	"strconv"
 	"strings"
-	"yw/css"
-	"yw/css/csscolor"
-	"yw/css/values"
-	"yw/util"
+
+	"github.com/inseo-oh/yw/css"
+	"github.com/inseo-oh/yw/css/csscolor"
+	"github.com/inseo-oh/yw/css/values"
+	"github.com/inseo-oh/yw/util"
 )
 
 func (ts *tokenStream) parseColor() (csscolor.Color, bool) {

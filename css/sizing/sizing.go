@@ -4,8 +4,9 @@ package sizing
 import (
 	"fmt"
 	"log"
-	"yw/css"
-	"yw/css/values"
+
+	"github.com/inseo-oh/yw/css"
+	"github.com/inseo-oh/yw/css/values"
 )
 
 // https://www.w3.org/TR/2021/WD-css-sizing-3-20211217/#sizing-values

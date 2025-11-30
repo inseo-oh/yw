@@ -1,7 +1,7 @@
 package dom
 
 import (
-	"yw/namespaces"
+	"github.com/inseo-oh/yw/namespaces"
 )
 
 type TagToken interface {

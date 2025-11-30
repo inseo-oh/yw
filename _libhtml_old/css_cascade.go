@@ -1,7 +1,7 @@
 // Implementation of Cascading and Inheritance Level 4 (https://www.w3.org/TR/css-cascade-4)
 package libhtml
 
-import cm "yw/util"
+import cm "github.com/inseo-oh/yw/util"
 
 func css_apply_style_rules(ua_stylesheet *css_stylesheet, doc_or_sr dom_DocumentOrShadowRoot) {
 	// https://www.w3.org/TR/css-cascade-4/#cascade-origin

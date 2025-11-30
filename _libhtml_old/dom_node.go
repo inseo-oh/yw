@@ -5,7 +5,8 @@ import (
 	"log"
 	"slices"
 	"strings"
-	cm "yw/util"
+
+	cm "github.com/inseo-oh/yw/util"
 )
 
 type dom_Node_s struct {

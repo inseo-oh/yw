@@ -3,7 +3,8 @@ package libhtml
 import (
 	"reflect"
 	"testing"
-	cm "yw/util"
+
+	cm "github.com/inseo-oh/yw/util"
 )
 
 func css_selector_test_helper(t *testing.T, css string, expected css_selector, parser func(ts *css_token_stream) (css_selector, error)) {

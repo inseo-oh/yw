@@ -139,7 +139,7 @@ func main() {
 	sb.WriteString( /*     */ "\n")
 	sb.WriteString( /*     */ "import (\n")
 	sb.WriteString( /*     */ "\t\"fmt\"\n")
-	sb.WriteString( /*     */ "\tcm \"yw/libcommon\"\n")
+	sb.WriteString( /*     */ "\tcm \"github.com/inseo-oh/yw/libcommon\"\n")
 	sb.WriteString( /*     */ ")\n")
 	sb.WriteString( /*     */ "\n")
 	// Define shorthand struct and parser functions ----------------------------

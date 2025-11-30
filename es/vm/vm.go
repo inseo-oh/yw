@@ -3,7 +3,8 @@ package vm
 import (
 	"log"
 	"math"
-	"yw/es"
+
+	"github.com/inseo-oh/yw/es"
 )
 
 type vm struct {

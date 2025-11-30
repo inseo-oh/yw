@@ -1,6 +1,6 @@
 package selector
 
-import "yw/dom"
+import "github.com/inseo-oh/yw/dom"
 
 // Special CSS selector that matches DOM node pointer directly.
 type NodePtrSelector struct {

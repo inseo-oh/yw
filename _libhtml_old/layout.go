@@ -6,9 +6,10 @@ import (
 	"log"
 	"strconv"
 	"strings"
-	"yw/gfx"
-	"yw/platform"
-	cm "yw/util"
+
+	"github.com/inseo-oh/yw/gfx"
+	"github.com/inseo-oh/yw/platform"
+	cm "github.com/inseo-oh/yw/util"
 )
 
 type layout_node interface {

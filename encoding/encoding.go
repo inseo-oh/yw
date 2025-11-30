@@ -5,7 +5,8 @@ import (
 	"errors"
 	"slices"
 	"strings"
-	"yw/util"
+
+	"github.com/inseo-oh/yw/util"
 )
 
 type Type uint8

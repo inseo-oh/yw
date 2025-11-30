@@ -1,9 +1,9 @@
 package csssyntax
 
 import (
-	"yw/css"
-	"yw/css/fonts"
-	"yw/util"
+	"github.com/inseo-oh/yw/css"
+	"github.com/inseo-oh/yw/css/fonts"
+	"github.com/inseo-oh/yw/util"
 )
 
 // https://www.w3.org/TR/css-fonts-3/#propdef-font-family

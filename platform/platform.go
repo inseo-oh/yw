@@ -1,6 +1,6 @@
 package platform
 
-import "yw/gfx"
+import "github.com/inseo-oh/yw/gfx"
 
 type Platform interface {
 	//==========================================================================

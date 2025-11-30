@@ -1,8 +1,8 @@
 package urlfetch
 
 import (
-	"yw/dom"
-	"yw/util"
+	"github.com/inseo-oh/yw/dom"
+	"github.com/inseo-oh/yw/util"
 )
 
 // https://html.spec.whatwg.org/multipage/urls-and-fetching.html#cors-settings-attribute

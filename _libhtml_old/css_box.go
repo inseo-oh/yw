@@ -3,7 +3,8 @@ package libhtml
 
 import (
 	"fmt"
-	cm "yw/util"
+
+	cm "github.com/inseo-oh/yw/util"
 )
 
 type css_margin struct {

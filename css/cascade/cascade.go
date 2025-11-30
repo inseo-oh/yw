@@ -2,10 +2,10 @@
 package cascade
 
 import (
-	"yw/css/cssom"
-	"yw/css/selector"
-	"yw/dom"
-	"yw/util"
+	"github.com/inseo-oh/yw/css/cssom"
+	"github.com/inseo-oh/yw/css/selector"
+	"github.com/inseo-oh/yw/dom"
+	"github.com/inseo-oh/yw/util"
 )
 
 func ApplyStyleRules(uaStylesheet *cssom.Stylesheet, docOrSr dom.Node) {

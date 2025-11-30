@@ -1,11 +1,11 @@
 package layout
 
 import (
-	"yw/css/csscolor"
-	"yw/css/cssom"
-	"yw/dom"
-	"yw/gfx"
-	"yw/util"
+	"github.com/inseo-oh/yw/css/csscolor"
+	"github.com/inseo-oh/yw/css/cssom"
+	"github.com/inseo-oh/yw/dom"
+	"github.com/inseo-oh/yw/gfx"
+	"github.com/inseo-oh/yw/util"
 )
 
 type box interface {

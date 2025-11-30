@@ -3,10 +3,11 @@ package layout
 import (
 	"fmt"
 	"strings"
-	"yw/dom"
-	"yw/gfx"
-	"yw/platform"
-	"yw/util"
+
+	"github.com/inseo-oh/yw/dom"
+	"github.com/inseo-oh/yw/gfx"
+	"github.com/inseo-oh/yw/platform"
+	"github.com/inseo-oh/yw/util"
 )
 
 type writeMode uint8

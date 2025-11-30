@@ -2,9 +2,10 @@ package elements
 
 import (
 	"log"
-	"yw/css/cssom"
-	"yw/css/csssyntax"
-	"yw/dom"
+
+	"github.com/inseo-oh/yw/css/cssom"
+	"github.com/inseo-oh/yw/css/csssyntax"
+	"github.com/inseo-oh/yw/dom"
 )
 
 type HTMLStyleElement interface{ HTMLElement }

@@ -3,8 +3,9 @@ package layout
 import (
 	"fmt"
 	"log"
-	"yw/dom"
-	"yw/gfx"
+
+	"github.com/inseo-oh/yw/dom"
+	"github.com/inseo-oh/yw/gfx"
 )
 
 // https://www.w3.org/TR/css-display-3/#block-container

@@ -7,8 +7,9 @@ import (
 	"math"
 	"strconv"
 	"strings"
-	"yw/css"
-	"yw/css/values"
+
+	"github.com/inseo-oh/yw/css"
+	"github.com/inseo-oh/yw/css/values"
 )
 
 // https://www.w3.org/TR/css-fonts-3/#propdef-font-family

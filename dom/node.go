@@ -5,7 +5,8 @@ import (
 	"log"
 	"slices"
 	"strings"
-	"yw/util"
+
+	"github.com/inseo-oh/yw/util"
 )
 
 type Node interface {

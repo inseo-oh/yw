@@ -2,7 +2,8 @@ package elements
 
 import (
 	"slices"
-	"yw/dom"
+
+	"github.com/inseo-oh/yw/dom"
 )
 
 // ------------------------------------------------------------------------------

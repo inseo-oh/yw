@@ -7,7 +7,8 @@ import "C"
 import (
 	"log"
 	"unsafe"
-	"yw/gfx"
+
+	"github.com/inseo-oh/yw/gfx"
 )
 
 type platformImpl struct {

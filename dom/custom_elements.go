@@ -1,6 +1,6 @@
 package dom
 
-import "yw/namespaces"
+import "github.com/inseo-oh/yw/namespaces"
 
 type CustomElementRegistry struct {
 	// STUB

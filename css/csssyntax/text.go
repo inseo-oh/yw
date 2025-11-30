@@ -1,8 +1,8 @@
 package csssyntax
 
 import (
-	"yw/css/text"
-	"yw/util"
+	"github.com/inseo-oh/yw/css/text"
+	"github.com/inseo-oh/yw/util"
 )
 
 // https://www.w3.org/TR/css-text-3/#propdef-text-transform

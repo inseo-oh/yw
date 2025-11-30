@@ -1,9 +1,9 @@
 package csssyntax
 
 import (
-	"yw/css/sizing"
-	"yw/css/values"
-	"yw/util"
+	"github.com/inseo-oh/yw/css/sizing"
+	"github.com/inseo-oh/yw/css/values"
+	"github.com/inseo-oh/yw/util"
 )
 
 func (ts *tokenStream) parseSizeValueImpl(acceptAuto, acceptNone bool) (sizing.Size, bool) {

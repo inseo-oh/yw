@@ -3,9 +3,10 @@ package csssyntax
 import (
 	"reflect"
 	"testing"
-	"yw/css"
-	"yw/css/selector"
-	"yw/util"
+
+	"github.com/inseo-oh/yw/css"
+	"github.com/inseo-oh/yw/css/selector"
+	"github.com/inseo-oh/yw/util"
 )
 
 func selectorTestHelper(t *testing.T, css string, expected selector.Selector, parser func(ts *tokenStream) (selector.Selector, error)) {

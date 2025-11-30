@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"yw/dom"
-	"yw/util"
+
+	"github.com/inseo-oh/yw/dom"
+	"github.com/inseo-oh/yw/util"
 )
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-complex-selector

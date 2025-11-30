@@ -9,7 +9,8 @@ import (
 	"image/color"
 	"log"
 	"unsafe"
-	"yw/gfx"
+
+	"github.com/inseo-oh/yw/gfx"
 )
 
 type ftFont struct {

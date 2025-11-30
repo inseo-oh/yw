@@ -8,19 +8,20 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"yw/css/internal/propsdef"
+
+	"github.com/inseo-oh/yw/css/internal/propsdef"
 )
 
 var requiredImports = []string{
-	"yw/css",
-	"yw/css/csscolor",
-	"yw/css/box",
-	"yw/css/backgrounds",
-	"yw/css/values",
-	"yw/css/fonts",
-	"yw/css/sizing",
-	"yw/css/display",
-	"yw/css/text",
+	"github.com/inseo-oh/yw/css",
+	"github.com/inseo-oh/yw/css/csscolor",
+	"github.com/inseo-oh/yw/css/box",
+	"github.com/inseo-oh/yw/css/backgrounds",
+	"github.com/inseo-oh/yw/css/values",
+	"github.com/inseo-oh/yw/css/fonts",
+	"github.com/inseo-oh/yw/css/sizing",
+	"github.com/inseo-oh/yw/css/display",
+	"github.com/inseo-oh/yw/css/text",
 }
 
 var (
@@ -39,7 +40,7 @@ func main() {
 	sb.WriteString( /*      */ "\n")
 	sb.WriteString( /*      */ "import (\n")
 	sb.WriteString(fmt.Sprintf("\t%s\n", strconv.Quote("fmt")))
-	sb.WriteString(fmt.Sprintf("\tcm %s\n", strconv.Quote("yw/libcommon")))
+	sb.WriteString(fmt.Sprintf("\tcm %s\n", strconv.Quote("github.com/inseo-oh/yw/libcommon")))
 	for _, imp := range requiredImports {
 		sb.WriteString(fmt.Sprintf("\t%s\n", strconv.Quote(imp)))
 	}

@@ -2,8 +2,9 @@ package csssyntax
 
 import (
 	"errors"
-	"yw/css/selector"
-	"yw/util"
+
+	"github.com/inseo-oh/yw/css/selector"
+	"github.com/inseo-oh/yw/util"
 )
 
 // Returns nil if not found

@@ -8,8 +8,9 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"yw/encoding"
-	cm "yw/util"
+
+	"github.com/inseo-oh/yw/encoding"
+	cm "github.com/inseo-oh/yw/util"
 )
 
 type css_token_common struct{ cursor_from, cursor_to int }

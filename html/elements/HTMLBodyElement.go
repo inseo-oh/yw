@@ -3,11 +3,12 @@ package elements
 import (
 	"strconv"
 	"strings"
-	"yw/css/csscolor"
-	"yw/css/cssom"
-	"yw/css/selector"
-	"yw/dom"
-	"yw/util"
+
+	"github.com/inseo-oh/yw/css/csscolor"
+	"github.com/inseo-oh/yw/css/cssom"
+	"github.com/inseo-oh/yw/css/selector"
+	"github.com/inseo-oh/yw/dom"
+	"github.com/inseo-oh/yw/util"
 )
 
 // https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#rules-for-parsing-a-legacy-colour-value

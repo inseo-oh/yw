@@ -7,7 +7,8 @@ import (
 	"net/url"
 	"slices"
 	"strings"
-	"yw/dom"
+
+	"github.com/inseo-oh/yw/dom"
 )
 
 type Stylesheet struct {

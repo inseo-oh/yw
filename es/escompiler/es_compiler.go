@@ -5,9 +5,10 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"yw/es"
-	"yw/es/vm"
-	"yw/util"
+
+	"github.com/inseo-oh/yw/es"
+	"github.com/inseo-oh/yw/es/vm"
+	"github.com/inseo-oh/yw/util"
 )
 
 type compiler struct {

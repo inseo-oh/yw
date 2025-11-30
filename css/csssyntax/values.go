@@ -2,9 +2,10 @@ package csssyntax
 
 import (
 	"fmt"
-	"yw/css"
-	"yw/css/values"
-	"yw/util"
+
+	"github.com/inseo-oh/yw/css"
+	"github.com/inseo-oh/yw/css/values"
+	"github.com/inseo-oh/yw/util"
 )
 
 // Returns nil if not found

@@ -6,10 +6,11 @@ import (
 	"runtime"
 	"slices"
 	"strings"
-	"yw/dom"
-	"yw/html/elements"
-	"yw/namespaces"
-	"yw/util"
+
+	"github.com/inseo-oh/yw/dom"
+	"github.com/inseo-oh/yw/html/elements"
+	"github.com/inseo-oh/yw/namespaces"
+	"github.com/inseo-oh/yw/util"
 )
 
 type stackOfOpenElements []dom.Element

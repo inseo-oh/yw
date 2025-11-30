@@ -10,10 +10,11 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"yw/css"
-	"yw/css/cssom"
-	"yw/encoding"
-	"yw/util"
+
+	"github.com/inseo-oh/yw/css"
+	"github.com/inseo-oh/yw/css/cssom"
+	"github.com/inseo-oh/yw/encoding"
+	"github.com/inseo-oh/yw/util"
 )
 
 type tokenCommon struct{ cursorFrom, cursorTo int }

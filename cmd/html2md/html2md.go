@@ -5,8 +5,9 @@ import (
 	"log"
 	"os"
 	"strings"
-	"yw/dom"
-	"yw/html/htmlparser"
+
+	"github.com/inseo-oh/yw/dom"
+	"github.com/inseo-oh/yw/html/htmlparser"
 )
 
 var (

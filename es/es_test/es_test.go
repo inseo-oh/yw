@@ -2,9 +2,10 @@ package es
 
 import (
 	"testing"
-	"yw/es"
-	"yw/es/escompiler"
-	"yw/es/vm"
+
+	"github.com/inseo-oh/yw/es"
+	"github.com/inseo-oh/yw/es/escompiler"
+	"github.com/inseo-oh/yw/es/vm"
 )
 
 func TestEs(t *testing.T) {

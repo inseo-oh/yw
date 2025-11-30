@@ -1,8 +1,8 @@
 package escompiler
 
 import (
-	"yw/es"
-	"yw/es/vm"
+	"github.com/inseo-oh/yw/es"
+	"github.com/inseo-oh/yw/es/vm"
 )
 
 func makeCodeForAstNodes(nodes []astNode) []vm.Instr {

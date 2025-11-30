@@ -7,7 +7,8 @@ import (
 	"log"
 	"slices"
 	"strings"
-	cm "yw/util"
+
+	cm "github.com/inseo-oh/yw/util"
 )
 
 type css_selector interface {

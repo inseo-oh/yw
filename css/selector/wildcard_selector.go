@@ -2,7 +2,8 @@ package selector
 
 import (
 	"fmt"
-	"yw/dom"
+
+	"github.com/inseo-oh/yw/dom"
 )
 
 type WildcardSelector struct {

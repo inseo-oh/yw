@@ -1,7 +1,7 @@
 package libhtml
 
 import (
-	cm "yw/util"
+	cm "github.com/inseo-oh/yw/util"
 )
 
 // https://html.spec.whatwg.org/multipage/urls-and-fetching.html#cors-settings-attribute

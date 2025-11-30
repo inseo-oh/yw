@@ -4,16 +4,17 @@ package props
 
 import (
 	"fmt"
-	"yw/css"
-	"yw/css/backgrounds"
-	"yw/css/box"
-	"yw/css/csscolor"
-	"yw/css/display"
-	"yw/css/fonts"
-	"yw/css/sizing"
-	"yw/css/text"
-	"yw/css/values"
-	"yw/util"
+
+	"github.com/inseo-oh/yw/css"
+	"github.com/inseo-oh/yw/css/backgrounds"
+	"github.com/inseo-oh/yw/css/box"
+	"github.com/inseo-oh/yw/css/csscolor"
+	"github.com/inseo-oh/yw/css/display"
+	"github.com/inseo-oh/yw/css/fonts"
+	"github.com/inseo-oh/yw/css/sizing"
+	"github.com/inseo-oh/yw/css/text"
+	"github.com/inseo-oh/yw/css/values"
+	"github.com/inseo-oh/yw/util"
 )
 
 type BorderColorShorthand struct {

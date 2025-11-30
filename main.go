@@ -6,7 +6,8 @@ import (
 	"image/png"
 	"log"
 	"os"
-	"yw/browser"
+
+	"github.com/inseo-oh/yw/browser"
 )
 
 var url = flag.String("url", "", "The URL")
