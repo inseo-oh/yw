@@ -27,12 +27,12 @@ func LengthFromPx(px css.Num) Length {
 
 func (l Length) String() string                        { return fmt.Sprintf("%v%v", l.Value, l.Unit) }
 func (l Length) AsLength(containerSize css.Num) Length { return l }
-func (l Length) ToPx(containerSize css.Num) float64 {
+func (l Length) ToPx(parentFontSize css.Num) float64 {
 	switch l.Unit {
 	case Px:
 		return l.Value.ToFloat()
 	case Em:
-		return containerSize.ToFloat() * l.Value.ToFloat()
+		return parentFontSize.ToFloat() * l.Value.ToFloat()
 	case Pt:
 		// STUB -- For now we treat pt and px as the same thing.
 		return l.Value.ToFloat()

@@ -293,11 +293,13 @@ func (tb treeBuilder) makeLayoutForNode(
 			panic("TODO: Support auto margin")
 		}
 		marginParentSize := parentNode.logicalWidth(writeMode)
+		parentFontSize := css.NumFromFloat(fonts.PreferredFontSize) // STUB
+		fontSize := styleSet.FontSize().CalculateRealFontSize(parentFontSize).ToPx(parentFontSize)
 		margin := gfx.Edges{
-			Top:    styleSet.MarginTop().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(marginParentSize)),
-			Right:  styleSet.MarginRight().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(marginParentSize)),
-			Bottom: styleSet.MarginBottom().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(marginParentSize)),
-			Left:   styleSet.MarginLeft().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(marginParentSize)),
+			Top:    styleSet.MarginTop().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(fontSize)),
+			Right:  styleSet.MarginRight().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(fontSize)),
+			Bottom: styleSet.MarginBottom().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(fontSize)),
+			Left:   styleSet.MarginLeft().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(fontSize)),
 		}
 
 		computeBoxRect := func(isInline bool) (boxRect gfx.Rect, widthAuto, heightAuto bool) {
