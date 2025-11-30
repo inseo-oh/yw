@@ -5,7 +5,7 @@ import (
 	"log"
 	"slices"
 	"strings"
-	cm "yw/libcommon"
+	"yw/util"
 )
 
 type Node interface {
@@ -168,7 +168,7 @@ func (n nodeImpl) ChildTextNode() (string, bool) {
 // Functions that are implemented as methods only deal with itself.
 
 func NextSibling(node Node) Node {
-	if cm.IsNil(node.Parent()) {
+	if util.IsNil(node.Parent()) {
 		return nil
 	}
 	p := node.Parent()
@@ -179,7 +179,7 @@ func NextSibling(node Node) Node {
 	return p.Children()[idx+1]
 }
 func PrevSibling(node Node) Node {
-	if cm.IsNil(node.Parent()) {
+	if util.IsNil(node.Parent()) {
 		return nil
 	}
 	p := node.Parent()
@@ -191,7 +191,7 @@ func PrevSibling(node Node) Node {
 }
 func Root(node Node) Node {
 	var p Node = node
-	for !cm.IsNil(p.Parent()) {
+	for !util.IsNil(p.Parent()) {
 		p = p.Parent()
 	}
 	return p
@@ -203,7 +203,7 @@ func InTheSameTreeAs(node, other Node) bool {
 // https://dom.spec.whatwg.org/#concept-tree-index
 func Index(node Node) int {
 	p := node.Parent()
-	if cm.IsNil(p) {
+	if util.IsNil(p) {
 		return 0
 	}
 	for i, child := range p.Children() {
@@ -225,7 +225,7 @@ func InclusiveDescendants(rootNode Node) []Node {
 		currNode := lastNode
 
 		var res Node
-		if cm.IsNil(currNode) {
+		if util.IsNil(currNode) {
 			// This is our first call
 			res = rootNode
 		} else {
@@ -237,14 +237,14 @@ func InclusiveDescendants(rootNode Node) []Node {
 				res = currNode.Children()[0]
 			}
 			// If we don't have more children, move to the next sibling
-			for cm.IsNil(res) {
+			for util.IsNil(res) {
 				res = NextSibling(currNode)
-				if !cm.IsNil(res) {
+				if !util.IsNil(res) {
 					break
 				}
 				// We don't even have the next sibling -> Move to the parent
 				currNode = currNode.Parent()
-				if currNode == rootNode || cm.IsNil(currNode) {
+				if currNode == rootNode || util.IsNil(currNode) {
 					// We don't have parent, or we are currently at root. We stop here.
 					res = nil
 					break
@@ -252,7 +252,7 @@ func InclusiveDescendants(rootNode Node) []Node {
 			}
 
 		}
-		if cm.IsNil(res) {
+		if util.IsNil(res) {
 			break
 		}
 		lastNode = res
@@ -270,7 +270,7 @@ func Descendants(rootNode Node) []Node {
 func InclusiveAncestors(node Node) []Node {
 	out := []Node{node}
 	p := node
-	for !cm.IsNil(p.Parent()) {
+	for !util.IsNil(p.Parent()) {
 		p = p.Parent()
 		out = append(out, p)
 	}
@@ -354,14 +354,14 @@ func Insert(node, parent, beforeChild Node, suppressObservers bool) {
 		log.Panicf("TODO[https://dom.spec.whatwg.org/#concept-node-insert]")
 	}
 	// S5.
-	if !cm.IsNil(beforeChild) {
+	if !util.IsNil(beforeChild) {
 		// TODO[https://dom.spec.whatwg.org/#concept-node-insert]
 		// 1. For each live range whose start node is parent and start offset is greater than child’s index, increase its start offset by count.
 		// 2. For each live range whose end node is parent and end offset is greater than child’s index, increase its end offset by count.
 	}
 	// S6.
 	prevSibling := parent.LastChild()
-	if !cm.IsNil(beforeChild) {
+	if !util.IsNil(beforeChild) {
 		prevSibling = PrevSibling(beforeChild)
 	}
 	_ = prevSibling
@@ -369,7 +369,7 @@ func Insert(node, parent, beforeChild Node, suppressObservers bool) {
 	for _, node := range nodes {
 		// S7-1.
 		AdoptNodeInto(node, parent.NodeDocument())
-		if cm.IsNil(beforeChild) {
+		if util.IsNil(beforeChild) {
 			// S7-2.
 			children := parent.Children()
 			children = append(children, node)
@@ -451,7 +451,7 @@ func AdoptNodeInto(node Node, document Document) {
 	// S1.
 	oldDocument := node.NodeDocument()
 	// S2.
-	if !cm.IsNil(node.Parent()) {
+	if !util.IsNil(node.Parent()) {
 		// TODO: remove node
 		panic("TODO[https://dom.spec.whatwg.org/#concept-node-adopt]")
 	}
@@ -500,8 +500,8 @@ func AdoptNodeInto(node Node, document Document) {
 func PrintTree(node Node) {
 	currNode := node
 	count := 0
-	if !cm.IsNil(currNode.Parent()) {
-		for n := currNode.Parent(); !cm.IsNil(n); n = n.Parent() {
+	if !util.IsNil(currNode.Parent()) {
+		for n := currNode.Parent(); !util.IsNil(n); n = n.Parent() {
 			count += 4
 		}
 	}

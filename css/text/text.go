@@ -48,7 +48,7 @@ func (t Transform) String() string {
 	return strings.TrimSpace(sb.String())
 }
 func (t Transform) Apply(text string) string {
-	out_text := text
+	outText := text
 	switch t.Type {
 	case NoTransform:
 		return text
@@ -56,11 +56,11 @@ func (t Transform) Apply(text string) string {
 		break
 	case Capitalize:
 		runes := []rune(text)
-		out_text = strings.ToUpper(string(runes[0])) + string(runes[1:])
+		outText = strings.ToUpper(string(runes[0])) + string(runes[1:])
 	case Lowercase:
-		out_text = strings.ToLower(text)
+		outText = strings.ToLower(text)
 	case Uppercase:
-		out_text = strings.ToUpper(text)
+		outText = strings.ToUpper(text)
 	default:
 		log.Panicf("<bad Transform type %v>", t.Type)
 	}
@@ -70,5 +70,5 @@ func (t Transform) Apply(text string) string {
 	if t.FullSizeKana {
 		log.Printf("TODO: %v: Support full-size-kana", t)
 	}
-	return out_text
+	return outText
 }

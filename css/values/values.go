@@ -14,8 +14,8 @@ type LengthResolvable interface {
 
 // https://www.w3.org/TR/css-values-3/#length-value
 type Length struct {
-	value css.Num
-	unit  LengthUnit
+	Value css.Num
+	Unit  LengthUnit
 }
 
 type LengthUnit uint8
@@ -24,17 +24,17 @@ func LengthFromPx(px css.Num) Length {
 	return Length{px, Px}
 }
 
-func (l Length) String() string                        { return fmt.Sprintf("%v%v", l.value, l.unit) }
+func (l Length) String() string                        { return fmt.Sprintf("%v%v", l.Value, l.Unit) }
 func (l Length) AsLength(containerSize css.Num) Length { return l }
 func (l Length) ToPx(containerSize css.Num) float64 {
-	switch l.unit {
+	switch l.Unit {
 	case Px:
-		return l.value.ToFloat()
+		return l.Value.ToFloat()
 	case Em:
-		return containerSize.ToFloat() * l.value.ToFloat()
+		return containerSize.ToFloat() * l.Value.ToFloat()
 	case Pt:
 		// STUB -- For now we treat pt and px as the same thing.
-		return l.value.ToFloat()
+		return l.Value.ToFloat()
 	default:
 		log.Panicf("TODO: %v", l)
 	}
@@ -103,9 +103,9 @@ func (u LengthUnit) String() string {
 
 // https://www.w3.org/TR/css-values-3/#percentage-value
 type Percentage struct {
-	value css.Num
+	Value css.Num
 }
 
-func (len Percentage) String() string { return fmt.Sprintf("%v%%", len.value) }
+func (len Percentage) String() string { return fmt.Sprintf("%v%%", len.Value) }
 
 func (len Percentage) AsLength(containerSize css.Num) Length { panic("TODO") }

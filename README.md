@@ -12,7 +12,7 @@ This web browser does NOT implement any web security yet (CORS, CSRF protection,
 
 Everything is in WIP and very early stage. For now, this repo is mostly for backing up my source code.
 
-There are also some "tools" at the root of repo(directories that don't have lib~ suffix), but they were made for experimenting, and will likely get removed in the future (including `libhtml/tools.go`, which is where the actual logic lives for many of these tools).
+There are also some "tools" at the root of repo(directories that don't have lib~ suffix), but they were made for experimenting, and will likely get removed in the future.
 
 ## Copyright
 

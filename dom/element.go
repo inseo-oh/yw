@@ -6,8 +6,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	cm "yw/libcommon"
 	"yw/namespaces"
+	"yw/util"
 )
 
 type Element interface {
@@ -56,10 +56,6 @@ type elementImpl struct {
 	attrs                 []Attr
 	tagToken              TagToken
 	customElementState    CustomElementState
-
-	// Used by CSS
-
-	cssData any
 }
 type CustomElementState uint8
 
@@ -117,7 +113,7 @@ func (n *elementImpl) SetShadowRoot(sr ShadowRoot) {
 	n.shadowRoot = sr
 }
 func (n elementImpl) IsShadowHost() bool {
-	return !cm.IsNil(n.shadowRoot)
+	return !util.IsNil(n.shadowRoot)
 }
 func (n elementImpl) IsDefined() bool {
 	// https://dom.spec.whatwg.org/#concept-element-defined
@@ -169,7 +165,7 @@ type NamePair struct {
 
 func (n elementImpl) IsInside(name NamePair) bool {
 	current := n.Parent()
-	for !cm.IsNil(current) {
+	for !util.IsNil(current) {
 		currElem, ok := current.(Element)
 		if !ok {
 			break
@@ -277,7 +273,7 @@ func (n elementImpl) IsMathmlTextIntegrationPoint() bool {
 func (n elementImpl) IsHtmlIntegrationPoint() bool {
 	if n.IsMathmlElement("annotation-xml") {
 		if attr, ok := n.tagToken.Attr("encoding"); ok &&
-			(cm.ToAsciiLowercase(attr) == "text/html" || cm.ToAsciiLowercase(attr) == "application/xhtml+xml") {
+			(util.ToAsciiLowercase(attr) == "text/html" || util.ToAsciiLowercase(attr) == "application/xhtml+xml") {
 			return true
 		}
 	}

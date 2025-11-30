@@ -50,12 +50,12 @@ func (f Family) String() string {
 }
 
 type FamilyList struct {
-	families []Family
+	Families []Family
 }
 
 func (f FamilyList) String() string {
 	sb := strings.Builder{}
-	for i, f := range f.families {
+	for i, f := range f.Families {
 		if i != 0 {
 			sb.WriteString(",")
 		}
@@ -143,7 +143,7 @@ type Size interface {
 }
 
 const (
-	preferredFontSize = 14 // XXX: Let user choose this size!
+	PreferredFontSize = 14 // XXX: Let user choose this size!
 )
 
 // https://www.w3.org/TR/css-fonts-3/#absolute-size-value
@@ -181,13 +181,13 @@ func (s AbsoluteSize) String() string {
 
 // https://www.w3.org/TR/css-fonts-3/#absolute-size-value
 var absoluteSizeMap = map[AbsoluteSize]float64{
-	XXSmall:    (preferredFontSize * 3) / 5,
-	XSmall:     (preferredFontSize * 3) / 4,
-	Small:      (preferredFontSize * 8) / 9,
-	MediumSize: preferredFontSize,
-	Large:      (preferredFontSize * 6) / 5,
-	XLarge:     (preferredFontSize * 3) / 2,
-	XXLarge:    (preferredFontSize * 2) / 1,
+	XXSmall:    (PreferredFontSize * 3) / 5,
+	XSmall:     (PreferredFontSize * 3) / 4,
+	Small:      (PreferredFontSize * 8) / 9,
+	MediumSize: PreferredFontSize,
+	Large:      (PreferredFontSize * 6) / 5,
+	XLarge:     (PreferredFontSize * 3) / 2,
+	XXLarge:    (PreferredFontSize * 2) / 1,
 }
 
 func (s AbsoluteSize) CalculateRealFontSize(parentFontSize css.Num) values.Length {

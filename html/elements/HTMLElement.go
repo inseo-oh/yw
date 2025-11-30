@@ -34,54 +34,54 @@ func (elem htmlElementImpl) IsFormAssociatedCustomElement() bool {
 
 // https://html.spec.whatwg.org/multipage/forms.html#form-associated-element
 func (elem htmlElementImpl) IsFormAssociatedElement() bool {
-	html_elems := []string{
+	htmlElems := []string{
 		"button", "fieldset", "input", "object", "output", "select", "textarea", "img",
 	}
 	return elem.IsFormAssociatedCustomElement() ||
-		slices.ContainsFunc(html_elems, elem.IsHtmlElement)
+		slices.ContainsFunc(htmlElems, elem.IsHtmlElement)
 }
 
 // https://html.spec.whatwg.org/multipage/forms.html#category-listed
 func (elem htmlElementImpl) IsFormListedElement() bool {
-	html_elems := []string{
+	htmlElems := []string{
 		"button", "fieldset", "input", "object", "output", "select", "textarea",
 	}
 	return elem.IsFormAssociatedCustomElement() ||
-		slices.ContainsFunc(html_elems, elem.IsHtmlElement)
+		slices.ContainsFunc(htmlElems, elem.IsHtmlElement)
 }
 
 // https://html.spec.whatwg.org/multipage/forms.html#category-submit
 func (elem htmlElementImpl) IsFormSubmittableElement() bool {
-	html_elems := []string{"button", "input", "select", "textarea"}
+	htmlElems := []string{"button", "input", "select", "textarea"}
 	return elem.IsFormAssociatedCustomElement() ||
-		slices.ContainsFunc(html_elems, elem.IsHtmlElement)
+		slices.ContainsFunc(htmlElems, elem.IsHtmlElement)
 }
 
 // https://html.spec.whatwg.org/multipage/forms.html#category-reset
 func (elem htmlElementImpl) IsFormResettableElement() bool {
-	html_elems := []string{"input", "output", "select", "textarea"}
+	htmlElems := []string{"input", "output", "select", "textarea"}
 	return elem.IsFormAssociatedCustomElement() ||
-		slices.ContainsFunc(html_elems, elem.IsHtmlElement)
+		slices.ContainsFunc(htmlElems, elem.IsHtmlElement)
 }
 
 // https://html.spec.whatwg.org/multipage/forms.html#category-autocapitalize
 func (elem htmlElementImpl) IsFormAutocapitalizeAndAutocorrectInheritingElement() bool {
-	html_elems := []string{
+	htmlElems := []string{
 		"button", "fieldset", "input", "output", "select", "textarea",
 	}
 	return elem.IsFormAssociatedCustomElement() ||
-		slices.ContainsFunc(html_elems, elem.IsHtmlElement)
+		slices.ContainsFunc(htmlElems, elem.IsHtmlElement)
 }
 
 // https://html.spec.whatwg.org/multipage/forms.html#category-label
 func (elem htmlElementImpl) IsFormLabelableElement() bool {
-	html_elems := []string{
+	htmlElems := []string{
 		"button", "meter", "output", "progress", "select", "textarea",
 	}
 	if elem.IsFormAssociatedCustomElement() {
 		return true
 	}
-	if slices.ContainsFunc(html_elems, elem.IsHtmlElement) {
+	if slices.ContainsFunc(htmlElems, elem.IsHtmlElement) {
 		return true
 	}
 	if elem.IsHtmlElement("input") {

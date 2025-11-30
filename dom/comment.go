@@ -1,6 +1,8 @@
 package dom
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Comment interface {
 	CharacterData

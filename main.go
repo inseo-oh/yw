@@ -6,7 +6,7 @@ import (
 	"image/png"
 	"log"
 	"os"
-	"yw/libhtml"
+	"yw/browser"
 )
 
 var url = flag.String("url", "", "The URL")
@@ -17,18 +17,18 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	br := libhtml.Browser{}
-	viewport_img := image.NewRGBA(image.Rect(0, 0, 1280, 720))
-	plat := init_platform()
-	br.Init(*url, plat, viewport_img)
+	br := browser.Browser{}
+	viewportImg := image.NewRGBA(image.Rect(0, 0, 1280, 720))
+	plat := initPlatform()
+	br.Run(*url, plat, viewportImg)
 
-	dest_file, err := os.Create("output.png")
+	destFile, err := os.Create("output.png")
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = png.Encode(dest_file, viewport_img)
+	err = png.Encode(destFile, viewportImg)
 	if err != nil {
 		log.Fatal(err)
 	}
-	dest_file.Close()
+	destFile.Close()
 }

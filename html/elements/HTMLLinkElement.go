@@ -5,23 +5,26 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"yw/css/cssom"
+	"yw/css/csssyntax"
 	"yw/dom"
+	"yw/html/urlfetch"
 )
 
 // STUB
-type html_source_set struct{}
+type SourceSet struct{}
 
-type html_HTMLLinkElement interface {
+type HTMLLinkElement interface {
 	HTMLElement
-	process_link()
+	ProcessLink()
 }
-type html_HTMLLinkElement_s struct {
+type htmlLinkElementImpl struct {
 	HTMLElement
-	source_set []html_source_set
+	sourceSet []SourceSet
 }
 
-func NewHTMLLinkElement(options dom.ElementCreationCommonOptions) html_HTMLLinkElement {
-	elem := &html_HTMLLinkElement_s{
+func NewHTMLLinkElement(options dom.ElementCreationCommonOptions) HTMLLinkElement {
+	elem := &htmlLinkElementImpl{
 		HTMLElement: NewHTMLElement(options),
 	}
 
@@ -30,78 +33,76 @@ func NewHTMLLinkElement(options dom.ElementCreationCommonOptions) html_HTMLLinkE
 	// HTML Spec defines precisely when link element should be processed, but this will do the job for now.
 	// (Example: https://html.spec.whatwg.org/multipage/links.html#link-type-stylesheet)
 	cbs.PoppedFromStackOfOpenElements = func() {
-		elem.process_link()
+		elem.ProcessLink()
 	}
 	return elem
 }
 
-func (elem html_HTMLLinkElement_s) process_link() {
+func (elem htmlLinkElementImpl) ProcessLink() {
 	rel, ok := elem.AttrWithoutNamespace("rel")
 	if !ok {
 		return
 	}
 	var (
-		fetch_and_process_linked_resource func()
-		linked_resource_fetch_setup_steps func() bool
-		process_linked_resource           func(success bool, response *http.Response, response_bytes []byte)
+		fetchAndProcessLinkedResource func()
+		linkedResourceFetchSetupSteps func() bool
+		processLinkedResource         func(success bool, response *http.Response, responseBytes []byte)
 	)
 	switch rel {
 	case rel:
-		fetch_and_process_linked_resource,
-			linked_resource_fetch_setup_steps,
-			process_linked_resource = elem.process_link_type_stylesheet()
+		fetchAndProcessLinkedResource, linkedResourceFetchSetupSteps, processLinkedResource = elem.processLinkTypeStylesheet()
 	}
 
 	// https://html.spec.whatwg.org/multipage/semantics.html#link-processing-options
-	type link_processing_options struct {
-		href              string                          // https://html.spec.whatwg.org/multipage/semantics.html#link-options-href
-		initiator         string                          // https://html.spec.whatwg.org/multipage/semantics.html#link-options-initiator
-		integrity         string                          // https://html.spec.whatwg.org/multipage/semantics.html#link-options-integrity
-		tp                string                          // https://html.spec.whatwg.org/multipage/semantics.html#link-options-type
-		nonce             string                          // https://html.spec.whatwg.org/multipage/semantics.html#link-options-nonce
-		destination       string                          // https://html.spec.whatwg.org/multipage/semantics.html#link-options-destination
-		crossorigin       html_cors_settings              // https://html.spec.whatwg.org/multipage/semantics.html#link-options-crossorigin
-		referrer_policy   any                             // [STUB] https://html.spec.whatwg.org/multipage/semantics.html#link-options-referrer-policy
-		source_set        []html_source_set               // https://html.spec.whatwg.org/multipage/semantics.html#link-options-source-set
-		base_url          url.URL                         // https://html.spec.whatwg.org/multipage/semantics.html#link-options-base-url
-		origin            dom.DocumentOrigin              // https://html.spec.whatwg.org/multipage/semantics.html#link-options-origin
-		environment       dom.DocumentEnvironmentSettings // https://html.spec.whatwg.org/multipage/semantics.html#link-options-environment
-		policy_container  dom.DocumentPolicyContainer     // https://html.spec.whatwg.org/multipage/semantics.html#link-options-policy-container
-		document          dom.Document                    // https://html.spec.whatwg.org/multipage/semantics.html#link-options-document
-		on_document_ready func(doc dom.Document)          // https://html.spec.whatwg.org/multipage/semantics.html#link-options-on-document-ready
-		fetch_priority    html_fetch_priority             // https://html.spec.whatwg.org/multipage/semantics.html#link-options-fetch-priority
+	type linkProcessingOptions struct {
+		href            string                          // https://html.spec.whatwg.org/multipage/semantics.html#link-options-href
+		initiator       string                          // https://html.spec.whatwg.org/multipage/semantics.html#link-options-initiator
+		integrity       string                          // https://html.spec.whatwg.org/multipage/semantics.html#link-options-integrity
+		tp              string                          // https://html.spec.whatwg.org/multipage/semantics.html#link-options-type
+		nonce           string                          // https://html.spec.whatwg.org/multipage/semantics.html#link-options-nonce
+		destination     string                          // https://html.spec.whatwg.org/multipage/semantics.html#link-options-destination
+		crossorigin     urlfetch.CorsSettings           // https://html.spec.whatwg.org/multipage/semantics.html#link-options-crossorigin
+		referrerPolicy  any                             // [STUB] https://html.spec.whatwg.org/multipage/semantics.html#link-options-referrer-policy
+		sourceSet       []SourceSet                     // https://html.spec.whatwg.org/multipage/semantics.html#link-options-source-set
+		baseURL         url.URL                         // https://html.spec.whatwg.org/multipage/semantics.html#link-options-base-url
+		origin          dom.DocumentOrigin              // https://html.spec.whatwg.org/multipage/semantics.html#link-options-origin
+		environment     dom.DocumentEnvironmentSettings // https://html.spec.whatwg.org/multipage/semantics.html#link-options-environment
+		policyContainer dom.DocumentPolicyContainer     // https://html.spec.whatwg.org/multipage/semantics.html#link-options-policy-container
+		document        dom.Document                    // https://html.spec.whatwg.org/multipage/semantics.html#link-options-document
+		onDocumentReady func(doc dom.Document)          // https://html.spec.whatwg.org/multipage/semantics.html#link-options-on-document-ready
+		fetchPriority   urlfetch.FetchPriority          // https://html.spec.whatwg.org/multipage/semantics.html#link-options-fetch-priority
 	}
-	default_link_processing_options := func() link_processing_options {
-		return link_processing_options{
-			href:              "nil",
-			initiator:         "link",
-			integrity:         "",
-			tp:                "",
-			nonce:             "",
-			destination:       "",
-			crossorigin:       html_cors_settings_no_cors,
-			referrer_policy:   nil,
-			source_set:        nil,
-			document:          nil,
-			on_document_ready: nil,
-			fetch_priority:    html_fetch_priority_auto,
+	defaultLinkProcessingOptions := func() linkProcessingOptions {
+		return linkProcessingOptions{
+			href:            "nil",
+			initiator:       "link",
+			integrity:       "",
+			tp:              "",
+			nonce:           "",
+			destination:     "",
+			crossorigin:     urlfetch.CorsNone,
+			referrerPolicy:  nil,
+			sourceSet:       nil,
+			document:        nil,
+			onDocumentReady: nil,
+			fetchPriority:   urlfetch.FetchPriorityAuto,
 		}
 	}
 
 	// https://html.spec.whatwg.org/multipage/semantics.html#create-link-options-from-element
-	create_link_options := func() link_processing_options {
+	createLinkOptions := func() linkProcessingOptions {
 		document := elem.NodeDocument()
-		options := default_link_processing_options()
-		options.crossorigin = html_cors_settings_from_attr(elem, "crossorigin")
-		options.referrer_policy = nil // TODO
-		options.source_set = elem.source_set
-		options.base_url = document.BaseURL()
+		options := defaultLinkProcessingOptions()
+		options.crossorigin = urlfetch.CorsSettingsFromAttr(elem, "crossorigin")
+		options.referrerPolicy = nil // TODO
+		options.sourceSet = elem.sourceSet
+		options.baseURL = document.BaseURL()
 		options.origin = document.Origin()
 		options.environment = document.RelevantSettings()
-		options.policy_container = document.PolicyContainer()
+		options.policyContainer = document.PolicyContainer()
 		options.document = document
 		options.nonce = "" // TODO
-		options.fetch_priority = html_fetch_priority_from_attr(elem, "fetchpriority")
+		options.fetchPriority = urlfetch.FetchPriorityFromAttr(elem, "fetchpriority")
 		if attr, ok := elem.AttrWithoutNamespace("href"); ok {
 			options.href = attr
 		}
@@ -114,21 +115,21 @@ func (elem html_HTMLLinkElement_s) process_link() {
 		return options
 	}
 	// https://html.spec.whatwg.org/multipage/semantics.html#create-a-link-request
-	create_link_request := func(options link_processing_options) (*http.Request, error) {
+	createLinkRequest := func(options linkProcessingOptions) (*http.Request, error) {
 		// STUB
 		// NOTE: We don't use JoinPath() because the "path" part of URL may not be a real filesystem path.
-		return http.NewRequest("GET", options.base_url.String()+"/"+options.href, nil)
+		return http.NewRequest("GET", options.baseURL.String()+"/"+options.href, nil)
 	}
 
-	if process_linked_resource == nil {
-		process_linked_resource = func(success bool, response *http.Response, response_bytes []byte) {}
+	if processLinkedResource == nil {
+		processLinkedResource = func(success bool, response *http.Response, responseBytes []byte) {}
 	}
-	if fetch_and_process_linked_resource == nil {
+	if fetchAndProcessLinkedResource == nil {
 		// https://html.spec.whatwg.org/multipage/semantics.html#default-fetch-and-process-the-linked-resource
-		fetch_and_process_linked_resource = func() {
+		fetchAndProcessLinkedResource = func() {
 			// STUB
-			options := create_link_options()
-			request, err := create_link_request(options)
+			options := createLinkOptions()
+			request, err := createLinkRequest(options)
 			var resp *http.Response
 			var bytes []byte
 
@@ -151,26 +152,26 @@ func (elem html_HTMLLinkElement_s) process_link() {
 				goto process
 			}
 		process:
-			process_linked_resource(success, resp, bytes)
+			processLinkedResource(success, resp, bytes)
 		}
 	}
-	if linked_resource_fetch_setup_steps == nil {
-		linked_resource_fetch_setup_steps = func() bool { return true }
+	if linkedResourceFetchSetupSteps == nil {
+		linkedResourceFetchSetupSteps = func() bool { return true }
 	}
-	if !linked_resource_fetch_setup_steps() {
-		log.Printf("<link>: linked_resource_fetch_setup_steps() failed")
+	if !linkedResourceFetchSetupSteps() {
+		log.Printf("<link>: linkedResourceFetchSetupSteps() failed")
 		return
 	}
-	fetch_and_process_linked_resource()
+	fetchAndProcessLinkedResource()
 }
 
 // https://html.spec.whatwg.org/multipage/links.html#link-type-stylesheet
-func (elem html_HTMLLinkElement_s) process_link_type_stylesheet() (
-	fetch_and_process_linked_resource func(),
-	linked_resource_fetch_setup_steps func() bool,
-	process_linked_resource func(success bool, response *http.Response, response_bytes []byte),
+func (elem htmlLinkElementImpl) processLinkTypeStylesheet() (
+	fetchAndProcessLinkedResource func(),
+	linkedResourceFetchSetupSteps func() bool,
+	processLinkedResource func(success bool, response *http.Response, responseBytes []byte),
 ) {
-	process_linked_resource = func(success bool, response *http.Response, response_bytes []byte) {
+	processLinkedResource = func(success bool, response *http.Response, responseBytes []byte) {
 		// NOTE: All the step numbers(S#.) are based on spec from when this was initially written(2025.11.25)
 
 		// S1.
@@ -180,36 +181,36 @@ func (elem html_HTMLLinkElement_s) process_link_type_stylesheet() (
 		// TODO: If el no longer creates an external resource link that contributes to the styling processing model, or if, since the resource in question was fetched, it has become appropriate to fetch it again, then:
 
 		// S3.
-		if sheet := css_associated_stylesheet(elem); sheet != nil {
-			css_remove_stylesheet(sheet)
+		if sheet := cssom.AssociatedStylesheet(elem); sheet != nil {
+			cssom.RemoveStylesheet(sheet)
 		}
 
 		// S4.
 		if success {
-			url_str := response.Request.URL.String()
+			urlStr := response.Request.URL.String()
 			// S4-1.
-			text := css_decode_bytes(response_bytes)
-			tokens, err := css_tokenize(text)
+			text := csssyntax.DecodeBytes(responseBytes)
+			tokens, err := csssyntax.Tokenize(text)
 			if err != nil {
-				log.Printf("<link %s>: failed to tokenize stylesheet: %v", url_str, err)
+				log.Printf("<link %s>: failed to tokenize stylesheet: %v", urlStr, err)
 				return
 			}
-			stylesheet := css_parse_stylesheet(tokens, &url_str)
-			stylesheet.tp = "text/css"
-			stylesheet.owner_node = elem
-			stylesheet.location = &url_str
+			stylesheet := csssyntax.ParseStylesheet(tokens, &urlStr)
+			stylesheet.Type = "text/css"
+			stylesheet.OwnerNode = elem
+			stylesheet.Location = &urlStr
 			// TODO: Set stylesheet.media once we implement that
-			if dom_node_is_in_document_tree(elem) {
+			if dom.IsInDocumentTree(elem) {
 				if attr, ok := elem.AttrWithoutNamespace("title"); ok {
-					stylesheet.title = attr
+					stylesheet.Title = attr
 				}
 			}
-			stylesheet.alternate_flag = false   // TODO: Set if the link is an alternative style sheet and el's explicitly enabled is false; unset otherwise.
-			stylesheet.origin_clean_flag = true // TODO: Set if the resource is CORS-same-origin; unset otherwise.
-			stylesheet.parent_stylesheet = nil
-			stylesheet.owner_rule = nil
-			css_add_stylesheet(&stylesheet)
-			log.Printf("<link %s>: stylesheet loaded", url_str)
+			stylesheet.AlternateFlag = false  // TODO: Set if the link is an alternative style sheet and el's explicitly enabled is false; unset otherwise.
+			stylesheet.OriginCleanFlag = true // TODO: Set if the resource is CORS-same-origin; unset otherwise.
+			stylesheet.ParentStylesheet = nil
+			stylesheet.OwnerRule = nil
+			cssom.AddStylesheet(&stylesheet)
+			log.Printf("<link %s>: stylesheet loaded", urlStr)
 		} else {
 			// S5.
 			// TODO: Otherwise, fire an event named error at el.
@@ -224,5 +225,5 @@ func (elem html_HTMLLinkElement_s) process_link_type_stylesheet() (
 		// S7.
 		// TODO: Unblock rendering on el.
 	}
-	return nil, nil, process_linked_resource
+	return nil, nil, processLinkedResource
 }

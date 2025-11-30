@@ -10,8 +10,8 @@ import (
 
 // https://www.w3.org/TR/2021/WD-css-sizing-3-20211217/#sizing-values
 type Size struct {
-	tp   SizeType
-	size values.LengthResolvable
+	Type SizeType
+	Size values.LengthResolvable
 }
 type SizeType uint8
 
@@ -25,7 +25,7 @@ const (
 )
 
 func (s Size) String() string {
-	switch s.tp {
+	switch s.Type {
 	case NoneSize:
 		return "none"
 	case Auto:
@@ -35,15 +35,15 @@ func (s Size) String() string {
 	case MaxContent:
 		return "max-content"
 	case FitContent:
-		return fmt.Sprintf("fit-content(%v)", s.size)
+		return fmt.Sprintf("fit-content(%v)", s.Size)
 	case ManualSize:
-		return s.size.String()
+		return s.Size.String()
 	}
-	return fmt.Sprintf("<bad Size type %v>", s.tp)
+	return fmt.Sprintf("<bad Size type %v>", s.Type)
 }
 
 func (s Size) ComputeUsedValue(parentSize css.Num) values.Length {
-	switch s.tp {
+	switch s.Type {
 	case NoneSize:
 		panic("TODO: NoneSize")
 	case Auto:
@@ -55,8 +55,8 @@ func (s Size) ComputeUsedValue(parentSize css.Num) values.Length {
 	case FitContent:
 		panic("TODO: FitContent")
 	case ManualSize:
-		return s.size.AsLength(parentSize)
+		return s.Size.AsLength(parentSize)
 	}
-	log.Panicf("<bad Size type %v>", s.tp)
+	log.Panicf("<bad Size type %v>", s.Type)
 	return values.Length{}
 }

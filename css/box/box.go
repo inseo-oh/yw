@@ -4,14 +4,14 @@ package box
 import (
 	"fmt"
 	"yw/css/values"
-	cm "yw/libcommon"
+	"yw/util"
 )
 
 type Margin struct {
 	Value values.LengthResolvable // nil means auto
 }
 
-func (m Margin) IsAuto() bool { return cm.IsNil(m.Value) }
+func (m Margin) IsAuto() bool { return util.IsNil(m.Value) }
 func (m Margin) String() string {
 	if m.IsAuto() {
 		return "auto"
