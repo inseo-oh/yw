@@ -318,17 +318,17 @@ func (tb treeBuilder) makeLayoutForNode(
 			if boxWidth.Type != sizing.Auto {
 				parentSize := css.NumFromFloat(parentNode.boxContentRect().Width)
 				boxWidthPx = boxWidth.ComputeUsedValue(parentSize).ToPx(parentSize)
-				boxWidthPx += margin.Left + margin.Right
 			} else {
 				widthAuto = true
 			}
+			boxWidthPx += margin.Left + margin.Right
 			if boxHeight.Type != sizing.Auto {
 				parentSize := css.NumFromFloat(parentNode.boxContentRect().Height)
 				boxHeightPx = boxHeight.ComputeUsedValue(parentSize).ToPx(parentSize)
-				boxHeightPx += margin.Top + margin.Bottom
 			} else {
 				heightAuto = true
 			}
+			boxHeightPx += margin.Top + margin.Bottom
 
 			return gfx.Rect{Left: boxLeft, Top: boxTop, Width: boxWidthPx, Height: boxHeightPx},
 				widthAuto, heightAuto

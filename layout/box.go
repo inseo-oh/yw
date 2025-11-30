@@ -84,8 +84,8 @@ func (bx *boxCommon) incrementSize(width, height float64) {
 	}
 }
 func (bx *boxCommon) incrementIfNeeded(minWidth, minHeight float64) {
-	wDiff := max(minWidth-bx.marginRect.Width, 0)
-	hDiff := max(minHeight-bx.marginRect.Height, 0)
+	wDiff := max(minWidth-bx.boxContentRect().Width, 0)
+	hDiff := max(minHeight-bx.boxContentRect().Height, 0)
 	bx.incrementSize(wDiff, hDiff)
 }
 func (bx boxCommon) MakePaintNode() gfx.PaintNode {

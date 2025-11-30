@@ -11,11 +11,12 @@ import (
 // https://www.w3.org/TR/css-display-3/#block-container
 type blockContainer struct {
 	boxCommon
-	bfc        *blockFormattingContext
-	ifc        *inlineFormattingContext
-	parentFctx formattingContext
-	createdBfc bool
-	createdIfc bool
+	bfc         *blockFormattingContext
+	ifc         *inlineFormattingContext
+	parentFctx  formattingContext
+	createdBfc  bool
+	createdIfc  bool
+	isAnonymous bool
 }
 
 func (bcon blockContainer) String() string {
@@ -65,7 +66,7 @@ func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, wr
 	// If we have both inline and block-level, we need anonymous block container for inline nodes.
 	// (This is actually part of CSS spec)
 	needAnonymousBlockContainer := hasInline && hasBlock
-	if hasInline && !hasBlock {
+	if hasInline && !hasBlock && !bcon.isAnonymous {
 		bcon.ifc = &inlineFormattingContext{}
 		bcon.ifc.creatorBox = bcon
 		bcon.ifc.bcon = bcon
@@ -76,16 +77,22 @@ func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, wr
 	}
 
 	// Now we can layout the children for real
+	anonChildren := []dom.Node{}
 	for i, childNode := range children {
 		var nodes []Node
 		if isInline[i] && needAnonymousBlockContainer {
-			// Create anonymous block container
-			boxLeft, boxTop := calcNextPosition(bcon.bfc, bcon.ifc, writeMode, false)
-			boxRect := gfx.Rect{Left: boxLeft, Top: boxTop, Width: bcon.marginRect.Width, Height: bcon.marginRect.Height}
-			anonBcon := tb.newBlockContainer(bcon.parentFctx, bcon.ifc, bcon, nil, boxRect, gfx.Edges{}, false, false)
-			anonBcon.ifc = bcon.ifc
-			anonBcon.initChildren(tb, []dom.Node{childNode}, writeMode)
-			nodes = []Node{anonBcon}
+			anonChildren = append(anonChildren, childNode)
+			if i == len(children)-1 || isInline[i+1] {
+				// Create anonymous block container
+				boxLeft, boxTop := calcNextPosition(bcon.bfc, bcon.ifc, writeMode, false)
+				boxRect := gfx.Rect{Left: boxLeft, Top: boxTop, Width: bcon.marginRect.Width, Height: bcon.marginRect.Height}
+				anonBcon := tb.newBlockContainer(bcon.parentFctx, bcon.ifc, bcon, nil, boxRect, gfx.Edges{}, true, true)
+				anonBcon.isAnonymous = true
+				anonBcon.initChildren(tb, anonChildren, writeMode)
+				anonChildren = []dom.Node{} // Clear children list
+				nodes = []Node{anonBcon}
+			}
+
 		} else {
 			// Create layout node normally
 			nodes = tb.makeLayoutForNode(bcon.parentFctx, bcon.bfc, bcon.ifc, writeMode, bcon, childNode, false)
