@@ -14,10 +14,19 @@ type inlineBox struct {
 	parentBcon *blockContainer
 }
 
-func (bx inlineBox) String() string     { return fmt.Sprintf("inline-box %v at [%v]", bx.elem, bx.rect) }
-func (bx inlineBox) NodeType() NodeType { return NodeTypeInlineBox }
-func (bx inlineBox) boxRect() gfx.Rect  { return bx.rect }
-func (bx inlineBox) IsBlockLevel() bool { return false }
+func (bx inlineBox) String() string {
+	leftStr := fmt.Sprintf("%g(%g+%g)", bx.boxContentRect().Left, bx.marginRect.Left, bx.margin.Left)
+	topStr := fmt.Sprintf("%g(%g+%g)", bx.boxContentRect().Top, bx.marginRect.Top, bx.margin.Top)
+	rightStr := fmt.Sprintf("%g(%g-%g)", bx.boxContentRect().Right(), bx.marginRect.Right(), bx.margin.Right)
+	bottomStr := fmt.Sprintf("%g(%g-%g)", bx.boxContentRect().Bottom(), bx.marginRect.Bottom(), bx.margin.Bottom)
+	return fmt.Sprintf(
+		"inline-box %v at [LTRB %s %s %s %s (%gx%g)]",
+		bx.elem, leftStr, topStr, rightStr, bottomStr, bx.marginRect.Width, bx.marginRect.Height,
+	)
+}
+func (bx inlineBox) NodeType() NodeType      { return NodeTypeInlineBox }
+func (bx inlineBox) boxMarginRect() gfx.Rect { return bx.marginRect }
+func (bx inlineBox) IsBlockLevel() bool      { return false }
 
 // NOTE: This should *only* be called once after making layout node.
 func (bx *inlineBox) initChildren(

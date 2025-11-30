@@ -26,7 +26,13 @@ func (bcon blockContainer) String() string {
 	if bcon.createdIfc {
 		fcStr += "[IFC]"
 	}
-	return fmt.Sprintf("block-container [elem %v] at [%v] %s", bcon.elem, bcon.rect, fcStr)
+	leftStr := fmt.Sprintf("%g(%g+%g)", bcon.boxContentRect().Left, bcon.marginRect.Left, bcon.margin.Left)
+	topStr := fmt.Sprintf("%g(%g+%g)", bcon.boxContentRect().Top, bcon.marginRect.Top, bcon.margin.Top)
+	rightStr := fmt.Sprintf("%g(%g-%g)", bcon.boxContentRect().Right(), bcon.marginRect.Right(), bcon.margin.Right)
+	bottomStr := fmt.Sprintf("%g(%g-%g)", bcon.boxContentRect().Bottom(), bcon.marginRect.Bottom(), bcon.margin.Bottom)
+	return fmt.Sprintf(
+		"block-container [elem %v] at [LTRB %s %s %s %s (%gx%g)] %s",
+		bcon.elem, leftStr, topStr, rightStr, bottomStr, bcon.marginRect.Width, bcon.marginRect.Height, fcStr)
 }
 func (bcon blockContainer) NodeType() NodeType { return NodeTypeBlockContainer }
 func (bcon blockContainer) IsBlockLevel() bool { return true }
@@ -75,8 +81,8 @@ func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, wr
 		if isInline[i] && needAnonymousBlockContainer {
 			// Create anonymous block container
 			boxLeft, boxTop := calcNextPosition(bcon.bfc, bcon.ifc, writeMode, false)
-			boxRect := gfx.Rect{Left: boxLeft, Top: boxTop, Width: bcon.rect.Width, Height: bcon.rect.Height}
-			anonBcon := tb.newBlockContainer(bcon.parentFctx, bcon.ifc, bcon, nil, boxRect, false, false)
+			boxRect := gfx.Rect{Left: boxLeft, Top: boxTop, Width: bcon.marginRect.Width, Height: bcon.marginRect.Height}
+			anonBcon := tb.newBlockContainer(bcon.parentFctx, bcon.ifc, bcon, nil, boxRect, gfx.Edges{}, false, false)
 			anonBcon.ifc = bcon.ifc
 			anonBcon.initChildren(tb, []dom.Node{childNode}, writeMode)
 			nodes = []Node{anonBcon}

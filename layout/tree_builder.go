@@ -38,13 +38,15 @@ func (tb treeBuilder) newText(
 func (tb treeBuilder) newInlineBox(
 	parentBcon *blockContainer,
 	elem dom.Element,
-	rect gfx.Rect,
+	marginRect gfx.Rect,
+	margin gfx.Edges,
 	widthAuto, heightAuto bool,
 ) *inlineBox {
 	ibox := &inlineBox{}
 	ibox.parent = parentBcon
 	ibox.elem = elem
-	ibox.rect = rect
+	ibox.marginRect = marginRect
+	ibox.margin = margin
 	ibox.widthAuto = widthAuto
 	ibox.heightAuto = heightAuto
 	ibox.parentBcon = parentBcon
@@ -57,13 +59,15 @@ func (tb treeBuilder) newBlockContainer(
 	ifc *inlineFormattingContext,
 	parent Node,
 	elem dom.Element,
-	rect gfx.Rect,
+	marginRect gfx.Rect,
+	margin gfx.Edges,
 	widthAuto, heightAuto bool,
 ) *blockContainer {
 	bcon := &blockContainer{}
 	bcon.parent = parent
 	bcon.elem = elem
-	bcon.rect = rect
+	bcon.marginRect = marginRect
+	bcon.margin = margin
 	bcon.widthAuto = widthAuto
 	bcon.heightAuto = heightAuto
 	bcon.parentFctx = parentFctx
@@ -87,7 +91,7 @@ func calcNextPosition(bfc *blockFormattingContext, ifc *inlineFormattingContext,
 			inlinePos = 0
 			blockBos = bfc.naturalPos()
 		}
-		baseRect := bfc.contextCreatorBox().boxRect()
+		baseRect := bfc.contextCreatorBox().boxMarginRect()
 		if writeMode == writeModeVertical {
 			return baseRect.Left + blockBos, baseRect.Top + inlinePos
 		}
@@ -100,7 +104,7 @@ func calcNextPosition(bfc *blockFormattingContext, ifc *inlineFormattingContext,
 			x = 0
 		}
 		y = bfc.naturalPos()
-		baseRect := bfc.contextCreatorBox().boxRect()
+		baseRect := bfc.contextCreatorBox().boxMarginRect()
 		if writeMode == writeModeVertical {
 			return baseRect.Left + y, baseRect.Top + x
 		}
@@ -226,6 +230,8 @@ func (tb treeBuilder) makeLayoutForNode(
 
 			// Calculate left/top position
 			left, top := calcNextPosition(bfc, ifc, writeMode, true)
+			left += parentNode.boxMargin().Left
+			top += parentNode.boxMargin().Top
 
 			// Figure out where we should end current fragment, so that we don't overflow the line box.
 			// TODO: We should not do this if we are not doing text wrapping(e.g. whitespace: nowrap).
@@ -280,9 +286,25 @@ func (tb treeBuilder) makeLayoutForNode(
 		// Layout for Element nodes
 		//======================================================================
 		styleSet := cssom.ElementDataOf(elem).ComputedStyleSet
-		computeBoxRect := func(isInline bool) (r gfx.Rect, widthAuto, heightAuto bool) {
+		if styleSet.MarginTop().IsAuto() || styleSet.MarginBottom().IsAuto() {
+			panic("TODO: Support auto margin")
+		}
+		if styleSet.MarginLeft().IsAuto() || styleSet.MarginRight().IsAuto() {
+			panic("TODO: Support auto margin")
+		}
+		marginParentSize := parentNode.logicalWidth(writeMode)
+		margin := gfx.Edges{
+			Top:    styleSet.MarginTop().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(marginParentSize)),
+			Right:  styleSet.MarginRight().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(marginParentSize)),
+			Bottom: styleSet.MarginBottom().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(marginParentSize)),
+			Left:   styleSet.MarginLeft().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(marginParentSize)),
+		}
+
+		computeBoxRect := func(isInline bool) (boxRect gfx.Rect, widthAuto, heightAuto bool) {
 			// Calculate left/top position
 			boxLeft, boxTop := calcNextPosition(bfc, ifc, writeMode, isInline)
+			boxLeft += parentNode.boxMargin().Top
+			boxTop += parentNode.boxMargin().Left
 
 			// Calculate width/height using `width` and `height` property
 			boxWidth := styleSet.Width()
@@ -292,18 +314,22 @@ func (tb treeBuilder) makeLayoutForNode(
 
 			// If width or height is auto, we start from 0 and expand it as we layout the children.
 			if boxWidth.Type != sizing.Auto {
-				parentSize := css.NumFromFloat(parentNode.boxRect().Width)
+				parentSize := css.NumFromFloat(parentNode.boxContentRect().Width)
 				boxWidthPx = boxWidth.ComputeUsedValue(parentSize).ToPx(parentSize)
+				boxWidthPx += margin.Left + margin.Right
 			} else {
 				widthAuto = true
 			}
 			if boxHeight.Type != sizing.Auto {
-				parentSize := css.NumFromFloat(parentNode.boxRect().Height)
+				parentSize := css.NumFromFloat(parentNode.boxContentRect().Height)
 				boxHeightPx = boxHeight.ComputeUsedValue(parentSize).ToPx(parentSize)
+				boxHeightPx += margin.Top + margin.Bottom
 			} else {
 				heightAuto = true
 			}
-			return gfx.Rect{Left: boxLeft, Top: boxTop, Width: boxWidthPx, Height: boxHeightPx}, widthAuto, heightAuto
+
+			return gfx.Rect{Left: boxLeft, Top: boxTop, Width: boxWidthPx, Height: boxHeightPx},
+				widthAuto, heightAuto
 		}
 
 		styleDisplay := styleSet.Display()
@@ -317,10 +343,10 @@ func (tb treeBuilder) makeLayoutForNode(
 			// Check if we have auto size on a block element. If so, use parent's size and unset auto.
 			if styleDisplay.OuterMode == display.Block {
 				if writeMode == writeModeHorizontal && widthAuto {
-					boxRect.Width = parentNode.boxRect().Width
+					boxRect.Width = parentNode.boxMarginRect().Width
 					widthAuto = false
 				} else if writeMode == writeModeVertical && heightAuto {
-					boxRect.Height = parentNode.boxRect().Height
+					boxRect.Height = parentNode.boxMarginRect().Height
 					heightAuto = false
 				}
 			}
@@ -350,7 +376,7 @@ func (tb treeBuilder) makeLayoutForNode(
 					lineBox.currentLineHeight = max(lineBox.currentLineHeight, boxRect.Height)
 
 					// Increment parent's height if needed.
-					if parentNode.boxRect().Height < lineBox.currentLineHeight {
+					if parentNode.boxMarginRect().Height < lineBox.currentLineHeight {
 						parentNode.incrementIfNeeded(0, lineBox.currentLineHeight)
 					}
 				}
@@ -381,13 +407,13 @@ func (tb treeBuilder) makeLayoutForNode(
 						}
 						parentBcon = parentBcon.ParentNode().(box)
 					}
-					ibox := tb.newInlineBox(parentBcon.(*blockContainer), elem, boxRect, widthAuto, heightAuto)
+					ibox := tb.newInlineBox(parentBcon.(*blockContainer), elem, boxRect, margin, widthAuto, heightAuto)
 					if !dryRun {
 						ibox.initChildren(tb, elem.Children(), writeMode)
 					}
 					bx = ibox
 				} else {
-					bcon := tb.newBlockContainer(parentFctx, ifc, parentNode, elem, boxRect, widthAuto, heightAuto)
+					bcon := tb.newBlockContainer(parentFctx, ifc, parentNode, elem, boxRect, margin, widthAuto, heightAuto)
 					if !dryRun {
 						bcon.initChildren(tb, elem.Children(), writeMode)
 					}
@@ -395,8 +421,8 @@ func (tb treeBuilder) makeLayoutForNode(
 				}
 
 				// Increment natural position
-				inlineAxisSize := bx.boxRect().Width
-				blockAxisSize := bx.boxRect().Height
+				inlineAxisSize := bx.boxMarginRect().Width
+				blockAxisSize := bx.boxMarginRect().Height
 				if writeMode == writeModeVertical {
 					inlineAxisSize, blockAxisSize = blockAxisSize, inlineAxisSize
 				}
@@ -414,14 +440,14 @@ func (tb treeBuilder) makeLayoutForNode(
 				// "flow-root" mode (flow-root, inline-block display modes)
 				//==================================================================
 				// https://www.w3.org/TR/css-display-3/#valdef-display-flow-root
-				bcon := tb.newBlockContainer(parentFctx, ifc, parentNode, elem, boxRect, widthAuto, heightAuto)
+				bcon := tb.newBlockContainer(parentFctx, ifc, parentNode, elem, boxRect, margin, widthAuto, heightAuto)
 				if !dryRun {
 					bcon.initChildren(tb, elem.Children(), writeMode)
 				}
 
 				// Increment natural position
-				inlineAxisSize := bcon.boxRect().Width
-				blockAxisSize := bcon.boxRect().Height
+				inlineAxisSize := bcon.boxMarginRect().Width
+				blockAxisSize := bcon.boxMarginRect().Height
 				if writeMode == writeModeVertical {
 					inlineAxisSize, blockAxisSize = blockAxisSize, inlineAxisSize
 				}
