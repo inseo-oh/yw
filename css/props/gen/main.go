@@ -13,6 +13,8 @@ import (
 )
 
 var requiredImports = []string{
+	"fmt",
+	"github.com/inseo-oh/yw/util",
 	"github.com/inseo-oh/yw/css",
 	"github.com/inseo-oh/yw/css/csscolor",
 	"github.com/inseo-oh/yw/css/box",
@@ -39,8 +41,6 @@ func main() {
 	sb.WriteString(fmt.Sprintf("package %s\n", *pkg))
 	sb.WriteString( /*      */ "\n")
 	sb.WriteString( /*      */ "import (\n")
-	sb.WriteString(fmt.Sprintf("\t%s\n", strconv.Quote("fmt")))
-	sb.WriteString(fmt.Sprintf("\tcm %s\n", strconv.Quote("github.com/inseo-oh/yw/libcommon")))
 	for _, imp := range requiredImports {
 		sb.WriteString(fmt.Sprintf("\t%s\n", strconv.Quote(imp)))
 	}
