@@ -62,7 +62,7 @@ type CustomElementState uint8
 
 // https://dom.spec.whatwg.org/#concept-element-custom-element-state
 const (
-	CustomElementUndefined = CustomElementState(iota)
+	CustomElementUndefined CustomElementState = iota
 	CustomElementFailed
 	CustomElementUncustomized
 	CustomElementPrecustomized

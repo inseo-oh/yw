@@ -16,11 +16,11 @@ type Transform struct {
 type TransformType uint8
 
 const (
-	NoTransform  = TransformType(iota) // No transform
-	OriginalCaps                       // Apply transform, but don't change cases
-	Capitalize                         // text-transform: Captialize
-	Uppercase                          // text-transform: UPPERCASE
-	Lowercase                          // text-transform: lowercase
+	NoTransform  TransformType = iota // No transform
+	OriginalCaps                      // Apply transform, but don't change cases
+	Capitalize                        // text-transform: Captialize
+	Uppercase                         // text-transform: UPPERCASE
+	Lowercase                         // text-transform: lowercase
 )
 
 func (t Transform) String() string {

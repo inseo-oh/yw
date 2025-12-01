@@ -1,4 +1,6 @@
-// Implementation of Cascading and Inheritance Level 4 (https://www.w3.org/TR/css-cascade-4)
+// Package cascade provide CSS cascading logic based on CSS Cascading and Inheritance Level 4
+//
+// Spec: https://www.w3.org/TR/css-cascade-4
 package cascade
 
 import (
@@ -8,6 +10,11 @@ import (
 	"github.com/inseo-oh/yw/util"
 )
 
+// ApplyStyleRules collects all relevant style rules from stylesheets associated
+// with docOrSr, together with uaStylesheet, and calculates computed value of
+// each descendant element of the docOrSr.
+//
+// Resulting style is saved to each element's ComputedStyleSet.
 func ApplyStyleRules(uaStylesheet *cssom.Stylesheet, docOrSr dom.Node) {
 	// https://www.w3.org/TR/css-cascade-4/#cascade-origin
 

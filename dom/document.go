@@ -33,7 +33,7 @@ type Document interface {
 type DocumentMode uint8
 
 const (
-	NoQuirks = DocumentMode(iota)
+	NoQuirks DocumentMode = iota
 	Quirks
 	LimitedQuirks
 )

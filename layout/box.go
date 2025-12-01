@@ -91,7 +91,7 @@ func (bx *boxCommon) incrementIfNeeded(minWidth, minHeight float64) {
 func (bx boxCommon) MakePaintNode() gfx.PaintNode {
 	paintNodes := []gfx.PaintNode{}
 
-	var color = csscolor.Transparent()
+	var color = csscolor.Transparent
 	if bx.elem != nil {
 		color = cssom.ElementDataOf(bx.elem).ComputedStyleSet.BackgroundColor()
 	}

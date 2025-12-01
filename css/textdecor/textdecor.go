@@ -41,7 +41,7 @@ func (t LineFlags) String() string {
 type Style uint8
 
 const (
-	Solid = Style(iota)
+	Solid Style = iota
 	Double
 	Dotted
 	Dashed

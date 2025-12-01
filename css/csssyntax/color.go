@@ -59,7 +59,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 		if err != nil {
 			return csscolor.Color{}, false
 		}
-		return csscolor.Color{Type: csscolor.TypeRgb, Components: []css.Num{
+		return csscolor.Color{Type: csscolor.Rgb, Components: [4]css.Num{
 			css.NumFromInt(int64(r)),
 			css.NumFromInt(int64(g)),
 			css.NumFromInt(int64(b)),
@@ -150,7 +150,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 		if !ts.isEnd() {
 			return csscolor.Color{}, false
 		}
-		return csscolor.Color{Type: csscolor.TypeRgb, Components: []css.Num{r, g, b, a}}, true
+		return csscolor.Color{Type: csscolor.Rgb, Components: [4]css.Num{r, g, b, a}}, true
 	modernSyntax:
 		ts.cursor = oldCursor
 
@@ -201,7 +201,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 		if !ts.isEnd() {
 			return csscolor.Color{}, false
 		}
-		return csscolor.Color{Type: csscolor.TypeRgb, Components: []css.Num{components[0], components[1], components[2], a}}, true
+		return csscolor.Color{Type: csscolor.Rgb, Components: [4]css.Num{components[0], components[1], components[2], a}}, true
 	}
 	// Try hsl()/hsla() function -----------------------------------------------
 	fn = ts.consumeAstFuncWith("hsl")
@@ -249,7 +249,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 	if !util.IsNil(ident) {
 		rgba, ok := csscolor.NamedColors[ident.(identToken).value]
 		if ok {
-			return csscolor.Color{Type: csscolor.TypeRgb, Components: []css.Num{
+			return csscolor.Color{Type: csscolor.Rgb, Components: [4]css.Num{
 				css.NumFromInt(int64(rgba.R)),
 				css.NumFromInt(int64(rgba.G)),
 				css.NumFromInt(int64(rgba.B)),
@@ -260,12 +260,12 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 	}
 	// Try transparent ---------------------------------------------------------
 	if ts.consumeIdentTokenWith("transparent") {
-		c := csscolor.Transparent()
+		c := csscolor.Transparent
 		return c, true
 	}
 	// Try currentColor --------------------------------------------------------
 	if ts.consumeIdentTokenWith("currentColor") {
-		return csscolor.Color{Type: csscolor.TypeCurrentColor}, true
+		return csscolor.Color{Type: csscolor.CurrentColor}, true
 	}
 	// TODO: Try system colors
 	return csscolor.Color{}, false

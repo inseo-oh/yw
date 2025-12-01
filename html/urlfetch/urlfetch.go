@@ -9,9 +9,9 @@ import (
 type CorsSettings uint8
 
 const (
-	CorsNone           = CorsSettings(iota) // https://html.spec.whatwg.org/multipage/urls-and-fetching.html#attr-crossorigin-none
-	CorsAnonymous                           // https://html.spec.whatwg.org/multipage/urls-and-fetching.html#attr-crossorigin-anonymous
-	CorsUseCredentials                      // https://html.spec.whatwg.org/multipage/urls-and-fetching.html#attr-crossorigin-use-credentials
+	CorsNone           CorsSettings = iota // https://html.spec.whatwg.org/multipage/urls-and-fetching.html#attr-crossorigin-none
+	CorsAnonymous                          // https://html.spec.whatwg.org/multipage/urls-and-fetching.html#attr-crossorigin-anonymous
+	CorsUseCredentials                     // https://html.spec.whatwg.org/multipage/urls-and-fetching.html#attr-crossorigin-use-credentials
 )
 
 func CorsSettingsFromAttr(elem dom.Element, attrName string) CorsSettings {
@@ -35,9 +35,9 @@ func CorsSettingsFromAttr(elem dom.Element, attrName string) CorsSettings {
 type FetchPriority uint8
 
 const (
-	FetchPriorityHigh = FetchPriority(iota) // https://html.spec.whatwg.org/multipage/urls-and-fetching.html#attr-fetchpriority-high-state
-	FetchPriorityLow                        // https://html.spec.whatwg.org/multipage/urls-and-fetching.html#attr-fetchpriority-low-state
-	FetchPriorityAuto                       // https://html.spec.whatwg.org/multipage/urls-and-fetching.html#attr-fetchpriority-auto-state
+	FetchPriorityHigh FetchPriority = iota // https://html.spec.whatwg.org/multipage/urls-and-fetching.html#attr-fetchpriority-high-state
+	FetchPriorityLow                       // https://html.spec.whatwg.org/multipage/urls-and-fetching.html#attr-fetchpriority-low-state
+	FetchPriorityAuto                      // https://html.spec.whatwg.org/multipage/urls-and-fetching.html#attr-fetchpriority-auto-state
 )
 
 func FetchPriorityFromAttr(elem dom.Element, attrName string) FetchPriority {

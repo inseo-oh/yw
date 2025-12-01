@@ -23,12 +23,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	str := string(bytes)
-	tokens, err := csssyntax.Tokenize(str)
+	stylesheet, err := csssyntax.ParseStylesheet(bytes, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-	stylesheet := csssyntax.ParseStylesheet(tokens, nil)
 	log.Println("stylesheet location:", stylesheet.Location)
 	for i, rule := range stylesheet.StyleRules {
 		selectorListStr := strings.Builder{}

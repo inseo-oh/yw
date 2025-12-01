@@ -1,4 +1,6 @@
-// Implementation of the CSS Color Module Level 4 (https://www.w3.org/TR/css-color-4/)
+// Package box provide types and values for CSS Color Module Level 4
+//
+// Spec: https://www.w3.org/TR/css-color-4/
 package csscolor
 
 import (
@@ -9,7 +11,9 @@ import (
 	"github.com/inseo-oh/yw/css"
 )
 
-// https://www.w3.org/TR/css-color-4/#named-colors
+// CSS named colors
+//
+// Spec: https://www.w3.org/TR/css-color-4/#named-colors
 var NamedColors = map[string]color.RGBA{
 	"aliceblue":            {240, 248, 255, 255},
 	"antiquewhite":         {250, 235, 215, 255},
@@ -161,70 +165,79 @@ var NamedColors = map[string]color.RGBA{
 	"yellowgreen":          {154, 205, 50, 255},
 }
 
+// CSS color value
 type Color struct {
 	Type       Type
-	Components []css.Num
+	Components [4]css.Num
 }
+
+// Type of Color
 type Type uint8
 
 const (
-	TypeRgb          = Type(iota) // rgb(), rgba(), hex colors, named colors
-	TypeCurrentColor              // currentColor
-	TypeHsl                       // hsl(), hsla()
-	TypeHwb                       // hwb()
-	TypeLab                       // lab()
-	TypeLch                       // lch()
-	TypeOklab                     // oklab()
-	TypeOklch                     // oklch()
-	TypeColorFn                   // color()
+	Rgb          Type = iota // rgb(), rgba(), hex colors, named colors
+	CurrentColor             // currentColor
+	Hsl                      // hsl(), hsla()
+	Hwb                      // hwb()
+	Lab                      // lab()
+	Lch                      // lch()
+	Oklab                    // oklab()
+	Oklch                    // oklch()
+	ColorFn                  // color()
 	// TODO: System color
 )
 
-func CanvasText() Color  { return NewRgba(0, 0, 0, 255) }
-func Transparent() Color { return NewRgba(0, 0, 0, 0) }
-
-func NewCurrentColor() Color {
-	return Color{TypeCurrentColor, nil}
-}
+// Various predefined CSS color values
+var (
+	CanvasText  = NewRgba(0, 0, 0, 255) // CanvasText
+	Transparent = NewRgba(0, 0, 0, 0)   // transparent
+)
 
 func NewRgba(r, g, b, a uint8) Color {
-	return Color{TypeRgb, []css.Num{
+	return Color{Rgb, [4]css.Num{
 		css.NumFromInt(int64(r)),
 		css.NumFromInt(int64(g)),
 		css.NumFromInt(int64(b)),
 		css.NumFromInt(int64(a)),
 	}}
 }
+
+// Returns RGBA color for the color.
+//
+// TODO(ois): Currently only RGBA type is supported. Support more color types.
 func (c Color) ToRgba() color.RGBA {
 	switch c.Type {
-	case TypeRgb:
+	case Rgb:
 		return color.RGBA{
 			uint8(c.Components[0].ToInt()),
 			uint8(c.Components[1].ToInt()),
 			uint8(c.Components[2].ToInt()),
 			uint8(c.Components[3].ToInt()),
 		}
-	case TypeCurrentColor:
+	case CurrentColor:
 		panic("TODO")
-	case TypeHsl:
+	case Hsl:
 		panic("TODO")
-	case TypeHwb:
+	case Hwb:
 		panic("TODO")
-	case TypeLab:
+	case Lab:
 		panic("TODO")
-	case TypeLch:
+	case Lch:
 		panic("TODO")
-	case TypeOklab:
+	case Oklab:
 		panic("TODO")
-	case TypeOklch:
+	case Oklch:
 		panic("TODO")
-	case TypeColorFn:
+	case ColorFn:
 		panic("TODO")
 	}
 	log.Panicf("<bad Color type %v>", c.Type)
 	panic("unreachable")
 }
 
+// Equals reports whether two Color values are equal or not.
+//
+// Note that colors with different types are considered as non-equal.
 func (c Color) Equals(other Color) bool {
 	if c.Type != other.Type {
 		return false
@@ -241,23 +254,23 @@ func (c Color) Equals(other Color) bool {
 }
 func (c Color) String() string {
 	switch c.Type {
-	case TypeRgb:
+	case Rgb:
 		return fmt.Sprintf("#%02x%02x%02x%02x", c.Components[0].ToInt(), c.Components[1].ToInt(), c.Components[2].ToInt(), c.Components[3].ToInt())
-	case TypeCurrentColor:
+	case CurrentColor:
 		return "currentColor"
-	case TypeHsl:
+	case Hsl:
 		return fmt.Sprintf("hsl(%v, %v, %v, %v)", c.Components[0], c.Components[1], c.Components[2], c.Components[3]) // STUB
-	case TypeHwb:
+	case Hwb:
 		return fmt.Sprintf("hwb(%v, %v, %v, %v)", c.Components[0], c.Components[1], c.Components[2], c.Components[3]) // STUB
-	case TypeLab:
+	case Lab:
 		return fmt.Sprintf("lab(%v, %v, %v, %v)", c.Components[0], c.Components[1], c.Components[2], c.Components[3]) // STUB
-	case TypeLch:
+	case Lch:
 		return fmt.Sprintf("lch(%v, %v, %v, %v)", c.Components[0], c.Components[1], c.Components[2], c.Components[3]) // STUB
-	case TypeOklab:
+	case Oklab:
 		return fmt.Sprintf("oklab(%v, %v, %v, %v)", c.Components[0], c.Components[1], c.Components[2], c.Components[3]) // STUB
-	case TypeOklch:
+	case Oklch:
 		return fmt.Sprintf("oklch(%v, %v, %v, %v)", c.Components[0], c.Components[1], c.Components[2], c.Components[3]) // STUB
-	case TypeColorFn:
+	case ColorFn:
 		return "color(...)" // STUB
 	}
 	return fmt.Sprintf("<bad Color type %v>", c.Type)

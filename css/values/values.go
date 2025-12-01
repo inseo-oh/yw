@@ -47,7 +47,7 @@ const (
 	// https://www.w3.org/TR/css-values-3/#relative-lengths
 	//==========================================================================
 
-	Em = LengthUnit(iota)
+	Em LengthUnit = iota
 	Ex
 	Ch
 	Rem

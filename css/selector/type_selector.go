@@ -6,7 +6,9 @@ import (
 	"github.com/inseo-oh/yw/dom"
 )
 
-// https://www.w3.org/TR/2022/WD-selectors-4-20221111/#ref-for-typedef-type-selector
+// TypeSelector represents CSS type selector (e.g. div)
+//
+// Spec: https://www.w3.org/TR/2022/WD-selectors-4-20221111/#ref-for-typedef-type-selector
 type TypeSelector struct {
 	TypeName WqName
 }

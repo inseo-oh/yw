@@ -8,7 +8,9 @@ import (
 	"github.com/inseo-oh/yw/dom"
 )
 
-// https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-class-selector
+// ClassSelector represents CSS class selector (e.g. .foo)
+//
+// Spec: https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-class-selector
 type ClassSelector struct{ Class string }
 
 func (sel ClassSelector) String() string { return fmt.Sprintf(".%s", sel.Class) }

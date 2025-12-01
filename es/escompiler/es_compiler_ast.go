@@ -89,7 +89,7 @@ type astUnaryOpNode struct {
 type astUnaryOpType uint8
 
 const (
-	astOpTypePlus = astUnaryOpType(iota)
+	astOpTypePlus astUnaryOpType = iota
 	astOpTypeNeg
 	astOpTypeBNot
 	astOpTypeLNot
@@ -125,7 +125,7 @@ type astBinaryOpNode struct {
 type astBinaryOpType uint8
 
 const (
-	astOpTypeExponent = astBinaryOpType(iota)
+	astOpTypeExponent astBinaryOpType = iota
 	astOpTypeMultiply
 	astOpTypeDivide
 	astOpTypeModulo

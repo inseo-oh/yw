@@ -252,14 +252,14 @@ func (p *Parser) parseErrorEncountered(tk htmlToken) {
 type parserControl uint8
 
 const (
-	parserControlIgnoreToken = parserControl(iota)
+	parserControlIgnoreToken parserControl = iota
 	parserControlContinue
 )
 
 type insertionMode uint8
 
 const (
-	initialInsertionMode = insertionMode(iota)
+	initialInsertionMode insertionMode = iota
 	beforeHtmlInsertionMode
 	beforeHeadInsertionMode
 	inHeadInsertionMode
@@ -401,7 +401,7 @@ type insertionLocation struct {
 type insertionLocationType uint8
 
 const (
-	insertionLocationAfterLastChild = insertionLocationType(iota)
+	insertionLocationAfterLastChild insertionLocationType = iota
 )
 
 // https://html.spec.whatwg.org/multipage/parsing.html#appropriate-place-for-inserting-a-node

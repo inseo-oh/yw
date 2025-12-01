@@ -34,13 +34,13 @@ func (ts *tokenStream) parseLineStyle() (backgrounds.LineStyle, bool) {
 // https://www.w3.org/TR/css-backgrounds-3/#typedef-line-width
 func (ts *tokenStream) parseLineWidth() (values.Length, bool) {
 	if ts.consumeIdentTokenWith("thin") {
-		return backgrounds.LineWidthThin(), true
+		return backgrounds.LineWidthThin, true
 	}
 	if ts.consumeIdentTokenWith("medium") {
-		return backgrounds.LineWidthMedium(), true
+		return backgrounds.LineWidthMedium, true
 	}
 	if ts.consumeIdentTokenWith("thick") {
-		return backgrounds.LineWidthThick(), true
+		return backgrounds.LineWidthThick, true
 	}
 	if len, _ := ts.parseLength(true); len != nil {
 		return *len, true

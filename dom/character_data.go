@@ -3,7 +3,7 @@ package dom
 type CharacterDataType uint8
 
 const (
-	TextCharacterData = CharacterDataType(iota)
+	TextCharacterData CharacterDataType = iota
 	CommentCharacterData
 )
 

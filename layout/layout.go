@@ -13,7 +13,7 @@ import (
 type writeMode uint8
 
 const (
-	writeModeHorizontal = writeMode(iota)
+	writeModeHorizontal writeMode = iota
 	writeModeVertical
 )
 

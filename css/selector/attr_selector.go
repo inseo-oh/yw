@@ -6,25 +6,30 @@ import (
 	"github.com/inseo-oh/yw/dom"
 )
 
-// https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-attribute-selector
+// AttrSelector represents CSS attribute selector (e.g. [attr=value])
+//
+// Spec: https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-attribute-selector
 type AttrSelector struct {
-	AttrName WqName
-	Matcher  Matcher
+	AttrName WqName  // Name of attribute
+	Matcher  Matcher // How attribute's value should be matched
+
 	// Below are valid only if the matcher isn't 'none'
-	AttrValue       string
-	IsCaseSensitive bool
+
+	AttrValue       string // Value of attribute
+	IsCaseSensitive bool   // Is case-sensitive?
 }
 
+// Matcher represents how attribute's value should be matched in [AttrSelector]
 type Matcher uint8
 
 const (
-	NoMatcher       = Matcher(iota)
-	NormalMatcher   // =
-	TildeMatcher    // ~=
-	BarMatcher      // |=
-	CaretMatcher    // ^=
-	DollarMatcher   // $=
-	AsteriskMatcher // *=
+	NoMatcher       Matcher = iota // [attr] (Does not match values and only checks attribute's presence)
+	NormalMatcher                  // [attr=value]
+	TildeMatcher                   // [attr~=value]
+	BarMatcher                     // [attr|=value]
+	CaretMatcher                   // [attr^=value]
+	DollarMatcher                  // [attr$=value]
+	AsteriskMatcher                // [attr*=value]
 )
 
 func (sel AttrSelector) String() string {

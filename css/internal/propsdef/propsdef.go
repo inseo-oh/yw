@@ -1,3 +1,14 @@
+// Package propsdef contains definitions used by code generators that generates
+// CSS property code.
+//
+// # Two kinds of properties
+// There are two kinds of properties:
+//
+//   - Simple: Accepts single value of given type. See [SimpleProp].
+//   - Shorthand: Shorthand for set of Simple properties. See [ShorthandSidesProp]
+//     and [ShorthandAnyProp].
+//     Note that these properties also generate new Go types and parser
+//     function for the shorthand type.
 package propsdef
 
 import (
@@ -22,24 +33,34 @@ func camelCaseName(name string, leadingCharUpper bool) string {
 	return sb.String()
 }
 
+// CssType represents type information for corresponding CSS value type.
 type CssType struct {
 	TypeName        string // Go type name
 	ParseMethodName string // Parser method in csssyntax.tokenStream
 }
 
+// CssProp represents a CSS property. For most property, you probably want
+// [SimpleProp], which implements this interface.
 type CssProp interface {
+	// Returns name of the property
 	PropName() string
+
+	// Returns type of the property value
+	//
 	// outsidePropsPkg should be set if code that's generated is used outside of props package.
 	// This appends "props." to every shorthand types, which are defined inside the props package.
 	//
 	// outsidePropsPkg has no effect for non-shorthand types.
 	PropType(outsidePropsPkg bool) CssType
+	// Returns initial value (Go expression)
 	PropInitialValue(outsidePropsPkg bool) string
+	// Returns whether property is inherited when it's missing value.
 	IsInheritable() bool
+	// Returns whteher property is shorthand property.
 	IsShorthand() bool
 }
 
-// A CSS property
+// Simple CSS property that accepts a single value.
 type SimpleProp struct {
 	Name         string  // Name of the property
 	Type         CssType // Type of the property value
@@ -47,16 +68,25 @@ type SimpleProp struct {
 	Inheritable  bool    // Can inherit?
 }
 
-func (p SimpleProp) PropName() string                             { return p.Name }
-func (p SimpleProp) PropType(outsidePropsPkg bool) CssType        { return p.Type }
-func (p SimpleProp) PropInitialValue(outsidePropsPkg bool) string { return p.InitialValue }
-func (p SimpleProp) IsInheritable() bool                          { return p.Inheritable }
-func (p SimpleProp) IsShorthand() bool                            { return false }
+func (p SimpleProp) PropName() string { return p.Name }
 
-// Shorthand properties for top, right, bottom, left values.
-// These take 1~4 values of the same type, and assigned to top, right, bottom, left accordingly.
+func (p SimpleProp) PropType(outsidePropsPkg bool) CssType { return p.Type }
+
+func (p SimpleProp) PropInitialValue(outsidePropsPkg bool) string { return p.InitialValue }
+
+func (p SimpleProp) IsInheritable() bool { return p.Inheritable }
+
+func (p SimpleProp) IsShorthand() bool { return false }
+
+// ShorthandSidesProp represents shorthand property, accepting top, right, bottom, left values.
+// These properties can accept 1~4 values:
 //
-// EXCEPTION: When this is used inside shorthandAnyProp, it accepts single value that sets all four sides.
+//   - 1 value: <top-right-bottom-left> (Sets all four sides at once)
+//   - 2 value: <top-bottom> <right-left>
+//   - 3 value: <top> <right-left> <bottom>
+//   - 4 value: <top> <right> <bottom> <left>
+//
+// EXCEPTION: When this is used inside [ShorthandAnyProp], it only accepts single value.
 //
 // Examples: border-color, padding, margin
 type ShorthandSidesProp struct {
@@ -68,6 +98,7 @@ type ShorthandSidesProp struct {
 	Inheritable bool    // Can inherit?
 }
 
+// TypeName returns name that will be used to generate Go types for the shorthand type.
 func (p ShorthandSidesProp) TypeName(outsidePropsPkg bool) string {
 	prefix := ""
 	if outsidePropsPkg {
@@ -75,9 +106,12 @@ func (p ShorthandSidesProp) TypeName(outsidePropsPkg bool) string {
 	}
 	return fmt.Sprintf("%s%sShorthand", prefix, camelCaseName(p.Name, true))
 }
+
+// ParseMethodName returns name that will be used to generate parser function for the shorthand type.
 func (p ShorthandSidesProp) ParseMethodName() string {
 	return fmt.Sprintf("parse%s", camelCaseName(p.TypeName(false), true))
 }
+
 func (p ShorthandSidesProp) PropName() string { return p.Name }
 func (p ShorthandSidesProp) PropType(outsidePropsPkg bool) CssType {
 	return CssType{
@@ -98,8 +132,13 @@ func (p ShorthandSidesProp) PropInitialValue(outsidePropsPkg bool) string {
 func (p ShorthandSidesProp) IsInheritable() bool { return p.Inheritable }
 func (p ShorthandSidesProp) IsShorthand() bool   { return true }
 
-// Shorthand properties for multiple types of properties
-// These simply take any of accepted properties in any other, and fills with default values for absent ones.
+// ShorthandAnyProp represents shorthand property, accepting any of accepted
+// types, in any order. If given value is missing values for certain properties,
+// they are filled with default value for the property.
+//
+// Note that [ShorthandSidesProp] properties will only accept single value when
+// nested within this type of property. (border is an example of this)
+//
 // Examples: border, font
 type ShorthandAnyProp struct {
 	Name        string // Name of the property
@@ -107,6 +146,7 @@ type ShorthandAnyProp struct {
 	Inheritable bool // Can inherit?
 }
 
+// TypeName returns name that will be used to generate Go types for the shorthand type.
 func (p ShorthandAnyProp) TypeName(outsidePropsPkg bool) string {
 	prefix := ""
 	if outsidePropsPkg {
@@ -114,8 +154,9 @@ func (p ShorthandAnyProp) TypeName(outsidePropsPkg bool) string {
 	}
 	return fmt.Sprintf("%s%sShorthand", prefix, camelCaseName(p.Name, true))
 }
-func (p ShorthandAnyProp) ParseMethodName() string {
 
+// ParseMethodName returns name that will be used to generate parser function for the shorthand type.
+func (p ShorthandAnyProp) ParseMethodName() string {
 	return fmt.Sprintf("parse%s", camelCaseName(p.TypeName(false), true))
 }
 func (p ShorthandAnyProp) PropName() string { return p.Name }
@@ -141,6 +182,8 @@ func (p ShorthandAnyProp) PropInitialValue(outsidePropsPkg bool) string {
 func (p ShorthandAnyProp) IsInheritable() bool { return p.Inheritable }
 func (p ShorthandAnyProp) IsShorthand() bool   { return true }
 
+// Returns Go CamelCase identifier name for given CSS property's name.
+// For example, this turns "text-decoration-color" into TextDecorationColor.
 func GoIdentNameOfProp(prop CssProp) string {
 	s := prop.PropName()
 	if prop.IsShorthand() {

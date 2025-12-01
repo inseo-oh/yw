@@ -1,4 +1,6 @@
-// Implementation of the CSS Fonts Module Level 3 (https://www.w3.org/TR/css-fonts-3)
+// Package display provides types and values for CSS Fonts Module Level 3
+//
+// Spec: https://www.w3.org/TR/css-fonts-3
 package fonts
 
 import (
@@ -12,22 +14,25 @@ import (
 	"github.com/inseo-oh/yw/css/values"
 )
 
+// Represents single entry in "font-family" property.
+//
 // https://www.w3.org/TR/css-fonts-3/#propdef-font-family
 type Family struct {
-	Type FamilyType
-	Name string // Only valid if the type is NonGeneric
+	Type FamilyType // Font family type
+	Name string     // Only valid if the Type is NonGeneric
 }
 
+// FamilyType represents one of generic families, or NonGeneric, meaning Name should be used instead.
 type FamilyType uint8
 
 const (
 	// https://www.w3.org/TR/css-fonts-3/#generic-family-value
 
-	Serif     = FamilyType(iota) // font-family: serif
-	SansSerif                    // font-family: sans-serif
-	Cursive                      // font-family: cursive
-	Fantasy                      // font-family: fantasy
-	Monospace                    // font-family: monospace
+	Serif     FamilyType = iota // font-family: serif
+	SansSerif                   // font-family: sans-serif
+	Cursive                     // font-family: cursive
+	Fantasy                     // font-family: fantasy
+	Monospace                   // font-family: monospace
 
 	NonGeneric // font-family: <anything other than above>
 )
@@ -50,6 +55,7 @@ func (f Family) String() string {
 	return fmt.Sprintf("<bad Family type %d>", f.Type)
 }
 
+// Represents value of "font-family" property.
 type FamilyList struct {
 	Families []Family
 }
@@ -65,31 +71,36 @@ func (f FamilyList) String() string {
 	return sb.String()
 }
 
+// Represents value of "font-weight" property.
+//
 // https://www.w3.org/TR/css-fonts-3/#propdef-font-weight
 type Weight uint16
 
+// Some predefined font-weight values
 const (
-	NormalWeight = Weight(400) // font-weight: normal
-	Bold         = Weight(700) // font-weight: bold
+	NormalWeight Weight = 400 // font-weight: normal
+	Bold         Weight = 700 // font-weight: bold
 )
 
 func (w Weight) String() string {
 	return fmt.Sprintf("%d", w)
 }
 
-// https://www.w3.org/TR/css-fonts-3/#propdef-font-stretch
+// Represents value of "font-stretch" property.
+//
+// Spec: https://www.w3.org/TR/css-fonts-3/#propdef-font-stretch
 type Stretch uint8
 
 const (
-	UltraCondensed = Stretch(iota) // font-stretch: ultra-condensed
-	ExtraCondensed                 // font-stretch: extra-condensed
-	Condensed                      // font-stretch: condensed
-	SemiCondensed                  // font-stretch: semi-condensed
-	NormalStretch                  // font-stretch: normal
-	SemiExpanded                   // font-stretch: semi-expanded
-	Expanded                       // font-stretch: expanded
-	ExtraExpanded                  // font-stretch: extra-expanded
-	UltraExpanded                  // font-stretch: ultra-expanded
+	UltraCondensed Stretch = iota // font-stretch: ultra-condensed
+	ExtraCondensed                // font-stretch: extra-condensed
+	Condensed                     // font-stretch: condensed
+	SemiCondensed                 // font-stretch: semi-condensed
+	NormalStretch                 // font-stretch: normal
+	SemiExpanded                  // font-stretch: semi-expanded
+	Expanded                      // font-stretch: expanded
+	ExtraExpanded                 // font-stretch: extra-expanded
+	UltraExpanded                 // font-stretch: ultra-expanded
 )
 
 func (s Stretch) String() string {
@@ -116,13 +127,15 @@ func (s Stretch) String() string {
 	return fmt.Sprintf("<bad Stretch %d>", s)
 }
 
-// https://www.w3.org/TR/css-fonts-3/#font-style-prop
+// Represents value of "font-style" property.
+//
+// Spec: https://www.w3.org/TR/css-fonts-3/#font-style-prop
 type Style uint8
 
 const (
-	NormalStyle = Style(iota) // font-style: normal
-	Italic                    // font-style: italic
-	Oblique                   // font-style: oblique
+	NormalStyle Style = iota // font-style: normal
+	Italic                   // font-style: italic
+	Oblique                  // font-style: oblique
 )
 
 func (s Style) String() string {
@@ -137,8 +150,13 @@ func (s Style) String() string {
 	return fmt.Sprintf("<bad Style %d>", s)
 }
 
-// https://www.w3.org/TR/css-fonts-3/#propdef-font-size
+// Represents value of "font-size" property.
+//
+// Spec: https://www.w3.org/TR/css-fonts-3/#propdef-font-size
 type Size interface {
+	// CalculateRealFontSize calculates real size.
+	//
+	// TODO(ois): Can't we just return floating point value representing pixel size?
 	CalculateRealFontSize(parentFontSize css.Num) values.Length
 	String() string
 }
@@ -147,17 +165,20 @@ const (
 	PreferredFontSize = 14 // XXX: Let user choose this size!
 )
 
-// https://www.w3.org/TR/css-fonts-3/#absolute-size-value
+// AbsoluteSize represents <absolute-size> Size value.
+// Exact pixel sizes are determined based on [PreferredFontSize].
+//
+// Spec: https://www.w3.org/TR/css-fonts-3/#absolute-size-value
 type AbsoluteSize uint8
 
 const (
-	XXSmall    = AbsoluteSize(iota) // font-size: xx-small
-	XSmall                          // font-size: x-small
-	Small                           // font-size: small
-	MediumSize                      // font-size: medium
-	Large                           // font-size: large
-	XLarge                          // font-size: x-large
-	XXLarge                         // font-size: xx-large
+	XXSmall    AbsoluteSize = iota // font-size: xx-small
+	XSmall                         // font-size: x-small
+	Small                          // font-size: small
+	MediumSize                     // font-size: medium
+	Large                          // font-size: large
+	XLarge                         // font-size: x-large
+	XXLarge                        // font-size: xx-large
 )
 
 func (s AbsoluteSize) String() string {
@@ -209,12 +230,16 @@ func pxToAbsoluteSize(size css.Num) AbsoluteSize {
 	return resSize
 }
 
+// RelativeSize represents <relative-size> Size value.
+// Font size is converted to [AbsoluteSize] first, and then returns
+// next larger/smaller size for it.
+//
 // https://www.w3.org/TR/css-fonts-3/#relative-size-value
 type RelativeSize uint8
 
 const (
-	Larger  = RelativeSize(iota) // font-size: larger
-	Smaller                      // font-size: smaller
+	Larger  RelativeSize = iota // font-size: larger
+	Smaller                     // font-size: smaller
 )
 
 func (s RelativeSize) String() string {
@@ -276,6 +301,7 @@ func (s RelativeSize) CalculateRealFontSize(parentFontSize css.Num) values.Lengt
 	return values.LengthFromPx(parentFontSize)
 }
 
+// LengthFontSize represents font size specified directly using [values.LengthResolvable].
 type LengthFontSize struct{ values.LengthResolvable }
 
 func (l LengthFontSize) CalculateRealFontSize(parentFontSize css.Num) values.Length {

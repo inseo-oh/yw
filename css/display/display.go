@@ -1,17 +1,21 @@
-// Implementation of the CSS Display Module Level 3 (https://www.w3.org/TR/css-display-3/)
+// Package display provides types and values for CSS Display Module Level 3
+//
+// Spec: https://www.w3.org/TR/css-display-3/
 package display
 
 import (
 	"fmt"
 )
 
-// https://www.w3.org/TR/css-display-3/#outer-role
+// OuterMode represents outer display mode
+//
+// Spec: https://www.w3.org/TR/css-display-3/#outer-role
 type OuterMode uint8
 
 const (
-	Block  = OuterMode(iota) // display: block
-	Inline                   // display: inline
-	RunIn                    // display: run-in
+	Block  OuterMode = iota // display: block
+	Inline                  // display: inline
+	RunIn                   // display: run-in
 )
 
 func (m OuterMode) String() string {
@@ -26,16 +30,18 @@ func (m OuterMode) String() string {
 	return fmt.Sprintf("<bad OuterMode %d>", m)
 }
 
-// https://www.w3.org/TR/css-display-3/#inner-model
+// InnerMode represents inner display mode
+//
+// Spec: https://www.w3.org/TR/css-display-3/#inner-model
 type InnerMode uint8
 
 const (
-	Flow     = InnerMode(iota) // display: flow
-	FlowRoot                   // display: flow-root
-	Table                      // display: table
-	Flex                       // display: flex
-	Grid                       // display: grid
-	Ruby                       // display: ruby
+	Flow     InnerMode = iota // display: flow
+	FlowRoot                  // display: flow-root
+	Table                     // display: table
+	Flex                      // display: flex
+	Grid                      // display: grid
+	Ruby                      // display: ruby
 )
 
 func (m InnerMode) String() string {
@@ -56,12 +62,15 @@ func (m InnerMode) String() string {
 	return fmt.Sprintf("<bad InnerMode %d>", m)
 }
 
-// https://www.w3.org/TR/css-display-3/#propdef-display
+// Display represents CSS "display" property value, which determines
+// box layout mode.
+//
+// Spec: https://www.w3.org/TR/css-display-3/#propdef-display
 type Display struct {
-	Mode Mode
+	Mode Mode // Display mode
 
-	OuterMode OuterMode // Only valid when mode is OuterInnerMode
-	InnerMode InnerMode // Only valid when mode is OuterInnerMode
+	OuterMode OuterMode // Outer display mode when Mode is OuterInnerMode
+	InnerMode InnerMode // Inner display mode when Mode is OuterInnerMode
 }
 
 func (d Display) String() string {
@@ -100,40 +109,47 @@ func (d Display) String() string {
 	return fmt.Sprintf("bad Display %d", d)
 }
 
+// Mode represents display mode
 type Mode uint8
 
 const (
-	// Display mode determined by `OuterMode` and `InnerMode` field.
-	OuterInnerMode = Mode(iota)
+	// Display mode determined by OuterMode and InnerMode field.
+	OuterInnerMode Mode = iota
 
 	// https://www.w3.org/TR/css-display-3/#layout-specific-display
 
-	TableRowGroup     // table-row-group
-	TableHeaderGroup  // table-header-group
-	TableFooterGroup  // table-footer-group
-	TableRow          // table-row
-	TableCell         // table-cell
-	TableColumnGroup  // table-column-group
-	TableColumn       // table-column
-	TableCaption      // table-caption
-	RubyBase          // ruby-base
-	RubyText          // ruby-text
-	RubyBaseContainer // ruby-base-container
-	RubyTextContainer // ruby-text-container
+	TableRowGroup     // display: table-row-group
+	TableHeaderGroup  // display: table-header-group
+	TableFooterGroup  // display: table-footer-group
+	TableRow          // display: table-row
+	TableCell         // display: table-cell
+	TableColumnGroup  // display: table-column-group
+	TableColumn       // display: table-column
+	TableCaption      // display: table-caption
+	RubyBase          // display: ruby-base
+	RubyText          // display: ruby-text
+	RubyBaseContainer // display: ruby-base-container
+	RubyTextContainer // display: ruby-text-container
 
 	// https://www.w3.org/TR/css-display-3/#box-generation
 
-	Contents
-	DisplayNone
+	Contents    // display: contents
+	DisplayNone // display: none
 )
 
-// https://www.w3.org/TR/css-display-3/#propdef-visibility
+// Display represents CSS "visibility" property value, which determines
+// whether the element is visible.
+//
+// Note that unlike "display: none", "visibility: hidden" elements are
+// still included in the box layout.
+//
+// Spec: https://www.w3.org/TR/css-display-3/#propdef-visibility
 type Visibility uint8
 
 const (
-	Visible  = Visibility(iota) // visibility: visible
-	Hidden                      // visibility: hidden
-	Collapse                    // visibility: collapse
+	Visible  Visibility = iota // visibility: visible
+	Hidden                     // visibility: hidden
+	Collapse                   // visibility: collapse
 )
 
 func (m Visibility) String() string {

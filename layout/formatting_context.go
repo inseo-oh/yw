@@ -14,7 +14,7 @@ type formattingContextCommon struct {
 type FormattingContextType uint8
 
 const (
-	formattingContextTypeBlock = FormattingContextType(iota)
+	formattingContextTypeBlock FormattingContextType = iota
 	formattingContextTypeInline
 )
 

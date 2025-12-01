@@ -12,7 +12,7 @@ type Value struct {
 type ValueType uint8
 
 const (
-	ValueTypeNull = ValueType(iota)
+	ValueTypeNull ValueType = iota
 	ValueTypeUndefined
 	ValueTypeBoolean
 	ValueTypeNumber

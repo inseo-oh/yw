@@ -12,46 +12,46 @@ import (
 type Type uint8
 
 const (
-	Utf8         = Type(iota) // https://encoding.spec.whatwg.org/#utf-8
-	Ibm866                    // https://encoding.spec.whatwg.org/#ibm866
-	Iso8859_2                 // https://encoding.spec.whatwg.org/#iso-8859-2
-	Iso8859_3                 // https://encoding.spec.whatwg.org/#iso-8859-3
-	Iso8859_4                 // https://encoding.spec.whatwg.org/#iso-8859-4
-	Iso8859_5                 // https://encoding.spec.whatwg.org/#iso-8859-5
-	Iso8859_6                 // https://encoding.spec.whatwg.org/#iso-8859-6
-	Iso8859_7                 // https://encoding.spec.whatwg.org/#iso-8859-7
-	Iso8859_8                 // https://encoding.spec.whatwg.org/#iso-8859-8
-	Iso8859_8I                // https://encoding.spec.whatwg.org/#iso-8859-8-i
-	Iso8859_10                // https://encoding.spec.whatwg.org/#iso-8859-10
-	Iso8859_13                // https://encoding.spec.whatwg.org/#iso-8859-13
-	Iso8859_14                // https://encoding.spec.whatwg.org/#iso-8859-14
-	Iso8859_15                // https://encoding.spec.whatwg.org/#iso-8859-15
-	Iso8859_16                // https://encoding.spec.whatwg.org/#iso-8859-16
-	Koi8R                     // https://encoding.spec.whatwg.org/#koi8-r
-	Koi8U                     // https://encoding.spec.whatwg.org/#koi8-u
-	Macintosh                 // https://encoding.spec.whatwg.org/#macintosh
-	Windows874                // https://encoding.spec.whatwg.org/#windows-874
-	Windows1250               // https://encoding.spec.whatwg.org/#windows-1250
-	Windows1251               // https://encoding.spec.whatwg.org/#windows-1251
-	Windows1252               // https://encoding.spec.whatwg.org/#windows-1252
-	Windows1253               // https://encoding.spec.whatwg.org/#windows-1253
-	Windows1254               // https://encoding.spec.whatwg.org/#windows-1254
-	Windows1255               // https://encoding.spec.whatwg.org/#windows-1255
-	Windows1256               // https://encoding.spec.whatwg.org/#windows-1256
-	Windows1257               // https://encoding.spec.whatwg.org/#windows-1257
-	Windows1258               // https://encoding.spec.whatwg.org/#windows-1258
-	XMacCyrillic              // https://encoding.spec.whatwg.org/#x-mac-cyrillic
-	Gbk                       // https://encoding.spec.whatwg.org/#gbk
-	Gb18030                   // https://encoding.spec.whatwg.org/#gb18030
-	Big5                      // https://encoding.spec.whatwg.org/#big5
-	EucJp                     // https://encoding.spec.whatwg.org/#euc-jp
-	Iso2022Jp                 // https://encoding.spec.whatwg.org/#iso-2022-jp
-	ShiftJis                  // https://encoding.spec.whatwg.org/#shift_jis
-	EucKr                     // https://encoding.spec.whatwg.org/#euc-kr
-	Replacement               // https://encoding.spec.whatwg.org/#replacement
-	Utf16Be                   // https://encoding.spec.whatwg.org/#utf-16be
-	Utf16Le                   // https://encoding.spec.whatwg.org/#utf-16le
-	XUserDefined              // https://encoding.spec.whatwg.org/#x-user-defined
+	Utf8         Type = iota // https://encoding.spec.whatwg.org/#utf-8
+	Ibm866                   // https://encoding.spec.whatwg.org/#ibm866
+	Iso8859_2                // https://encoding.spec.whatwg.org/#iso-8859-2
+	Iso8859_3                // https://encoding.spec.whatwg.org/#iso-8859-3
+	Iso8859_4                // https://encoding.spec.whatwg.org/#iso-8859-4
+	Iso8859_5                // https://encoding.spec.whatwg.org/#iso-8859-5
+	Iso8859_6                // https://encoding.spec.whatwg.org/#iso-8859-6
+	Iso8859_7                // https://encoding.spec.whatwg.org/#iso-8859-7
+	Iso8859_8                // https://encoding.spec.whatwg.org/#iso-8859-8
+	Iso8859_8I               // https://encoding.spec.whatwg.org/#iso-8859-8-i
+	Iso8859_10               // https://encoding.spec.whatwg.org/#iso-8859-10
+	Iso8859_13               // https://encoding.spec.whatwg.org/#iso-8859-13
+	Iso8859_14               // https://encoding.spec.whatwg.org/#iso-8859-14
+	Iso8859_15               // https://encoding.spec.whatwg.org/#iso-8859-15
+	Iso8859_16               // https://encoding.spec.whatwg.org/#iso-8859-16
+	Koi8R                    // https://encoding.spec.whatwg.org/#koi8-r
+	Koi8U                    // https://encoding.spec.whatwg.org/#koi8-u
+	Macintosh                // https://encoding.spec.whatwg.org/#macintosh
+	Windows874               // https://encoding.spec.whatwg.org/#windows-874
+	Windows1250              // https://encoding.spec.whatwg.org/#windows-1250
+	Windows1251              // https://encoding.spec.whatwg.org/#windows-1251
+	Windows1252              // https://encoding.spec.whatwg.org/#windows-1252
+	Windows1253              // https://encoding.spec.whatwg.org/#windows-1253
+	Windows1254              // https://encoding.spec.whatwg.org/#windows-1254
+	Windows1255              // https://encoding.spec.whatwg.org/#windows-1255
+	Windows1256              // https://encoding.spec.whatwg.org/#windows-1256
+	Windows1257              // https://encoding.spec.whatwg.org/#windows-1257
+	Windows1258              // https://encoding.spec.whatwg.org/#windows-1258
+	XMacCyrillic             // https://encoding.spec.whatwg.org/#x-mac-cyrillic
+	Gbk                      // https://encoding.spec.whatwg.org/#gbk
+	Gb18030                  // https://encoding.spec.whatwg.org/#gb18030
+	Big5                     // https://encoding.spec.whatwg.org/#big5
+	EucJp                    // https://encoding.spec.whatwg.org/#euc-jp
+	Iso2022Jp                // https://encoding.spec.whatwg.org/#iso-2022-jp
+	ShiftJis                 // https://encoding.spec.whatwg.org/#shift_jis
+	EucKr                    // https://encoding.spec.whatwg.org/#euc-kr
+	Replacement              // https://encoding.spec.whatwg.org/#replacement
+	Utf16Be                  // https://encoding.spec.whatwg.org/#utf-16be
+	Utf16Le                  // https://encoding.spec.whatwg.org/#utf-16le
+	XUserDefined             // https://encoding.spec.whatwg.org/#x-user-defined
 )
 
 var encodingLabelMap = map[string]Type{
@@ -375,7 +375,7 @@ func Decode(input *IoQueue, fallbackEncodingType Type, output *IoQueue) {
 type errorMode uint8
 
 const (
-	errorModeReplacement = errorMode(iota)
+	errorModeReplacement errorMode = iota
 	errorModeHtml
 	errorModeFatal
 )

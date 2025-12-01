@@ -190,13 +190,11 @@ func (elem htmlLinkElementImpl) processLinkTypeStylesheet() (
 		if success {
 			urlStr := response.Request.URL.String()
 			// S4-1.
-			text := csssyntax.DecodeBytes(responseBytes)
-			tokens, err := csssyntax.Tokenize(text)
+			stylesheet, err := csssyntax.ParseStylesheet(responseBytes, &urlStr)
 			if err != nil {
 				log.Printf("<link %s>: failed to tokenize stylesheet: %v", urlStr, err)
 				return
 			}
-			stylesheet := csssyntax.ParseStylesheet(tokens, &urlStr)
 			stylesheet.Type = "text/css"
 			stylesheet.OwnerNode = elem
 			stylesheet.Location = &urlStr

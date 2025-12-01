@@ -1,4 +1,3 @@
-// Implementation of the CSS Object Model (https://www.w3.org/TR/2021/WD-cssom-1-20210826/)
 package cssom
 
 import (
@@ -11,6 +10,7 @@ import (
 	"github.com/inseo-oh/yw/dom"
 )
 
+// Stylesheet represents a CSS stylesheet
 type Stylesheet struct {
 	Type                     string       // https://www.w3.org/TR/2021/WD-cssom-1-20210826/#concept-css-style-sheet-type
 	Location                 *string      // https://www.w3.org/TR/2021/WD-cssom-1-20210826/#concept-css-style-sheet-location
@@ -29,6 +29,7 @@ type Stylesheet struct {
 	StylesheetBaseURL        *url.URL     // https://www.w3.org/TR/2021/WD-cssom-1-20210826/#concept-css-style-sheet-stylesheet-base-url
 }
 
+// Dump prints CSS stylesheet to the standard logger.
 func (sheet Stylesheet) Dump() {
 	for i, rule := range sheet.StyleRules {
 		selectorListStr := strings.Builder{}
@@ -60,7 +61,9 @@ var (
 	lastStylesheetSetName      *string = nil // https://www.w3.org/TR/2021/WD-cssom-1-20210826/#last-css-style-sheet-set-name
 )
 
-// https://www.w3.org/TR/2021/WD-cssom-1-20210826/#css-style-sheet-set
+// Set of stylesheets with the same title
+//
+// Spec: https://www.w3.org/TR/2021/WD-cssom-1-20210826/#css-style-sheet-set
 type StylesheetSet []*Stylesheet
 
 // https://www.w3.org/TR/2021/WD-cssom-1-20210826/#css-style-sheet-set-name
@@ -143,7 +146,9 @@ func enableStylesheetSet(domRoot dom.Node, name string) {
 	}
 }
 
-// https://www.w3.org/TR/2021/WD-cssom-1-20210826/#add-a-css-style-sheet
+// AddStylesheet adds the sheet to sheet's OwnerNode.
+//
+// Spec: https://www.w3.org/TR/2021/WD-cssom-1-20210826/#add-a-css-style-sheet
 func AddStylesheet(sheet *Stylesheet) {
 	domRoot := dom.Root(sheet.OwnerNode)
 	_ = domRoot
@@ -169,7 +174,11 @@ func AddStylesheet(sheet *Stylesheet) {
 	sheet.DisabledFlag = true
 }
 
-// https://www.w3.org/TR/2021/WD-cssom-1-20210826/#remove-a-css-style-sheet
+// RemoveStylesheet removes the sheet from sheet's OwnerNode.
+//
+// Spec: https://www.w3.org/TR/2021/WD-cssom-1-20210826/#remove-a-css-style-sheet
+//
+// BUG(ois): RemoveStylesheet will cause panic if sheet is not actually part of the OwnerNode.
 func RemoveStylesheet(sheet *Stylesheet) {
 	domRoot := dom.Root(sheet.OwnerNode)
 
@@ -181,8 +190,11 @@ func RemoveStylesheet(sheet *Stylesheet) {
 	sheet.OwnerRule = nil
 }
 
-// https://drafts.csswg.org/cssom/#associated-css-style-sheet
-// This is part of Editor's Draft, but HTML spec needs it and it's easy to implement :D
+// AssociatedStylesheet returns stylesheets associated with given element.
+//
+// Spec: https://drafts.csswg.org/cssom/#associated-css-style-sheet
+//
+// (This is part of Editor's Draft, but HTML spec needs it and it's easy to implement)
 func AssociatedStylesheet(node dom.Element) *Stylesheet {
 	domRoot := dom.Root(node)
 

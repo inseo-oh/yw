@@ -28,20 +28,18 @@ func (b *Browser) Run(urlStr string, plat platform.Platform, viewportImg *image.
 
 	// Load the default CSS ----------------------------------------------------
 	log.Println("Loading default CSS")
-	bytes, err := os.ReadFile("res/default.css")
+	sheetBytes, err := os.ReadFile("res/default.css")
 	if err != nil {
 		log.Fatal(err)
-	}
-	tokens, err := csssyntax.Tokenize(csssyntax.DecodeBytes(bytes))
-	if err != nil {
-		log.Printf("<style>: failed to tokenize stylesheet: %v", err)
-		return
 	}
 	// TODO: Can't we pass dom.Document instead?
 	// Also, should <html> own the default stylesheet?
 	initDefaultCss := func(htm elements.HTMLElement) cssom.Stylesheet {
 		log.Println("Parsing default CSS")
-		stylesheet := csssyntax.ParseStylesheet(tokens, nil)
+		stylesheet, err := csssyntax.ParseStylesheet(sheetBytes, nil)
+		if err != nil {
+			log.Panicf("failed to parse UA stylesheet: %v", err)
+		}
 		stylesheet.Type = "text/css"
 		stylesheet.OwnerNode = htm
 		// TODO: Set stylesheet.media once we implement that
@@ -69,12 +67,12 @@ func (b *Browser) Run(urlStr string, plat platform.Platform, viewportImg *image.
 	if err != nil {
 		log.Fatal(err)
 	}
-	bytes, err = io.ReadAll(resp.Body)
+	sheetBytes, err = io.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
 	// Parse the HTML ----------------------------------------------------------
-	html := string(bytes)
+	html := string(sheetBytes)
 	par := htmlparser.NewParser(html)
 	par.Document = dom.NewDocument()
 	par.Document.SetBaseURL(*urlObj)

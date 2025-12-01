@@ -32,20 +32,20 @@ var (
 	// https://www.w3.org/TR/css-backgrounds-3/
 	//==========================================================================
 	// https://www.w3.org/TR/css-backgrounds-3/#border-color
-	propBorderTopColor    = SimpleProp{"border-top-color", typeColor, "csscolor.NewCurrentColor()", false}
-	propBorderRightColor  = SimpleProp{"border-right-color", typeColor, "csscolor.NewCurrentColor()", false}
-	propBorderBottomColor = SimpleProp{"border-bottom-color", typeColor, "csscolor.NewCurrentColor()", false}
-	propBorderLeftColor   = SimpleProp{"border-left-color", typeColor, "csscolor.NewCurrentColor()", false}
+	propBorderTopColor    = SimpleProp{"border-top-color", typeColor, "csscolor.Color{Type: csscolor.CurrentColor}", false}
+	propBorderRightColor  = SimpleProp{"border-right-color", typeColor, "csscolor.Color{Type: csscolor.CurrentColor}", false}
+	propBorderBottomColor = SimpleProp{"border-bottom-color", typeColor, "csscolor.Color{Type: csscolor.CurrentColor}", false}
+	propBorderLeftColor   = SimpleProp{"border-left-color", typeColor, "csscolor.Color{Type: csscolor.CurrentColor}", false}
 	// https://www.w3.org/TR/css-backgrounds-3/#border-style
 	propBorderTopStyle    = SimpleProp{"border-top-style", typeLineStyle, "backgrounds.NoLine", false}
 	propBorderRightStyle  = SimpleProp{"border-right-style", typeLineStyle, "backgrounds.NoLine", false}
 	propBorderBottomStyle = SimpleProp{"border-bottom-style", typeLineStyle, "backgrounds.NoLine", false}
 	propBorderLeftStyle   = SimpleProp{"border-left-style", typeLineStyle, "backgrounds.NoLine", false}
 	// https://www.w3.org/TR/css-backgrounds-3/#border-width
-	propBorderTopWidth    = SimpleProp{"border-top-width", typeLineWidth, "backgrounds.LineWidthMedium()", false}
-	propBorderRightWidth  = SimpleProp{"border-right-width", typeLineWidth, "backgrounds.LineWidthMedium()", false}
-	propBorderBottomWidth = SimpleProp{"border-bottom-width", typeLineWidth, "backgrounds.LineWidthMedium()", false}
-	propBorderLeftWidth   = SimpleProp{"border-left-width", typeLineWidth, "backgrounds.LineWidthMedium()", false}
+	propBorderTopWidth    = SimpleProp{"border-top-width", typeLineWidth, "backgrounds.LineWidthMedium", false}
+	propBorderRightWidth  = SimpleProp{"border-right-width", typeLineWidth, "backgrounds.LineWidthMedium", false}
+	propBorderBottomWidth = SimpleProp{"border-bottom-width", typeLineWidth, "backgrounds.LineWidthMedium", false}
+	propBorderLeftWidth   = SimpleProp{"border-left-width", typeLineWidth, "backgrounds.LineWidthMedium", false}
 	// https://www.w3.org/TR/css-backgrounds-3/#border-shorthands
 	propBorderColor = ShorthandSidesProp{"border-color", propBorderTopColor, propBorderRightColor, propBorderBottomColor, propBorderLeftColor, false}
 	propBorderStyle = ShorthandSidesProp{"border-style", propBorderTopStyle, propBorderRightStyle, propBorderBottomStyle, propBorderLeftStyle, false}
@@ -84,14 +84,14 @@ var (
 	// https://www.w3.org/TR/css-text-decor-3/#text-decoration-style-property
 	propTextDecorationStyle = SimpleProp{"text-decoration-style", typeTextDecorationStyle, "textdecor.Solid", false}
 	// https://www.w3.org/TR/css-text-decor-3/#text-decoration-color-property
-	propTextDecorationColor = SimpleProp{"text-decoration-color", typeColor, "csscolor.NewCurrentColor()", false}
+	propTextDecorationColor = SimpleProp{"text-decoration-color", typeColor, "csscolor.Color{Type: csscolor.CurrentColor}", false}
 )
 var Props = []CssProp{
 	//==========================================================================
 	// https://www.w3.org/TR/css-color-4/
 	//==========================================================================
 	// https://www.w3.org/TR/css-color-4/#the-color-property
-	SimpleProp{"color", typeColor, "csscolor.CanvasText()", true},
+	SimpleProp{"color", typeColor, "csscolor.CanvasText", true},
 	//==========================================================================
 	// https://www.w3.org/TR/2021/WD-css-sizing-3-20211217/
 	//==========================================================================
@@ -115,7 +115,7 @@ var Props = []CssProp{
 	// https://www.w3.org/TR/css-backgrounds-3/
 	//==========================================================================
 	// https://www.w3.org/TR/css-backgrounds-3/#background-color
-	SimpleProp{"background-color", typeColor, "csscolor.Transparent()", false},
+	SimpleProp{"background-color", typeColor, "csscolor.Transparent", false},
 	// https://www.w3.org/TR/css-backgrounds-3/#border-color
 	propBorderTopColor, propBorderRightColor, propBorderBottomColor, propBorderLeftColor, propBorderColor,
 	// https://www.w3.org/TR/css-backgrounds-3/#border-style

@@ -17,12 +17,12 @@ type Size struct {
 type SizeType uint8
 
 const (
-	NoneSize   = SizeType(iota) // none
-	Auto                        // auto
-	MinContent                  // min-content
-	MaxContent                  // max-content
-	FitContent                  // fit-content
-	ManualSize                  // Manually specified size
+	NoneSize   SizeType = iota // none
+	Auto                       // auto
+	MinContent                 // min-content
+	MaxContent                 // max-content
+	FitContent                 // fit-content
+	ManualSize                 // Manually specified size
 )
 
 func (s Size) String() string {

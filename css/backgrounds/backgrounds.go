@@ -1,4 +1,6 @@
-// Implementation of the CSS Backgrounds and Borders Module Level 3 (https://www.w3.org/TR/css-backgrounds-3/)
+// Package backgrounds provide types and values for CSS Backgrounds and Borders Module Level 3
+//
+// Releavnt spec: https://www.w3.org/TR/css-backgrounds-3/
 package backgrounds
 
 import (
@@ -8,22 +10,25 @@ import (
 	"github.com/inseo-oh/yw/css/values"
 )
 
-// https://www.w3.org/TR/css-backgrounds-3/#typedef-line-style
+// Represents CSS <line-style> type
+//
+// Releavnt spec: https://www.w3.org/TR/css-backgrounds-3/#typedef-line-style
 type LineStyle uint8
 
 const (
-	NoLine     = LineStyle(iota) // none
-	HiddenLine                   // hidden
-	DottedLine                   // dotted
-	DashedLine                   // dashed
-	SolidLine                    // solid
-	DoubleLine                   // double
-	GrovveLine                   // groove
-	RidgeLine                    // ridge
-	InsetLine                    // inset
-	OutsetLine                   // outset
+	NoLine     LineStyle = iota // none
+	HiddenLine                  // hidden
+	DottedLine                  // dotted
+	DashedLine                  // dashed
+	SolidLine                   // solid
+	DoubleLine                  // double
+	GrovveLine                  // groove
+	RidgeLine                   // ridge
+	InsetLine                   // inset
+	OutsetLine                  // outset
 )
 
+// Returns LineStyle in CSS syntax.
 func (l LineStyle) String() string {
 	switch l {
 	case NoLine:
@@ -50,12 +55,11 @@ func (l LineStyle) String() string {
 	return fmt.Sprintf("<bad LineStyle %d>", l)
 }
 
-func LineWidthThin() values.Length {
-	return values.LengthFromPx(css.NumFromInt(1))
-}
-func LineWidthMedium() values.Length {
-	return values.LengthFromPx(css.NumFromInt(3))
-}
-func LineWidthThick() values.Length {
-	return values.LengthFromPx(css.NumFromInt(5))
-}
+// Various predefined <line-width> values.
+//
+// Releavnt spec: https://www.w3.org/TR/css-backgrounds-3/#typedef-line-width
+var (
+	LineWidthThin   = values.LengthFromPx(css.NumFromInt(1)) // thin
+	LineWidthMedium = values.LengthFromPx(css.NumFromInt(3)) // medium
+	LineWidthThick  = values.LengthFromPx(css.NumFromInt(5)) // thick
+)

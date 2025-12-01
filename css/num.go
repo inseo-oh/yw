@@ -2,19 +2,21 @@ package css
 
 import "fmt"
 
-// CSS numeric value. Stored as either int64 or float64
+// CSS numeric value storing either integer or float.
 type Num struct {
 	Type  NumType // Type of number
 	Value any     // Actual value of the number (either int64 or float64)
 }
 
+// Type of [Num]
 type NumType uint8
 
 const (
-	NumTypeInt = NumType(iota)
+	NumTypeInt NumType = iota
 	NumTypeFloat
 )
 
+// Converts to integer value
 func (n Num) ToInt() int64 {
 	if n.Type == NumTypeFloat {
 		return int64(n.ToFloat())
@@ -22,6 +24,8 @@ func (n Num) ToInt() int64 {
 		return n.Value.(int64)
 	}
 }
+
+// Converts to float value
 func (n Num) ToFloat() float64 {
 	if n.Type == NumTypeInt {
 		return float64(n.ToInt())
@@ -30,6 +34,8 @@ func (n Num) ToFloat() float64 {
 	}
 }
 
+// Compares two numeric value. If both values are integers, integer comparison is used.
+// Otherwise, both values are converted to float before comparing them.
 func (n Num) Equals(other Num) bool {
 	isFloat := (n.Type == NumTypeFloat) || (other.Type == NumTypeFloat)
 	if isFloat {
@@ -58,6 +64,7 @@ func (n Num) Clamp(min, max Num) Num {
 	return n
 }
 
+// Represents the number in CSS form
 func (n Num) String() string {
 	if n.Type == NumTypeFloat {
 		return fmt.Sprintf("%f", n.ToFloat())
@@ -65,9 +72,12 @@ func (n Num) String() string {
 	return fmt.Sprintf("%d", n.ToInt())
 }
 
+// Creates a new number from integer
 func NumFromInt(v int64) Num {
 	return Num{NumTypeInt, v}
 }
+
+// Creates a new number from floating point
 func NumFromFloat(v float64) Num {
 	return Num{NumTypeFloat, v}
 }

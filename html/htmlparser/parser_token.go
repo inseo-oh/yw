@@ -187,7 +187,7 @@ func (tk tagToken) String() string {
 type tokenizerState uint8
 
 const (
-	dataState = tokenizerState(iota)
+	dataState tokenizerState = iota
 	rcdataState
 	rawtextState
 	plaintextState

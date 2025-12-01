@@ -9,23 +9,29 @@ import (
 	"github.com/inseo-oh/yw/util"
 )
 
-// https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-complex-selector
+// ComplexSelector represents a CSS complex selector (e.g. .foo > #bar)
+//
+// Spec: https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-complex-selector
 type ComplexSelector struct {
-	Base CompoundSelector
-	Rest []ComplexSelectorRest
+	Base CompoundSelector      // Very first selector in the complex selector
+	Rest []ComplexSelectorRest // Rest of selectors
 }
+
+// Value for [ComplexSelector]'s Rest field.
 type ComplexSelectorRest struct {
-	Combinator Combinator
-	Selector   CompoundSelector
+	Combinator Combinator       // Relationship between Selector and previous ComplexSelectorRest(or ComplexSelector's Base, if not present)
+	Selector   CompoundSelector // A selector
 }
+
+// Relationship between two selectors in [ComplexSelectorRest]
 type Combinator uint8
 
 const (
-	ChildCombinator       = Combinator(iota)
-	DirectChildCombinator // >
-	PlusCombinator        // +
-	TildeCombinator       // ~
-	TwoBarsCombinator     // ||
+	ChildCombinator       Combinator = iota // A B (B is child of A)
+	DirectChildCombinator                   // A > B (B is direct child of A)
+	PlusCombinator                          // A + B
+	TildeCombinator                         // A ~ B
+	TwoBarsCombinator                       // A || B
 )
 
 func (sel ComplexSelector) String() string {
@@ -67,7 +73,7 @@ func (sel ComplexSelector) Equals(other Selector) bool {
 	return true
 }
 
-// https://www.w3.org/TR/2022/WD-selectors-4-20221111/#match-a-complex-selector-against-an-element
+// Spec: https://www.w3.org/TR/2022/WD-selectors-4-20221111/#match-a-complex-selector-against-an-element
 func (s ComplexSelector) MatchAgainst(element dom.Element) bool {
 	// Test each compound selector, from right to left
 	for i := len(s.Rest) - 1; 0 < i; i-- {

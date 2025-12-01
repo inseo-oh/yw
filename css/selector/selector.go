@@ -1,4 +1,7 @@
-// Implementation of the CSS Selector Module Level 4 (https://www.w3.org/TR/2022/WD-selectors-4-20221111/)
+// Package display provides types and values for CSS Selector Module Level 4,
+// as well as Element selection logic.
+//
+// Spec: https://www.w3.org/TR/2022/WD-selectors-4-20221111/
 package selector
 
 import (
@@ -9,10 +12,16 @@ import (
 
 type Selector interface {
 	String() string
+
+	// Equals reports whether two selectors are equal.
+	// Selectors with different types are not considered as equal.
 	Equals(other Selector) bool
+
+	// MatchAgainst reports whether the selector matches given element.
 	MatchAgainst(element dom.Element) bool
 }
 
+// NsPrefix represents CSS namespace prefix (e.g. foo|)
 type NsPrefix struct{ Ident string }
 
 func (sel NsPrefix) Equals(other NsPrefix) bool {
@@ -20,7 +29,9 @@ func (sel NsPrefix) Equals(other NsPrefix) bool {
 	return true
 }
 
-// https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-wq-name
+// WqName represents an CSS identifier with optional namespace.
+//
+// Spec: https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-wq-name
 type WqName struct {
 	NsPrefix *NsPrefix // May be nil
 	Ident    string
@@ -33,6 +44,8 @@ func (wqName WqName) String() string {
 		return wqName.Ident
 	}
 }
+
+// Equals reports whether two names are identical.
 func (wqName WqName) Equals(other WqName) bool {
 	if (wqName.NsPrefix != nil) != (other.NsPrefix != nil) {
 		return false
@@ -45,7 +58,9 @@ func (wqName WqName) Equals(other WqName) bool {
 	return true
 }
 
-// https://www.w3.org/TR/2022/WD-selectors-4-20221111/#match-a-selector-against-an-element
+// MatchAgainstElement matches given selectors against an DOM element.
+//
+// Spec: https://www.w3.org/TR/2022/WD-selectors-4-20221111/#match-a-selector-against-an-element
 func MatchAgainstElement(selector []Selector, element dom.Element) bool {
 	for _, s := range selector {
 		if s.MatchAgainst(element) {
@@ -55,7 +70,9 @@ func MatchAgainstElement(selector []Selector, element dom.Element) bool {
 	return false
 }
 
-// https://www.w3.org/TR/2022/WD-selectors-4-20221111/#match-a-selector-against-a-tree
+// MatchAgainstElement matches given selectors against given DOM trees.
+//
+// Spec: https://www.w3.org/TR/2022/WD-selectors-4-20221111/#match-a-selector-against-a-tree
 func MatchAgainstTree(selector []Selector, roots []dom.Node) []dom.Node {
 	selectorMatchList := []dom.Node{}
 	for _, root := range roots {

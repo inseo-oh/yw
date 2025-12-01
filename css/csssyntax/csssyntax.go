@@ -28,7 +28,7 @@ type token interface {
 type tokenType uint8
 
 const (
-	tokenTypeEof = tokenType(iota) // TODO: Remove this
+	tokenTypeEof tokenType = iota // TODO: Remove this
 	tokenTypeWhitespace
 	tokenTypeLeftParen
 	tokenTypeRightParen
@@ -248,7 +248,7 @@ func (t hashToken) String() string       { return fmt.Sprintf("#%s/*%s*/", t.val
 type hashTokenType uint8
 
 const (
-	hashTokenTypeId = hashTokenType(iota)
+	hashTokenTypeId hashTokenType = iota
 	hashTokenTypeUnrestricted
 )
 
@@ -278,9 +278,9 @@ func filterCodepoints(src string) string {
 	return src
 }
 
-func Tokenize(src string) ([]token, error) {
+func tokenize(bytes []byte) ([]token, error) {
+	src := decodeBytes(bytes)
 	src = filterCodepoints(src)
-
 	tkh := util.TokenizerHelper{Str: []rune(src)}
 
 	// https://www.w3.org/TR/2021/CRD-css-syntax-3-20211224/#ident-start-code-point
@@ -831,7 +831,7 @@ func (t simpleBlockToken) String() string {
 type simpleBlockType uint8
 
 const (
-	simpleBlockTypeSquare = simpleBlockType(iota)
+	simpleBlockTypeSquare simpleBlockType = iota
 	simpleBlockTypeCurly
 	simpleBlockTypeParen
 )
@@ -1566,7 +1566,7 @@ func parse[T any](tokens []token, parser func(ts *tokenStream) (T, error)) (T, e
 }
 
 // https://www.w3.org/TR/2021/CRD-css-syntax-3-20211224/#css-decode-bytes
-func DecodeBytes(bytes []byte) string {
+func decodeBytes(bytes []byte) string {
 	fallback := cssDetermineFallbackEncoding(bytes)
 	input := encoding.IoQueueFromSlice(bytes)
 	output := encoding.IoQueueFromSlice[rune](nil)
@@ -1615,18 +1615,23 @@ func cssDetermineFallbackEncoding(bytes []byte) encoding.Type {
 	return encoding.Utf8
 }
 
-// https://www.w3.org/TR/2021/CRD-css-syntax-3-20211224/#css-stylesheets
-func ParseStylesheet(input []token, location *string) cssom.Stylesheet {
+// ParseStylesheet parses stylesheet from given input, with optional location.
+func ParseStylesheet(input []byte, location *string) (cssom.Stylesheet, error) {
+	// https://www.w3.org/TR/2021/CRD-css-syntax-3-20211224/#css-stylesheets
+	tokens, err := tokenize(input)
+	if err != nil {
+		return cssom.Stylesheet{}, err
+	}
 	stylesheet := cssom.Stylesheet{
 		Location: location,
 	}
-	ts := tokenStream{tokens: input}
+	ts := tokenStream{tokens: tokens}
 	ruleNodes := ts.consumeListOfRules(true)
 
 	// Parse top-level qualified rules as style rules
 	stylesheet.StyleRules = parseStyleRulesFromNodes(ruleNodes)
 
-	return stylesheet
+	return stylesheet, nil
 }
 
 // https://www.w3.org/TR/2021/CRD-css-syntax-3-20211224/#style-rules

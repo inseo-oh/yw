@@ -127,7 +127,7 @@ func (ts *tokenStream) parseBorderWidthShorthand() (props.BorderWidthShorthand, 
 }
 
 func (ts *tokenStream) parseBorderTopShorthand() (props.BorderTopShorthand, bool) {
-	out := props.BorderTopShorthand{BorderTopWidth: backgrounds.LineWidthMedium(), BorderTopStyle: backgrounds.NoLine, BorderTopColor: csscolor.NewCurrentColor()}
+	out := props.BorderTopShorthand{BorderTopWidth: backgrounds.LineWidthMedium, BorderTopStyle: backgrounds.NoLine, BorderTopColor: csscolor.Color{Type: csscolor.CurrentColor}}
 	gotBorderTopWidth := false
 	gotBorderTopStyle := false
 	gotBorderTopColor := false
@@ -171,7 +171,7 @@ func (ts *tokenStream) parseBorderTopShorthand() (props.BorderTopShorthand, bool
 }
 
 func (ts *tokenStream) parseBorderRightShorthand() (props.BorderRightShorthand, bool) {
-	out := props.BorderRightShorthand{BorderRightWidth: backgrounds.LineWidthMedium(), BorderRightStyle: backgrounds.NoLine, BorderRightColor: csscolor.NewCurrentColor()}
+	out := props.BorderRightShorthand{BorderRightWidth: backgrounds.LineWidthMedium, BorderRightStyle: backgrounds.NoLine, BorderRightColor: csscolor.Color{Type: csscolor.CurrentColor}}
 	gotBorderRightWidth := false
 	gotBorderRightStyle := false
 	gotBorderRightColor := false
@@ -215,7 +215,7 @@ func (ts *tokenStream) parseBorderRightShorthand() (props.BorderRightShorthand, 
 }
 
 func (ts *tokenStream) parseBorderBottomShorthand() (props.BorderBottomShorthand, bool) {
-	out := props.BorderBottomShorthand{BorderBottomWidth: backgrounds.LineWidthMedium(), BorderBottomStyle: backgrounds.NoLine, BorderBottomColor: csscolor.NewCurrentColor()}
+	out := props.BorderBottomShorthand{BorderBottomWidth: backgrounds.LineWidthMedium, BorderBottomStyle: backgrounds.NoLine, BorderBottomColor: csscolor.Color{Type: csscolor.CurrentColor}}
 	gotBorderBottomWidth := false
 	gotBorderBottomStyle := false
 	gotBorderBottomColor := false
@@ -259,7 +259,7 @@ func (ts *tokenStream) parseBorderBottomShorthand() (props.BorderBottomShorthand
 }
 
 func (ts *tokenStream) parseBorderLeftShorthand() (props.BorderLeftShorthand, bool) {
-	out := props.BorderLeftShorthand{BorderLeftWidth: backgrounds.LineWidthMedium(), BorderLeftStyle: backgrounds.NoLine, BorderLeftColor: csscolor.NewCurrentColor()}
+	out := props.BorderLeftShorthand{BorderLeftWidth: backgrounds.LineWidthMedium, BorderLeftStyle: backgrounds.NoLine, BorderLeftColor: csscolor.Color{Type: csscolor.CurrentColor}}
 	gotBorderLeftWidth := false
 	gotBorderLeftStyle := false
 	gotBorderLeftColor := false
@@ -303,7 +303,7 @@ func (ts *tokenStream) parseBorderLeftShorthand() (props.BorderLeftShorthand, bo
 }
 
 func (ts *tokenStream) parseBorderShorthand() (props.BorderShorthand, bool) {
-	out := props.BorderShorthand{BorderWidthShorthand: props.BorderWidthShorthand{Left: backgrounds.LineWidthMedium(), Top: backgrounds.LineWidthMedium(), Right: backgrounds.LineWidthMedium(), Bottom: backgrounds.LineWidthMedium()}, BorderStyleShorthand: props.BorderStyleShorthand{Left: backgrounds.NoLine, Top: backgrounds.NoLine, Right: backgrounds.NoLine, Bottom: backgrounds.NoLine}, BorderColorShorthand: props.BorderColorShorthand{Left: csscolor.NewCurrentColor(), Top: csscolor.NewCurrentColor(), Right: csscolor.NewCurrentColor(), Bottom: csscolor.NewCurrentColor()}}
+	out := props.BorderShorthand{BorderWidthShorthand: props.BorderWidthShorthand{Left: backgrounds.LineWidthMedium, Top: backgrounds.LineWidthMedium, Right: backgrounds.LineWidthMedium, Bottom: backgrounds.LineWidthMedium}, BorderStyleShorthand: props.BorderStyleShorthand{Left: backgrounds.NoLine, Top: backgrounds.NoLine, Right: backgrounds.NoLine, Bottom: backgrounds.NoLine}, BorderColorShorthand: props.BorderColorShorthand{Left: csscolor.Color{Type: csscolor.CurrentColor}, Top: csscolor.Color{Type: csscolor.CurrentColor}, Right: csscolor.Color{Type: csscolor.CurrentColor}, Bottom: csscolor.Color{Type: csscolor.CurrentColor}}}
 	gotBorderWidthShorthand := false
 	gotBorderStyleShorthand := false
 	gotBorderColorShorthand := false
@@ -494,7 +494,7 @@ func (ts *tokenStream) parseFontShorthand() (props.FontShorthand, bool) {
 }
 
 func (ts *tokenStream) parseTextDecorationShorthand() (props.TextDecorationShorthand, bool) {
-	out := props.TextDecorationShorthand{TextDecorationLine: textdecor.NoLine, TextDecorationStyle: textdecor.Solid, TextDecorationColor: csscolor.NewCurrentColor()}
+	out := props.TextDecorationShorthand{TextDecorationLine: textdecor.NoLine, TextDecorationStyle: textdecor.Solid, TextDecorationColor: csscolor.Color{Type: csscolor.CurrentColor}}
 	gotTextDecorationLine := false
 	gotTextDecorationStyle := false
 	gotTextDecorationColor := false

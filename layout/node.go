@@ -16,7 +16,7 @@ type NodeCommon struct {
 type NodeType uint8
 
 const (
-	NodeTypeInlineBox = NodeType(iota)
+	NodeTypeInlineBox NodeType = iota
 	NodeTypeBlockContainer
 	NodeTypeText
 )

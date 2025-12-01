@@ -11,7 +11,7 @@ import (
 
 func selectorTestHelper(t *testing.T, css string, expected selector.Selector, parser func(ts *tokenStream) (selector.Selector, error)) {
 	t.Run(css, func(t *testing.T) {
-		tokens, err := Tokenize(css)
+		tokens, err := tokenize([]byte(css))
 		if tokens == nil && err != nil {
 			t.Errorf("failed to tokenize: %v", err)
 			return

@@ -45,7 +45,7 @@ func (ts *tokenStream) parseTypeSelector() selector.Selector {
 				ts.cursor = oldCursor
 				return nil
 			}
-			return selector.WildcardSelector{NsPrefix: nsPrefix}
+			return selector.UniversalSelector{NsPrefix: nsPrefix}
 		} else {
 			ts.cursor = oldCursor
 			return nil
@@ -362,7 +362,7 @@ func (ts *tokenStream) parseSelectorList() ([]selector.Selector, error) {
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#parse-a-selector
 func parseSelector(src string) ([]selector.Selector, error) {
-	tokens, err := Tokenize(src)
+	tokens, err := tokenize([]byte(src))
 	if tokens == nil && err != nil {
 		return nil, err
 	}

@@ -55,12 +55,11 @@ func (elem *htmlStyleElementImpl) updateStyleBlock() {
 	if !ok {
 		text = ""
 	}
-	tokens, err := csssyntax.Tokenize(text)
+	stylesheet, err := csssyntax.ParseStylesheet([]byte(text), nil)
 	if err != nil {
 		log.Printf("<style>: failed to tokenize stylesheet: %v", err)
 		return
 	}
-	stylesheet := csssyntax.ParseStylesheet(tokens, nil)
 	stylesheet.Type = "text/css"
 	stylesheet.OwnerNode = elem
 	// TODO: Set stylesheet.media once we implement that
