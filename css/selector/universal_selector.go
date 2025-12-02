@@ -6,9 +6,9 @@ import (
 	"github.com/inseo-oh/yw/dom"
 )
 
-// UniversalSelector represents CSS Universal selector, with optional namespace prefix (e.g. *)
+// UniversalSelector represents [CSS Universal selector] (e.g. *)
 //
-// Spec: https://www.w3.org/TR/2022/WD-selectors-4-20221111/#the-universal-selector
+// [CSS Universal selector]: https://www.w3.org/TR/2022/WD-selectors-4-20221111/#the-universal-selector
 type UniversalSelector struct {
 	NsPrefix *NsPrefix
 }

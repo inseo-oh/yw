@@ -7,12 +7,16 @@ import (
 	"github.com/inseo-oh/yw/dom"
 )
 
-// https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-compound-selector
+// CompoundSelector represents a [CSS compound selector] (e.g. div#foo.bar)
+//
+// [CSS compound selector]: https://www.w3.org/TR/2022/WD-selectors-4-20221111/#compound
 type CompoundSelector struct {
 	TypeSelector     Selector // May be nil
 	SubclassSelector []Selector
 	PseudoItems      []CompundSelectorPseudoItem
 }
+
+// CompundSelectorPseudoItem is entry for [CompoundSelector]'s PseudoItems field.
 type CompundSelectorPseudoItem struct {
 	ElementSelector PseudoClassSelector
 	ClassSelector   []PseudoClassSelector

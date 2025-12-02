@@ -13,7 +13,7 @@ import (
 	"github.com/inseo-oh/yw/css/cssom"
 	"github.com/inseo-oh/yw/css/csssyntax"
 	"github.com/inseo-oh/yw/dom"
-	"github.com/inseo-oh/yw/gfx"
+	"github.com/inseo-oh/yw/gfx/paint"
 	"github.com/inseo-oh/yw/html/elements"
 	"github.com/inseo-oh/yw/html/htmlparser"
 	"github.com/inseo-oh/yw/layout"
@@ -103,10 +103,10 @@ func (b *Browser) Run(urlStr string, plat platform.Platform, viewportImg *image.
 	icb := layout.Build(htmlElem, float64(viewportSize.X), float64(viewportSize.Y), plat)
 	layout.PrintTree(icb)
 	log.Println("Made layout. Making paint tree...")
-	paint := icb.MakePaintNode()
-	gfx.PrintPaintTree(paint)
+	paintNode := icb.MakePaintNode()
+	paint.PrintTree(paintNode)
 	log.Println("Painting...")
-	paint.Paint(viewportImg)
+	paintNode.Paint(viewportImg)
 
 	log.Println("DONE")
 }

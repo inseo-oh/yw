@@ -9,15 +9,15 @@ import (
 	"github.com/inseo-oh/yw/util"
 )
 
-// ComplexSelector represents a CSS complex selector (e.g. .foo > #bar)
+// ComplexSelector represents a [CSS complex selector] (e.g. .foo > #bar)
 //
-// Spec: https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-complex-selector
+// [CSS complex selector]: https://www.w3.org/TR/2022/WD-selectors-4-20221111/#complex
 type ComplexSelector struct {
 	Base CompoundSelector      // Very first selector in the complex selector
 	Rest []ComplexSelectorRest // Rest of selectors
 }
 
-// Value for [ComplexSelector]'s Rest field.
+// ComplexSelectorRest is entry for [ComplexSelector]'s Rest field.
 type ComplexSelectorRest struct {
 	Combinator Combinator       // Relationship between Selector and previous ComplexSelectorRest(or ComplexSelector's Base, if not present)
 	Selector   CompoundSelector // A selector
@@ -73,8 +73,9 @@ func (sel ComplexSelector) Equals(other Selector) bool {
 	return true
 }
 
-// Spec: https://www.w3.org/TR/2022/WD-selectors-4-20221111/#match-a-complex-selector-against-an-element
 func (s ComplexSelector) MatchAgainst(element dom.Element) bool {
+	// https://www.w3.org/TR/2022/WD-selectors-4-20221111/#match-a-complex-selector-against-an-element
+
 	// Test each compound selector, from right to left
 	for i := len(s.Rest) - 1; 0 < i; i-- {
 		prevSel := s.Base

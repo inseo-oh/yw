@@ -1,6 +1,6 @@
-// Package cascade provide CSS cascading logic based on CSS Cascading and Inheritance Level 4
+// Package cascade provide CSS cascading logic based on [CSS Cascading and Inheritance Level 4].
 //
-// Spec: https://www.w3.org/TR/css-cascade-4
+// [CSS Cascading and Inheritance Level 4]: https://www.w3.org/TR/css-cascade-4
 package cascade
 
 import (

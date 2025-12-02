@@ -1,6 +1,6 @@
-// Package display provides types and values for CSS Fonts Module Level 3
+// Package display provides types and values for [CSS Fonts Module Level 3]
 //
-// Spec: https://www.w3.org/TR/css-fonts-3
+// [CSS Fonts Module Level 3]: https://www.w3.org/TR/css-fonts-3
 package fonts
 
 import (
@@ -14,9 +14,9 @@ import (
 	"github.com/inseo-oh/yw/css/values"
 )
 
-// Represents single entry in "font-family" property.
+// Family represents single entry in [CSS font-family] property.
 //
-// https://www.w3.org/TR/css-fonts-3/#propdef-font-family
+// [CSS font-family]: https://www.w3.org/TR/css-fonts-3/#propdef-font-family
 type Family struct {
 	Type FamilyType // Font family type
 	Name string     // Only valid if the Type is NonGeneric
@@ -27,14 +27,12 @@ type FamilyType uint8
 
 const (
 	// https://www.w3.org/TR/css-fonts-3/#generic-family-value
-
-	Serif     FamilyType = iota // font-family: serif
-	SansSerif                   // font-family: sans-serif
-	Cursive                     // font-family: cursive
-	Fantasy                     // font-family: fantasy
-	Monospace                   // font-family: monospace
-
-	NonGeneric // font-family: <anything other than above>
+	Serif      FamilyType = iota // font-family: serif
+	SansSerif                    // font-family: sans-serif
+	Cursive                      // font-family: cursive
+	Fantasy                      // font-family: fantasy
+	Monospace                    // font-family: monospace
+	NonGeneric                   // font-family: <anything other than above>
 )
 
 func (f Family) String() string {
@@ -55,7 +53,9 @@ func (f Family) String() string {
 	return fmt.Sprintf("<bad Family type %d>", f.Type)
 }
 
-// Represents value of "font-family" property.
+// FamilyList represents value of [CSS font-family] property.
+//
+// [CSS font-family]: https://www.w3.org/TR/css-fonts-3/#propdef-font-family
 type FamilyList struct {
 	Families []Family
 }
@@ -71,9 +71,9 @@ func (f FamilyList) String() string {
 	return sb.String()
 }
 
-// Represents value of "font-weight" property.
+// Weight represents value of [CSS font-weight] property.
 //
-// https://www.w3.org/TR/css-fonts-3/#propdef-font-weight
+// [CSS font-weight]: https://www.w3.org/TR/css-fonts-3/#propdef-font-weight
 type Weight uint16
 
 // Some predefined font-weight values
@@ -86,9 +86,9 @@ func (w Weight) String() string {
 	return fmt.Sprintf("%d", w)
 }
 
-// Represents value of "font-stretch" property.
+// Stretch represents value of [CSS font-stretch] property.
 //
-// Spec: https://www.w3.org/TR/css-fonts-3/#propdef-font-stretch
+// [CSS font-stretch]: https://www.w3.org/TR/css-fonts-3/#propdef-font-stretch
 type Stretch uint8
 
 const (
@@ -127,9 +127,9 @@ func (s Stretch) String() string {
 	return fmt.Sprintf("<bad Stretch %d>", s)
 }
 
-// Represents value of "font-style" property.
+// Style represents value of [CSS font-style] property.
 //
-// Spec: https://www.w3.org/TR/css-fonts-3/#font-style-prop
+// [CSS font-style]: https://www.w3.org/TR/css-fonts-3/#font-style-prop
 type Style uint8
 
 const (
@@ -150,9 +150,9 @@ func (s Style) String() string {
 	return fmt.Sprintf("<bad Style %d>", s)
 }
 
-// Represents value of "font-size" property.
+// Size represents value of [CSS font-size] property.
 //
-// Spec: https://www.w3.org/TR/css-fonts-3/#propdef-font-size
+// [CSS font-size]: https://www.w3.org/TR/css-fonts-3/#propdef-font-size
 type Size interface {
 	// CalculateRealFontSize calculates real size.
 	//
@@ -165,10 +165,10 @@ const (
 	PreferredFontSize = 14 // XXX: Let user choose this size!
 )
 
-// AbsoluteSize represents <absolute-size> Size value.
+// AbsoluteSize represents [CSS absolute-size] value.
 // Exact pixel sizes are determined based on [PreferredFontSize].
 //
-// Spec: https://www.w3.org/TR/css-fonts-3/#absolute-size-value
+// [CSS <absolute-size>]: https://www.w3.org/TR/css-fonts-3/#absolute-size-value
 type AbsoluteSize uint8
 
 const (
@@ -230,11 +230,11 @@ func pxToAbsoluteSize(size css.Num) AbsoluteSize {
 	return resSize
 }
 
-// RelativeSize represents <relative-size> Size value.
+// RelativeSize represents [CSS relative-size] value.
 // Font size is converted to [AbsoluteSize] first, and then returns
 // next larger/smaller size for it.
 //
-// https://www.w3.org/TR/css-fonts-3/#relative-size-value
+// [CSS relative-size]: https://www.w3.org/TR/css-fonts-3/#relative-size-value
 type RelativeSize uint8
 
 const (

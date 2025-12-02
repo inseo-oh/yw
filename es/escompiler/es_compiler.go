@@ -1,3 +1,5 @@
+// Package escompiler provides compiler that turns input ES source code into
+// series of VM instructions.
 package escompiler
 
 import (
@@ -2014,7 +2016,9 @@ func (comp *compiler) setFinalCursor(node astNode, cursorInitial int) {
 	}
 }
 
-// Compiles given ECMAScript code to series of VM instructions.
+// Compile compiles given ECMAScript code to series of VM instructions.
+//
+// TODO(ois): Compile should return normal Go error, instead of private syntaxError.
 func Compile(str string) (res []vm.Instr, serr *syntaxError) {
 	compiler := compiler{tkh: util.TokenizerHelper{Str: []rune(str)}}
 	nodes, serr := compiler.consumeStatementList(struct{ yield, await, retrn bool }{false, false, false})

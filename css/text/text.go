@@ -1,4 +1,6 @@
-// Implementation of the CSS Text Module Level 3 (https://www.w3.org/TR/css-text-3)
+// Package text provides types and values for [CSS Text Module Level 3].
+//
+// [CSS Text Module Level 3]: https://www.w3.org/TR/css-text-3
 package text
 
 import (
@@ -6,13 +8,16 @@ import (
 	"strings"
 )
 
-// https://www.w3.org/TR/css-text-3/#propdef-text-transform
+// Transform represents value of [CSS text-transform] property.
+//
+// [CSS text-transform]: https://www.w3.org/TR/css-text-3/#propdef-text-transform
 type Transform struct {
-	Type         TransformType
-	FullWidth    bool
-	FullSizeKana bool
+	Type         TransformType // Type of text transform
+	FullWidth    bool          // Corresponds to "full-width" of text-transform
+	FullSizeKana bool          // Corresponds to "full-size-kana" of text-transform
 }
 
+// Type of [Transform]
 type TransformType uint8
 
 const (
@@ -47,6 +52,8 @@ func (t Transform) String() string {
 	}
 	return strings.TrimSpace(sb.String())
 }
+
+// Apply applies text transform to given text.
 func (t Transform) Apply(text string) string {
 	outText := text
 	switch t.Type {

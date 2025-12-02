@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/inseo-oh/yw/gfx"
+	"github.com/inseo-oh/yw/gfx/paint"
 )
 
 type Text struct {
@@ -23,8 +24,8 @@ func (txt Text) String() string {
 func (txt Text) NodeType() NodeType {
 	return NodeTypeText
 }
-func (txt Text) MakePaintNode() gfx.PaintNode {
-	return gfx.TextPaint{
+func (txt Text) MakePaintNode() paint.PaintNode {
+	return paint.TextPaint{
 		Left:  txt.rect.Left,
 		Top:   txt.rect.Top,
 		Text:  txt.text,

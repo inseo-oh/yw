@@ -2,22 +2,33 @@ package dom
 
 import "github.com/inseo-oh/yw/namespaces"
 
+// CustomElementRegistry represents a [HTML CustomElementRegistry].
+//
+// [HTML CustomElementRegistry]: https://html.spec.whatwg.org/multipage/custom-elements.html#customelementregistry
+//
+// TODO(ois): This type is currently STUB.
 type CustomElementRegistry struct {
-	// STUB
 	IsScoped          bool       // https://html.spec.whatwg.org/multipage/custom-elements.html#is-scoped
 	ScopedDocumentSet []Document // https://html.spec.whatwg.org/multipage/custom-elements.html#scoped-document-set
 }
+
+// CustomElementDefinition represents a [HTML custom element definition].
+//
+// [HTML custom element definition]: https://html.spec.whatwg.org/multipage/custom-elements.html#custom-element-definition
 type CustomElementDefinition struct {
 	Name      string
 	LocalName string
 	// STUB
 }
 
-// https://html.spec.whatwg.org/multipage/custom-elements.html#look-up-a-custom-element-definition
+// LookupCustomElementDefinition looks up custom element definition.
 //
-// namespace, is may be nil.
+// namespace, is may be nil if absent.
+//
+// TODO(ois): LookupCustomElementDefinition is currently just STUB, as there's no custom elements support.
+//
+// Spec: https://html.spec.whatwg.org/multipage/custom-elements.html#look-up-a-custom-element-definition
 func (reg *CustomElementRegistry) LookupCustomElementDefinition(namespace *namespaces.Namespace, localname string, is *string) *CustomElementDefinition {
-	// STUB
 	return nil
 }
 

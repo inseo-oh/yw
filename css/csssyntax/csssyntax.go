@@ -1,7 +1,10 @@
-//go:generate go run ./gen
-
-// Implementation of the CSS Syntax Module Level 3 (https://www.w3.org/TR/css-syntax-3/)
+// Package csssyntax implements [CSS Syntax Module Level 3], as well as parsers
+// for various properties.
+//
+// [CSS Syntax Module Level 3]: https://www.w3.org/TR/css-syntax-3/
 package csssyntax
+
+//go:generate go run ./gen
 
 import (
 	"errors"

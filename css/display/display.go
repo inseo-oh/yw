@@ -1,15 +1,15 @@
-// Package display provides types and values for CSS Display Module Level 3
+// Package display provides types and values for [CSS Display Module Level 3]
 //
-// Spec: https://www.w3.org/TR/css-display-3/
+// [CSS Display Module Level 3]: https://www.w3.org/TR/css-display-3/
 package display
 
 import (
 	"fmt"
 )
 
-// OuterMode represents outer display mode
+// OuterMode represents [outer display mode]
 //
-// Spec: https://www.w3.org/TR/css-display-3/#outer-role
+// [outer display mode]: https://www.w3.org/TR/css-display-3/#outer-role
 type OuterMode uint8
 
 const (
@@ -30,9 +30,9 @@ func (m OuterMode) String() string {
 	return fmt.Sprintf("<bad OuterMode %d>", m)
 }
 
-// InnerMode represents inner display mode
+// InnerMode represents [inner display mode]
 //
-// Spec: https://www.w3.org/TR/css-display-3/#inner-model
+// [inner display mode]: https://www.w3.org/TR/css-display-3/#inner-model
 type InnerMode uint8
 
 const (
@@ -62,10 +62,10 @@ func (m InnerMode) String() string {
 	return fmt.Sprintf("<bad InnerMode %d>", m)
 }
 
-// Display represents CSS "display" property value, which determines
+// Display represents [CSS display property] value, which determines
 // box layout mode.
 //
-// Spec: https://www.w3.org/TR/css-display-3/#propdef-display
+// [CSS display property]: https://www.w3.org/TR/css-display-3/#propdef-display
 type Display struct {
 	Mode Mode // Display mode
 
@@ -137,13 +137,13 @@ const (
 	DisplayNone // display: none
 )
 
-// Display represents CSS "visibility" property value, which determines
+// Display represents [CSS visibility property] value, which determines
 // whether the element is visible.
 //
-// Note that unlike "display: none", "visibility: hidden" elements are
+// Note that unlike "display: none", "visibility: hidden", elements are
 // still included in the box layout.
 //
-// Spec: https://www.w3.org/TR/css-display-3/#propdef-visibility
+// [CSS visibility property]: https://www.w3.org/TR/css-display-3/#propdef-visibility
 type Visibility uint8
 
 const (

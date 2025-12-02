@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	vm := vm.MakeVm()
+	vm := vm.Vm{}
 	code, err := escompiler.Compile("(69);")
 	if err != nil {
 		log.Fatal(err)

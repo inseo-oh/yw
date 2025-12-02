@@ -1,7 +1,16 @@
-// Package display provides types and values for CSS Selector Module Level 4,
+// Package selector provides types and values for [CSS Selector Module Level 4],
 // as well as Element selection logic.
 //
-// Spec: https://www.w3.org/TR/2022/WD-selectors-4-20221111/
+// # Selectors
+//
+// CSS selector types implement [Selector] interface.
+//   - [AttrSelector]: Attribute selector (e.g. [attr=value])
+//   - [ClassSelector]: Class selector (e.g. .foo)
+//   - [ComplexSelector]: Complex selector (e.g. .foo > #bar)
+//   - [CompoundSelector] Compound selector (e.g. div#foo.bar)
+//   - [IdSelector]: ID selector (e.g. #foo)
+//
+// [CSS Selector Module Level 4]: https://www.w3.org/TR/2022/WD-selectors-4-20221111/
 package selector
 
 import (
@@ -10,7 +19,9 @@ import (
 	"github.com/inseo-oh/yw/dom"
 )
 
+// Interface for CSS selectors
 type Selector interface {
+	// String returns representation of selector in CSS syntax
 	String() string
 
 	// Equals reports whether two selectors are equal.
@@ -29,9 +40,9 @@ func (sel NsPrefix) Equals(other NsPrefix) bool {
 	return true
 }
 
-// WqName represents an CSS identifier with optional namespace.
+// WqName represents an CSS identifier with optional namespace ([CSS wq-name] value).
 //
-// Spec: https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-wq-name
+// [CSS wq-name]: https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-wq-name
 type WqName struct {
 	NsPrefix *NsPrefix // May be nil
 	Ident    string

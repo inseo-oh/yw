@@ -1,3 +1,4 @@
+// Package vm provides a Virtual Machine (VM) for running compiled ES code.
 package vm
 
 import (
@@ -7,33 +8,30 @@ import (
 	"github.com/inseo-oh/yw/es"
 )
 
-type vm struct {
+// Vm represents state of VM.
+type Vm struct {
 	stack      []any
 	lastResult es.Value
 }
 
-func MakeVm() vm {
-	return vm{}
-}
-
-func (vm vm) peekStackTop() any {
+func (vm Vm) peekStackTop() any {
 	v := vm.stack[len(vm.stack)-1]
 	return v
 }
-func (vm vm) peekStackTopValue() es.Value {
+func (vm Vm) peekStackTopValue() es.Value {
 	return es.GetValue(vm.peekStackTop())
 }
-func (vm *vm) stackPop() any {
+func (vm *Vm) stackPop() any {
 	v := vm.peekStackTop()
 	vm.stack = vm.stack[:len(vm.stack)-1]
 	return v
 }
-func (vm *vm) stackPush(v any) {
+func (vm *Vm) stackPush(v any) {
 	vm.stack = append(vm.stack, v)
 }
 
-// Returns result of the last expression statement.
-func (vm *vm) Exec(instrs []Instr) es.Value {
+// Exec executes the instruction, and returns result of the last expression statement.
+func (vm *Vm) Exec(instrs []Instr) es.Value {
 	vm.lastResult = es.NewUndefinedValue()
 	for _, instr := range instrs {
 		valueMustBePresent := func() {
@@ -211,49 +209,57 @@ func (vm *vm) Exec(instrs []Instr) es.Value {
 	return vm.lastResult
 }
 
+// Instr represents a VM instruction.
 type Instr struct {
-	Op    Opcode
-	Value any // Most of the time this is ignored, but some opcodes use it.
+	Op    Opcode // Opcode of the instruction
+	Value any    // Most of the time this is ignored, but some opcodes use it.
 }
+
+// Opcode is opcode for [Instr]
 type Opcode uint8
 
+// General, Misc instructions
 const (
-	// General, Misc
-	OpcodePush     = Opcode(0x01) // Pushes given value. [.Value = Value to push]
-	OpcodeGetValue = Opcode(0x02) // Pops a value, resolves binding if necessary, and pushes es.Value
-	OpcodeMovToRes = Opcode(0x03) // Pops a value, saves result to internal "last result" register
-	OpcodeDiscard  = Opcode(0x04) // Pops a value, and forgets about it
-	OpcodeCond     = Opcode(0x05) // C ? T : F support. Pops <C>, <T>, <F>, and pushes <T> if <C> is true, <F> otherwise.
+	OpcodePush     Opcode = 0x01 // Pushes given value. [Instr.Value = Value to push]
+	OpcodeGetValue Opcode = 0x02 // Pops a value, resolves binding if necessary, and pushes es.Value
+	OpcodeMovToRes Opcode = 0x03 // Pops a value, saves result to internal "last result" register
+	OpcodeDiscard  Opcode = 0x04 // Pops a value, and forgets about it
+	OpcodeCond     Opcode = 0x05 // C ? T : F support. Pops <C>, <T>, <F>, and pushes <T> if <C> is true, <F> otherwise.
+)
 
-	// Binary operators - These pop LHS, RHS, and pushes calculation result.
-	OpcodeExponent           = Opcode(0x10)
-	OpcodeMultiply           = Opcode(0x11)
-	OpcodeDivide             = Opcode(0x12)
-	OpcodeModulo             = Opcode(0x13)
-	OpcodeAdd                = Opcode(0x14)
-	OpcodeSubtract           = Opcode(0x15)
-	OpcodeLeftShift          = Opcode(0x16)
-	OpcodeRightAShift        = Opcode(0x17) // Arithmetic shift (>>)
-	OpcodeRightLShift        = Opcode(0x18) // Logical shift (>>>)
-	OpcodeBAnd               = Opcode(0x19)
-	OpcodeBXor               = Opcode(0x1a)
-	OpcodeBOr                = Opcode(0x1b)
-	OpcodeLAnd               = Opcode(0x1c)
-	OpcodeLOr                = Opcode(0x1d)
-	OpcodeCoalesce           = Opcode(0x1e)
-	OpcodeLessThan           = Opcode(0x1f)
-	OpcodeLessThanOrEqual    = Opcode(0x20)
-	OpcodeGreaterThan        = Opcode(0x21)
-	OpcodeGreaterThanOrEqual = Opcode(0x22)
-	OpcodeEqual              = Opcode(0x23)
-	OpcodeStrictEqual        = Opcode(0x24)
-	OpcodeNotEqual           = Opcode(0x25)
-	OpcodeStrictNotEqual     = Opcode(0x26)
+// Binary operators - These pop LHS, RHS, and pushes calculation result.
+const (
+	OpcodeExponent           Opcode = 0x10 // A ** B
+	OpcodeMultiply           Opcode = 0x11 // A * B
+	OpcodeDivide             Opcode = 0x12 // A / B
+	OpcodeModulo             Opcode = 0x13 // A % B
+	OpcodeAdd                Opcode = 0x14 // A + B
+	OpcodeSubtract           Opcode = 0x15 // A - B
+	OpcodeLeftShift          Opcode = 0x16 // A << B
+	OpcodeRightAShift        Opcode = 0x17 // A >> B
+	OpcodeRightLShift        Opcode = 0x18 // A >>> B
+	OpcodeBAnd               Opcode = 0x19 // A & B
+	OpcodeBXor               Opcode = 0x1a // A ^ B
+	OpcodeBOr                Opcode = 0x1b // A | B
+	OpcodeLAnd               Opcode = 0x1c // A && B
+	OpcodeLOr                Opcode = 0x1d // A || B
+	OpcodeCoalesce           Opcode = 0x1e // A ?? B
+	OpcodeLessThan           Opcode = 0x1f // A < B
+	OpcodeLessThanOrEqual    Opcode = 0x20 // A <= B
+	OpcodeGreaterThan        Opcode = 0x21 // A > B
+	OpcodeGreaterThanOrEqual Opcode = 0x22 // A >= B
+	OpcodeEqual              Opcode = 0x23 // A == B
+	OpcodeStrictEqual        Opcode = 0x24 // A === B
+	OpcodeNotEqual           Opcode = 0x25 // A != B
+	OpcodeStrictNotEqual     Opcode = 0x26 // A !== B
 
-	// Unary operators -  These pop a value, and pushes calculation result.
-	OpcodePlus  = Opcode(0x30)
-	OpcodeNeg   = Opcode(0x31)
-	OpcodeBNot  = Opcode(0x32)
-	OpcodeLNot  = Opcode(0x33)
-	OpcodeAwait = Opcode(0x34)
+)
+
+// Unary operators - These pop a value, and pushes calculation result.
+const (
+	OpcodePlus  Opcode = 0x30 // +A
+	OpcodeNeg   Opcode = 0x31 // -A
+	OpcodeBNot  Opcode = 0x32 // ~A
+	OpcodeLNot  Opcode = 0x33 // !A
+	OpcodeAwait Opcode = 0x34 // await A
 )

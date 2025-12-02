@@ -5,10 +5,25 @@ import (
 	"strings"
 )
 
+// DocumentType represents a [DOM doctype](a.k.a DocumentFragment).
+//
+// [DOM doctype]: https://dom.spec.whatwg.org/#concept-doctype
 type DocumentType interface {
 	Node
+
+	// Name returns [name] of the doctype.
+	//
+	// [name]: https://dom.spec.whatwg.org/#concept-doctype-name
 	Name() string
+
+	// PublicId returns [public ID] of the doctype.
+	//
+	// [public ID]: https://dom.spec.whatwg.org/#concept-doctype-publicid
 	PublicId() string
+
+	// SystemId returns [system ID] of the doctype.
+	//
+	// [system ID]: https://dom.spec.whatwg.org/#concept-doctype-systemid
 	SystemId() string
 }
 type documentTypeImpl struct {
@@ -18,6 +33,7 @@ type documentTypeImpl struct {
 	systemId string
 }
 
+// NewDocumentType constructs a new [DocumentType] node.
 func NewDocumentType(doc Document, name, publicId, systemId string) DocumentType {
 	return documentTypeImpl{
 		NewNode(doc),

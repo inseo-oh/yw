@@ -10,7 +10,7 @@ import (
 	"github.com/inseo-oh/yw/css/values"
 )
 
-// Represents CSS <line-style> type
+// LineStyle represents CSS <line-style> type
 //
 // Releavnt spec: https://www.w3.org/TR/css-backgrounds-3/#typedef-line-style
 type LineStyle uint8

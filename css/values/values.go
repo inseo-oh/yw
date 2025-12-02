@@ -8,19 +8,25 @@ import (
 	"github.com/inseo-oh/yw/css"
 )
 
+// LengthResolvable represents a value that can be resolved to a [Length].
+//
+// [Length] and [Percentage] implements this type.
 type LengthResolvable interface {
 	AsLength(containerSize css.Num) Length
 	String() string
 }
 
+// Length is a CSS number with [LengthUnit].
+//
 // https://www.w3.org/TR/css-values-3/#length-value
 type Length struct {
 	Value css.Num
 	Unit  LengthUnit
 }
 
-type LengthUnit uint8
-
+// LengthFromPx creates a Px unit length from a number.
+//
+// TODO(ois): Wouldn't this be more useful if this just accepted float value?
 func LengthFromPx(px css.Num) Length {
 	return Length{px, Px}
 }
@@ -42,30 +48,37 @@ func (l Length) ToPx(parentFontSize css.Num) float64 {
 	return 0
 }
 
+// Unit for [Length]
+type LengthUnit uint8
+
 const (
 	//==========================================================================
+	// Relative lengths
+	//
 	// https://www.w3.org/TR/css-values-3/#relative-lengths
 	//==========================================================================
 
-	Em LengthUnit = iota
-	Ex
-	Ch
-	Rem
-	Vw
-	Vh
-	Vmin
-	Vmax
+	Em   LengthUnit = iota // em
+	Ex                     // ex
+	Ch                     // ch
+	Rem                    // rem
+	Vw                     // vw
+	Vh                     // vh
+	Vmin                   // vmin
+	Vmax                   // vmax
 
 	//==========================================================================
+	// Absolute lengths
+	//
 	// https://www.w3.org/TR/css-values-3/#absolute-lengths
 	//==========================================================================
 
-	Cm
-	Mm
-	Q
-	Pc
-	Pt
-	Px
+	Cm // cm
+	Mm // mm
+	Q  // q
+	Pc // pc
+	Pt // pt
+	Px // px
 )
 
 func (u LengthUnit) String() string {
@@ -102,6 +115,8 @@ func (u LengthUnit) String() string {
 	return fmt.Sprintf("<bad LengthUnit %d>", u)
 }
 
+// Percentage is a CSS number with %.
+//
 // https://www.w3.org/TR/css-values-3/#percentage-value
 type Percentage struct {
 	Value css.Num

@@ -2,6 +2,7 @@
 // CSS property code.
 //
 // # Two kinds of properties
+//
 // There are two kinds of properties:
 //
 //   - Simple: Accepts single value of given type. See [SimpleProp].

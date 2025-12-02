@@ -5,6 +5,7 @@ import (
 	"github.com/inseo-oh/yw/css/cssom"
 	"github.com/inseo-oh/yw/dom"
 	"github.com/inseo-oh/yw/gfx"
+	"github.com/inseo-oh/yw/gfx/paint"
 	"github.com/inseo-oh/yw/util"
 )
 
@@ -88,8 +89,8 @@ func (bx *boxCommon) incrementIfNeeded(minWidth, minHeight float64) {
 	hDiff := max(minHeight-bx.boxContentRect().Height, 0)
 	bx.incrementSize(wDiff, hDiff)
 }
-func (bx boxCommon) MakePaintNode() gfx.PaintNode {
-	paintNodes := []gfx.PaintNode{}
+func (bx boxCommon) MakePaintNode() paint.PaintNode {
+	paintNodes := []paint.PaintNode{}
 
 	var color = csscolor.Transparent
 	if bx.elem != nil {
@@ -103,5 +104,5 @@ func (bx boxCommon) MakePaintNode() gfx.PaintNode {
 	for _, child := range bx.ChildTexts() {
 		paintNodes = append(paintNodes, child.MakePaintNode())
 	}
-	return gfx.BoxPaint{Items: paintNodes, Color: rgbaColor, Rect: bx.boxContentRect()}
+	return paint.BoxPaint{Items: paintNodes, Color: rgbaColor, Rect: bx.boxContentRect()}
 }

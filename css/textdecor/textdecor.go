@@ -1,4 +1,6 @@
-// Implementation of the CSS Text Decoration Module Level 3 (https://www.w3.org/TR/css-text-decor-3)
+// Package text provides types and values for [CSS Text Decoration Module Level 3].
+//
+// [CSS Text Decoration Module Level 3]: https://www.w3.org/TR/css-text-decor-3
 package textdecor
 
 import (
@@ -6,15 +8,17 @@ import (
 	"strings"
 )
 
-// https://www.w3.org/TR/css-text-decor-3/#propdef-text-decoration-line
+// LineFlags represents value of [CSS text-decoration-line] property.
+//
+// [CSS text-decoration-line]: https://www.w3.org/TR/css-text-decor-3/#propdef-text-decoration-line
 type LineFlags uint8
 
 const (
-	NoLine      = LineFlags(0)
-	Underline   = LineFlags(1 << 1)
-	Overline    = LineFlags(1 << 2)
-	LineThrough = LineFlags(1 << 3)
-	Blink       = LineFlags(1 << 4)
+	NoLine      LineFlags = 0      // text-decoration-line: none
+	Underline   LineFlags = 1 << 1 // text-decoration-line: underline
+	Overline    LineFlags = 1 << 2 // text-decoration-line: overline
+	LineThrough LineFlags = 1 << 3 // text-decoration-line: linethrough
+	Blink       LineFlags = 1 << 4 // text-decoration-line: blink
 )
 
 func (t LineFlags) String() string {
@@ -37,15 +41,17 @@ func (t LineFlags) String() string {
 	return strings.TrimSpace(sb.String())
 }
 
-// https://www.w3.org/TR/css-text-decor-3/#propdef-text-decoration-style
+// Style represents value of [CSS text-decoration-style] property.
+//
+// [CSS text-decoration-style]: https://www.w3.org/TR/css-text-decor-3/#propdef-text-decoration-style
 type Style uint8
 
 const (
-	Solid Style = iota
-	Double
-	Dotted
-	Dashed
-	Wavy
+	Solid  Style = iota // text-decoration-style: solid
+	Double              // text-decoration-style: double
+	Dotted              // text-decoration-style: dotted
+	Dashed              // text-decoration-style: dashed
+	Wavy                // text-decoration-style: wavy
 )
 
 func (s Style) String() string {
@@ -66,15 +72,20 @@ func (s Style) String() string {
 	return ""
 }
 
-// https://www.w3.org/TR/css-text-decor-3/#propdef-text-underline-position
+// PositionFlags represents value of [CSS text-underline-position] property.
+//
+// [CSS text-underline-position]: https://www.w3.org/TR/css-text-decor-3/#propdef-text-underline-position
 type PositionFlags uint8
 
+// Note that [SideLeft] and [SideRight] flag must be used with either [PositionAuto] or [Under].
+// In CSS syntax, "auto left" and "auto right" isn't accepted, but writing just "left"
+// or "right" implies "auto", so [PositionAuto] will be set.
 const (
-	PositionAuto = PositionFlags(1 << 1)
-	Under        = PositionFlags(1 << 2)
-	SideLeft     = PositionFlags(1 << 3) // Must be used with either PositionAuto or Under
-	SideRight    = PositionFlags(2 << 3) // Must be used with either PositionAuto or Under
-	SideMask     = SideLeft | SideRight
+	PositionAuto PositionFlags = 1 << 1 // text-underline-position: auto
+	Under        PositionFlags = 1 << 2 // text-underline-position: under
+	SideLeft     PositionFlags = 1 << 3 // text-underline-position: left
+	SideRight    PositionFlags = 2 << 3 // text-underline-position: right
+	SideMask     PositionFlags = SideLeft | SideRight
 )
 
 func (t PositionFlags) String() string {

@@ -1,6 +1,6 @@
-// Package box provide types and values for CSS Box Model Module Level 3
+// Package box provide types and values for [CSS Box Model Module Level 3].
 //
-// Spec: https://www.w3.org/TR/css-box-3/
+// [CSS Box Model Module Level 3]: https://www.w3.org/TR/css-box-3/
 package box
 
 import (
@@ -10,10 +10,11 @@ import (
 	"github.com/inseo-oh/yw/util"
 )
 
-// Represents margin of a box edge. Zero value for Margin means "auto".
+// Margin represents value of [CSS margin property].
 //
-//   - Spec: https://www.w3.org/TR/css-box-3/#margin-physical
-//   - MDN: https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Box_model/Introduction#margin_area
+// Zero value for Margin means "auto".
+//
+// [CSS margin property]: https://www.w3.org/TR/css-box-3/#margin-physical
 type Margin struct {
 	Value values.LengthResolvable // nil means auto
 }

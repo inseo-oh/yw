@@ -1,11 +1,11 @@
 package layout
 
-import "github.com/inseo-oh/yw/gfx"
+import "github.com/inseo-oh/yw/gfx/paint"
 
 type Node interface {
 	NodeType() NodeType
 	ParentNode() Node
-	MakePaintNode() gfx.PaintNode
+	MakePaintNode() paint.PaintNode
 	IsBlockLevel() bool
 	String() string
 }

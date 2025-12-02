@@ -6,9 +6,9 @@ import (
 	"github.com/inseo-oh/yw/dom"
 )
 
-// AttrSelector represents CSS attribute selector (e.g. [attr=value])
+// AttrSelector represents a [CSS attribute selector] (e.g. [attr=value])
 //
-// Spec: https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-attribute-selector
+// [CSS attribute selector]: https://www.w3.org/TR/2022/WD-selectors-4-20221111/#attribute-selector
 type AttrSelector struct {
 	AttrName WqName  // Name of attribute
 	Matcher  Matcher // How attribute's value should be matched
@@ -55,6 +55,7 @@ func (sel AttrSelector) String() string {
 	}
 	return fmt.Sprintf("[%s<bad matcher %d>%s %s]", sel.AttrName, sel.Matcher, sel.AttrValue, flagStr)
 }
+
 func (sel AttrSelector) Equals(other Selector) bool {
 	if otherSel, ok := other.(AttrSelector); !ok {
 		return false
@@ -76,6 +77,7 @@ func (sel AttrSelector) Equals(other Selector) bool {
 	}
 	return true
 }
+
 func (sel AttrSelector) MatchAgainst(element dom.Element) bool {
 	// STUB
 	return false

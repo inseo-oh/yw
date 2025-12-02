@@ -1,8 +1,8 @@
-//go:generate go run ./gen
-
 // Package props provides various CSS properties, and [ComputedStyleSet]
 // containing computed values for properties.
 package props
+
+//go:generate go run ./gen
 
 // Source of [ComputedStyleSet]. [ComputedStyleSet] is stored inside DOM element,
 // and this type is used to avoid props package from depending on dom package.

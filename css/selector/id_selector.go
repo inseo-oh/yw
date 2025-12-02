@@ -6,7 +6,9 @@ import (
 	"github.com/inseo-oh/yw/dom"
 )
 
-// https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-id-selector
+// IdSelector represents a [CSS ID selector] (e.g. #foo)
+//
+// [CSS ID selector]: https://www.w3.org/TR/2022/WD-selectors-4-20221111/#id-selector
 type IdSelector struct{ Id string }
 
 func (sel IdSelector) String() string { return fmt.Sprintf("#%s", sel.Id) }

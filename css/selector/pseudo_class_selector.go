@@ -6,7 +6,9 @@ import (
 	"github.com/inseo-oh/yw/dom"
 )
 
-// https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-pseudo-class-selector
+// PseudoClassSelector represents a [CSS pseudo class selector] (e.g. :first-letter)
+//
+// [CSS pseudo class selector]: https://www.w3.org/TR/2022/WD-selectors-4-20221111/#pseudo-class
 type PseudoClassSelector struct {
 	Name string
 	Args []any

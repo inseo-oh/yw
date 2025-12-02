@@ -1,6 +1,6 @@
-// Package box provide types and values for CSS Color Module Level 4
+// Package box provide types and values for [CSS Color Module Level 4].
 //
-// Spec: https://www.w3.org/TR/css-color-4/
+// [CSS Color Module Level 4]: https://www.w3.org/TR/css-color-4/
 package csscolor
 
 import (
@@ -11,9 +11,9 @@ import (
 	"github.com/inseo-oh/yw/css"
 )
 
-// CSS named colors
+// NamedColors is map of [CSS named colors]
 //
-// Spec: https://www.w3.org/TR/css-color-4/#named-colors
+// [CSS named colors]: https://www.w3.org/TR/css-color-4/#named-colors
 var NamedColors = map[string]color.RGBA{
 	"aliceblue":            {240, 248, 255, 255},
 	"antiquewhite":         {250, 235, 215, 255},

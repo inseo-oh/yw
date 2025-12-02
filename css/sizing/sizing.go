@@ -1,4 +1,6 @@
-// Implementation of the CSS Sizing Module Level 3 (https://www.w3.org/TR/2021/WD-css-sizing-3-20211217/)
+// Package sizing provides types and values for [CSS Sizing Module Level 3]
+//
+// [CSS Sizing Module Level 3]: https://www.w3.org/TR/2021/WD-css-sizing-3-20211217/
 package sizing
 
 import (
@@ -9,11 +11,15 @@ import (
 	"github.com/inseo-oh/yw/css/values"
 )
 
-// https://www.w3.org/TR/2021/WD-css-sizing-3-20211217/#sizing-values
+// Size represents a [CSS size] value.
+//
+// [CSS size]: https://www.w3.org/TR/2021/WD-css-sizing-3-20211217/#sizing-values
 type Size struct {
-	Type SizeType
-	Size values.LengthResolvable
+	Type SizeType                // Type of size value
+	Size values.LengthResolvable // Manual size value when Type is ManualSize
 }
+
+// Type of [Size] value.
 type SizeType uint8
 
 const (
@@ -43,6 +49,7 @@ func (s Size) String() string {
 	return fmt.Sprintf("<bad Size type %v>", s.Type)
 }
 
+// ComputeUsedValue computes length value for the size.
 func (s Size) ComputeUsedValue(parentSize css.Num) values.Length {
 	switch s.Type {
 	case NoneSize:

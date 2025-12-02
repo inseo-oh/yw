@@ -6,31 +6,61 @@ import (
 	"github.com/inseo-oh/yw/namespaces"
 )
 
+// Attr represents a [DOM attribute].
+//
+// [DOM attribute]: https://dom.spec.whatwg.org/#concept-attribute
 type Attr interface {
 	Node
+
+	// Namespace returns [namespace] of the attribute. ok is set to false if it's absent.
+	//
+	// [namespace]: https://dom.spec.whatwg.org/#concept-attribute-namespace
+	Namespace() (ns namespaces.Namespace, ok bool)
+
+	// NamespacePrefix returns [namespace prefix] of the attribute. ok is set to false if it's absent.
+	//
+	// [namespace prefix]: https://dom.spec.whatwg.org/#concept-attribute-namespace-prefix
+	NamespacePrefix() (pr string, ok bool)
+
+	// LocalName returns the [local name] of the attribute.
+	//
+	// [local name]: https://dom.spec.whatwg.org/#concept-attribute-local-name
 	LocalName() string
+
+	// Value returns the [value] of the attribute.
+	//
+	// [value]: https://dom.spec.whatwg.org/#concept-attribute-value
 	Value() string
-	Namespace() (namespaces.Namespace, bool)
-	NamespacePrefix() (string, bool)
+
+	// Element returns [element] for the attribute.
+	//
+	// [element]: https://dom.spec.whatwg.org/#concept-attribute-element
 	Element() Element
 }
+
+// AttrData is ligher weight version of [Attr]. This isn't a DOM node, but can
+// hold data needed to create an [Attr].
+//
+// TODO(ois): Remove the Node field!
 type AttrData struct {
 	Node
-	LocalName       string
-	Value           string
-	Namespace       *namespaces.Namespace // may be nil
-	NamespacePrefix *string               // may be nil
+	LocalName       string                // local name of the attribute.
+	Value           string                // value of the attribute.
+	Namespace       *namespaces.Namespace // namespace of the attribute, nil if absent.
+	NamespacePrefix *string               // namespace of the attribute, nil if absent.
 }
 type attrImpl struct {
 	Node
 	localName       string
 	value           string
-	namespace       *namespaces.Namespace // may be nil
-	namespacePrefix *string               // may be nil
+	namespace       *namespaces.Namespace // nil if absent.
+	namespacePrefix *string               // nil if absent.
 	element         Element
 }
 
-// namespace, namespacePrefix may be nil
+// NewAttr constructs a new [Attr] value.
+//
+// namespace, namespacePrefix may be nil if absent.
 func NewAttr(localName string, value string, namespace *namespaces.Namespace, namespacePrefix *string, element Element) Attr {
 	return &attrImpl{
 		NewNode(element.NodeDocument()),
@@ -45,6 +75,7 @@ func (at attrImpl) String() string {
 		return fmt.Sprintf("#attr(%s = %s)", at.localName, at.value)
 	}
 }
+
 func (at attrImpl) LocalName() string { return at.localName }
 func (at attrImpl) Value() string     { return at.value }
 func (at attrImpl) Element() Element  { return at.element }

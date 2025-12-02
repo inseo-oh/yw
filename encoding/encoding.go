@@ -1,4 +1,6 @@
-// Implementation of the Encoding Standard (https://encoding.spec.whatwg.org)
+// Package encoding implements of the [Encoding Standard]
+//
+// [Encoding Standard]: https://encoding.spec.whatwg.org
 package encoding
 
 import (
@@ -9,6 +11,7 @@ import (
 	"github.com/inseo-oh/yw/util"
 )
 
+// Type represents encoding type.
 type Type uint8
 
 const (
@@ -324,6 +327,9 @@ var encodingLabelMap = map[string]Type{
 	"x-user-defined": XUserDefined,
 }
 
+// GetEncodingFromLabel returns encoding corresponding to label.
+//
+// Spec: https://encoding.spec.whatwg.org/#concept-encoding-get
 func GetEncodingFromLabel(label string) (Type, error) {
 	label = util.ToAsciiLowercase(strings.TrimFunc(label, func(r rune) bool { return r == ' ' }))
 	encoding, ok := encodingLabelMap[label]
@@ -352,7 +358,10 @@ type decoder interface {
 	handler(queue *IoQueue, byteItem IoQueueItem) handlerResult
 }
 
-// https://encoding.spec.whatwg.org/#decode
+// Decode decodes input and writes resulting characters to output.
+// Falls back to fallbackEncodingType if we can't figure out encoding.
+//
+// Spec: https://encoding.spec.whatwg.org/#decode
 func Decode(input *IoQueue, fallbackEncodingType Type, output *IoQueue) {
 	encodingType := fallbackEncodingType
 	bomEncoding, ok := bomSniff(*input)
@@ -415,7 +424,7 @@ func decodeItem(item IoQueueItem, decoder decoder, input *IoQueue, output *IoQue
 	return handlerResultContinue
 }
 
-// https://encoding.spec.whatwg.org/#bom-sniff
+// Spec: https://encoding.spec.whatwg.org/#bom-sniff
 func bomSniff(queue IoQueue) (Type, bool) {
 	bytes := IoQueueItemsToSlice[uint8](queue.Peek(3))
 	if 3 <= len(bytes) && slices.Equal([]byte{0xef, 0xbb, 0xbf}, bytes[:3]) {
@@ -428,23 +437,36 @@ func bomSniff(queue IoQueue) (Type, bool) {
 	return 0, false
 }
 
-// https://encoding.spec.whatwg.org/#concept-stream
+// IoQueue is queue of [IoQueueItem] values, and used to both get input and write output.
+//
+// TODO(ois): I think IoQueue can become just an alias to []IoQueueItem.
+//
+// Spec: https://encoding.spec.whatwg.org/#concept-stream
 type IoQueue struct {
 	items []IoQueueItem
 }
+
+// IoQueueItem represents some value.
+//
+// TODO(ois): I think IoQueueItem can become just an alias to any, or some sort of interface.
 type IoQueueItem struct {
 	V any
 }
+
+// EndOfQueue is special [IoQueueItem] value that represents end-of-queue.
 type EndOfQueue struct{}
 
 func (EndOfQueue) String() string { return "<end-of-queue>" }
 
+// IsEndOfQueue reports whether item holds [EndOfQueue].
 func (item IoQueueItem) IsEndOfQueue() bool {
 	if _, ok := item.V.(EndOfQueue); ok {
 		return true
 	}
 	return false
 }
+
+// IoQueueItemsToSlice creates a slice from items.
 func IoQueueItemsToSlice[T any](items []IoQueueItem) []T {
 	res := []T{}
 	for _, item := range items {
@@ -455,9 +477,13 @@ func IoQueueItemsToSlice[T any](items []IoQueueItem) []T {
 	}
 	return res
 }
+
+// IoQueueToSlice creates a slice from queue.
 func IoQueueToSlice[T any](queue IoQueue) []T {
 	return IoQueueItemsToSlice[T](queue.items)
 }
+
+// IoQueueFromSlice creates an IoQueue from values.
 func IoQueueFromSlice[T any](values []T) IoQueue {
 	queue := IoQueue{items: []IoQueueItem{{EndOfQueue{}}}}
 	for _, item := range values {
@@ -466,7 +492,9 @@ func IoQueueFromSlice[T any](values []T) IoQueue {
 	return queue
 }
 
-// https://encoding.spec.whatwg.org/#concept-stream-read
+// ReadOne dequeues one item from the queue and returns it.
+//
+// Spec: https://encoding.spec.whatwg.org/#concept-stream-read
 func (q *IoQueue) ReadOne() IoQueueItem {
 	if len(q.items) == 0 {
 		panic("The queue must not be empty")
@@ -479,7 +507,9 @@ func (q *IoQueue) ReadOne() IoQueueItem {
 	return item
 }
 
-// https://encoding.spec.whatwg.org/#concept-stream-Read
+// Read dequeues up to num items from the queue and returns them.
+//
+// Spec: https://encoding.spec.whatwg.org/#concept-stream-Read
 func (q *IoQueue) Read(num int) []IoQueueItem {
 	readItems := []IoQueueItem{}
 	for range num {
@@ -491,7 +521,9 @@ func (q *IoQueue) Read(num int) []IoQueueItem {
 	return readItems
 }
 
-// https://encoding.spec.whatwg.org/#i-o-queue-Peek
+// Peek works like [IoQueue.Read], but doesn't dequeue them.
+//
+// Spec: https://encoding.spec.whatwg.org/#i-o-queue-Peek
 func (q *IoQueue) Peek(num int) []IoQueueItem {
 	prefix := []IoQueueItem{}
 	for i := range num {
@@ -504,7 +536,9 @@ func (q *IoQueue) Peek(num int) []IoQueueItem {
 	return prefix
 }
 
-// https://encoding.spec.whatwg.org/#concept-stream-push
+// PushOne enqueues item to the queue.
+//
+// Spec: https://encoding.spec.whatwg.org/#concept-stream-push
 func (q *IoQueue) PushOne(item IoQueueItem) {
 	if len(q.items) == 0 || !q.items[len(q.items)-1].IsEndOfQueue() {
 		panic("the last item must be end-of-queue")
@@ -519,14 +553,20 @@ func (q *IoQueue) PushOne(item IoQueueItem) {
 	}
 }
 
-// https://encoding.spec.whatwg.org/#concept-stream-Push
+// Push enqueues items to the queue.
+//
+// Spec: https://encoding.spec.whatwg.org/#concept-stream-Push
 func (q *IoQueue) Push(items []IoQueueItem) {
 	for _, item := range items {
 		q.PushOne(item)
 	}
 }
 
-// https://encoding.spec.whatwg.org/#concept-stream-prepend
+// Restore adds item to before end of the queue, and the next item returned by
+// functions like [IoQueue.ReadOne], [IoQueue.Read] and [IoQueue.Peek] will
+// become item.
+//
+// Spec: https://encoding.spec.whatwg.org/#concept-stream-prepend
 func (q *IoQueue) RestoreOne(item IoQueueItem) {
 	if item.IsEndOfQueue() {
 		panic("attempted to restore end-of-queue item")
@@ -534,7 +574,9 @@ func (q *IoQueue) RestoreOne(item IoQueueItem) {
 	q.items = append([]IoQueueItem{item}, q.items...)
 }
 
-// https://encoding.spec.whatwg.org/#concept-stream-prepend
+// Same as [IoQueue.RestoreOne], but accepts multiple items.
+//
+// Spec: https://encoding.spec.whatwg.org/#concept-stream-prepend
 func (q *IoQueue) Restore(items []IoQueueItem) {
 	if slices.ContainsFunc(items, IoQueueItem.IsEndOfQueue) {
 		panic("attempted to restore end-of-queue item")

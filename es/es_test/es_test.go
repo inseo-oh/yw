@@ -145,7 +145,7 @@ func TestEs(t *testing.T) {
 	}
 	for _, cs := range testCases {
 		t.Run(cs.input, func(t *testing.T) {
-			vm := vm.MakeVm()
+			vm := vm.Vm{}
 			code, err := escompiler.Compile(cs.input)
 			if err != nil {
 				t.Errorf("[%s] failed to compile: %v", cs.input, err)

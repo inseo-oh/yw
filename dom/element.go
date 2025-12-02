@@ -11,37 +11,144 @@ import (
 	"github.com/inseo-oh/yw/util"
 )
 
+// Element represents a [DOM element].
+//
+// TODO(ois): Should we move some of Element's HTML related extensions to the html package instead?
+//
+// [DOM element]: https://dom.spec.whatwg.org/#concept-element
 type Element interface {
 	Node
+
+	// Namespace returns [namespace] of the element. ok is set to false if it's absent.
+	//
+	// [namespace]: https://dom.spec.whatwg.org/#concept-element-namespace
+	Namespace() (ns namespaces.Namespace, ok bool)
+
+	// Prefix returns [namespace prefix] of the element. ok is set to false if it's absent.
+	//
+	// TODO(ois): Should we call this NamespacePrefix instead?
+	// [namespace prefix]: https://dom.spec.whatwg.org/#concept-element-namespace-prefix.
+	Prefix() (pr string, ok bool)
+
+	// LocalName returns [local name] of the element.
+	//
+	// [local name]: https://dom.spec.whatwg.org/#concept-element-local-name
 	LocalName() string
-	Namespace() (namespaces.Namespace, bool)
-	Prefix() (string, bool)
-	Is() (string, bool)
-	Attrs() []Attr
-	TagToken() TagToken
+
+	// CustomElementRegistry returns [custom element registry] of the element.
+	//
+	// [custom element registry]: https://dom.spec.whatwg.org/#element-custom-element-registry
 	CustomElementRegistry() *CustomElementRegistry
+
+	// CustomElementRegistry sets [custom element registry] of the element to reg.
+	//
+	// [custom element registry]: https://dom.spec.whatwg.org/#element-custom-element-registry
 	SetCustomElementRegistry(reg *CustomElementRegistry)
-	ShadowRoot() ShadowRoot
-	SetShadowRoot(sr ShadowRoot)
-	IsShadowHost() bool
+
+	// CustomElementRegistry returns [is value] of the element.
+	//
+	// [is value]: https://dom.spec.whatwg.org/#concept-element-is-value
+	Is() (string, bool)
+
+	// IsCustom reports whether element is [custom].
+	//
+	// [custom]: https://dom.spec.whatwg.org/#concept-element-custom
 	IsCustom() bool
+
+	// ShadowRoot returns [shadow root] of the element.
+	//
+	// [shadow root]: https://dom.spec.whatwg.org/#concept-element-shadow-root
+	ShadowRoot() ShadowRoot
+
+	// SetShadowRoot sets [shadow root] of the element to sr.
+	//
+	// [shadow root]: https://dom.spec.whatwg.org/#concept-element-shadow-root
+	SetShadowRoot(sr ShadowRoot)
+
+	// IsShadowHost reports whether element is [shadow host].
+	//
+	// [shadow host]: https://dom.spec.whatwg.org/#element-shadow-host
+	IsShadowHost() bool
+
+	// Attrs returns [attributes] of the element.
+	//
+	// [attributes]: https://dom.spec.whatwg.org/#concept-element-attribute
+	Attrs() []Attr
+
+	// Attrs appends new attribute to [attributes] of the element.
+	//
+	// [attributes]: https://dom.spec.whatwg.org/#concept-element-attribute
 	AppendAttr(attrData AttrData)
-	IsElement(name NamePair) bool
+
+	// AttrWithNamespace searches attribute from element's [attributes], that
+	// matches namePair's Namespace and Name, and returns its value.
+	// Attributes without namespace are ignored. ok is set to false if there's
+	// no such attribute.
+	//
+	// [attributes]: https://dom.spec.whatwg.org/#concept-element-attribute
+	AttrWithNamespace(namePair NamePair) (value string, ok bool)
+
+	// AttrWithoutNamespace searches attribute from element's [attributes], that
+	// matches the name, and returns its value.
+	// Attributes with namespace are ignored. ok is set to false if there's no
+	// such attribute.
+	//
+	// [attributes]: https://dom.spec.whatwg.org/#concept-element-attribute
+	AttrWithoutNamespace(name string) (value string, ok bool)
+
+	// IsElement reports whether the element's local name is equal to namePair's
+	// LocalName and is in name's Namespace.
+	IsElement(namePair NamePair) bool
+
+	// IsHtmlElement reports whether the element's local name is equal to given
+	// localName and is in HTML namespace.
 	IsHtmlElement(localName string) bool
+
+	// IsMathmlElement reports whether the element's local name is equal to given
+	// localName and is in MathML namespace.
 	IsMathmlElement(localName string) bool
+
+	// IsSvgElement reports whether the element's local name is equal to given
+	// localName and is in SVG namespace.
 	IsSvgElement(localName string) bool
-	AttrWithNamespace(name NamePair) (string, bool)
-	AttrWithoutNamespace(name string) (string, bool)
+
+	// IntrinsicSize returns intrinsic size of the element.
 	IntrinsicSize() (width float64, height float64)
+
+	// IsInside reports whether the element is inside another element that matches
+	// given namePair's Namespace and Name.
 	IsInside(namePair NamePair) bool
 
-	// Some extensions for HTML parser
-	// TODO: Should we move this to HTML parser instead?
+	// TagToken returns associated HTML tag token for the element.
+	TagToken() TagToken
 
+	//==========================================================================
+	// Some extensions for HTML parser
+	//==========================================================================
+
+	// Reports whether the element is in HTML parser's [special category].
+	//
+	// [special category]: https://html.spec.whatwg.org/multipage/parsing.html#special
 	IsHtmlSpecialElement() bool
+
+	// Reports whether the element is in HTML parser's [formatting category].
+	//
+	// [formatting category]: https://html.spec.whatwg.org/multipage/parsing.html#formatting
 	IsHtmlFormattingElement() bool
+
+	// Reports whether the element is in HTML parser's [ordinary category].
+	//
+	// [ordinary category]: https://html.spec.whatwg.org/multipage/parsing.html#ordinary
 	IsHtmlOrdinaryElement() bool
+
+	// Reports whether the element is [MathML text integration point].
+	//
+	// [MathML text integration point]: https://html.spec.whatwg.org/multipage/parsing.html#mathml-text-integration-point
 	IsMathmlTextIntegrationPoint() bool
+
+	// Reports whether the element is [HTML integration point].
+	//
+	// [HTML integration point]: https://html.spec.whatwg.org/multipage/parsing.html#html-integration-point
 	IsHtmlIntegrationPoint() bool
 }
 
@@ -164,13 +271,13 @@ type NamePair struct {
 	LocalName string
 }
 
-func (n elementImpl) IsInside(name NamePair) bool {
+func (n elementImpl) IsInside(namePair NamePair) bool {
 	current := n.Parent()
 	for !util.IsNil(current) {
 		currElem, ok := current.(Element)
 		if !ok {
 			break
-		} else if currElem.IsElement(name) {
+		} else if currElem.IsElement(namePair) {
 			return true
 		}
 		current = currElem.(Node).Parent()
@@ -184,8 +291,8 @@ func (n *elementImpl) AppendAttr(attrData AttrData) {
 	n.attrs = append(n.attrs, attr)
 }
 
-func (n elementImpl) IsElement(name NamePair) bool {
-	return n.namespace != nil && *n.namespace == name.Namespace && n.localName == name.LocalName
+func (n elementImpl) IsElement(namePair NamePair) bool {
+	return n.namespace != nil && *n.namespace == namePair.Namespace && n.localName == namePair.LocalName
 }
 func (n elementImpl) IsHtmlElement(localName string) bool {
 	return n.IsElement(NamePair{namespaces.Html, localName})
@@ -197,10 +304,9 @@ func (n elementImpl) IsSvgElement(localName string) bool {
 	return n.IsElement(NamePair{namespaces.Svg, localName})
 }
 
-// This will only match attributes with namespace specified.
-func (n elementImpl) AttrWithNamespace(name NamePair) (string, bool) {
+func (n elementImpl) AttrWithNamespace(namePair NamePair) (string, bool) {
 	for _, attr := range n.attrs {
-		if ns, hasNs := attr.Namespace(); hasNs && ns == name.Namespace && attr.LocalName() == name.LocalName {
+		if ns, hasNs := attr.Namespace(); hasNs && ns == namePair.Namespace && attr.LocalName() == namePair.LocalName {
 			return attr.Value(), true
 		}
 	}

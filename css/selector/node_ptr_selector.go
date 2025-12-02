@@ -2,7 +2,10 @@ package selector
 
 import "github.com/inseo-oh/yw/dom"
 
-// Special CSS selector that matches DOM node pointer directly.
+// NodePtrSelector is special CSS selector that matches DOM node pointer directly.
+//
+// This has not part of CSS spec, and has no CSS representation ([NodePtrSelector.String]
+// just returns value of String() of the element)
 type NodePtrSelector struct {
 	Element dom.Element
 }
@@ -17,6 +20,8 @@ func (sel NodePtrSelector) Equals(other Selector) bool {
 func (sel NodePtrSelector) MatchAgainst(element dom.Element) bool {
 	return sel.Element == element
 }
+
+// String returns value of String() of the element.
 func (sel NodePtrSelector) String() string {
 	return sel.Element.String()
 }

@@ -1,4 +1,3 @@
-// Implementation of the UTF-8 encoding (https://encoding.spec.whatwg.org/#utf-8)
 package encoding
 
 // https://encoding.spec.whatwg.org/#utf-8-decoder

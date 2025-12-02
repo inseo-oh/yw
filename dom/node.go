@@ -9,28 +9,83 @@ import (
 	"github.com/inseo-oh/yw/util"
 )
 
+// Node represents a [DOM Node].
+//
+// [DOM Node]: https://dom.spec.whatwg.org/#concept-node
 type Node interface {
-	CssData() any
-	SetCssData(data any)
-	Callbacks() *NodeCallbacks
-	Parent() Node
-	SetParent(node Node)
+	// NodeDocument returns [node document] of the node.
+	//
+	// [node document]: https://dom.spec.whatwg.org/#concept-node-document
 	NodeDocument() Document
-	SetNodeDocument(doc Document)
-	Children() []Node
-	SetChildren(nodes []Node)
-	FirstChild() Node
-	LastChild() Node
-	FilterChildren(filter func(n Node) bool) []Node
-	FilterElementChildren(filter func(e Element) bool) []Element
-	FilterElementChildrenByLocalName(p NamePair) []Element
-	ChildTextNode() (string, bool)
-	String() string
 
+	// SetNodeDocument sets [node document] of the node to doc.
+	//
+	// [node document]: https://dom.spec.whatwg.org/#concept-node-document
+	SetNodeDocument(doc Document)
+
+	// Parent returns the parent element.
+	Parent() Node
+
+	// SetParent sets the parent element to node.
+	SetParent(node Node)
+
+	// Children returns children of the node.
+	Children() []Node
+
+	// SetChildren sets children of the node to nodes.
+	SetChildren(nodes []Node)
+
+	// FirstChild returns its first children.
+	FirstChild() Node
+
+	// LastChild returns its last children.
+	LastChild() Node
+
+	// FilterChildren returns list of nodes where node n of children satisfies filter(n).
+	FilterChildren(filter func(n Node) bool) []Node
+
+	// FilterElementChildren returns list of elements where element e of children
+	// satisfies filter(e).
+	FilterElementChildren(filter func(e Element) bool) []Element
+
+	// FilterElementChildrenByLocalName returns list of elements where
+	// element e's local name is namePair's Name and is in namePair's Namespace.
+	FilterElementChildrenByLocalName(namePair NamePair) []Element
+
+	// ChildTextNode returns contents of its first text node children.
+	ChildTextNode() (string, bool)
+
+	// Callbacks returns pointer to struct containng callbacks for node.
+	Callbacks() *NodeCallbacks
+
+	// RunInsertionSteps runs [insertion steps] of the Node specified by [NodeCallbacks], if present.
+	//
+	// [insertion steps]: https://dom.spec.whatwg.org/#concept-node-insert-ext
 	RunInsertionSteps()
+
+	// RunChildrenChangedSteps runs [children changed steps] of the Node specified by [NodeCallbacks], if present.
+	//
+	// [children changed steps]: https://dom.spec.whatwg.org/#concept-node-children-changed-ext
 	RunChildrenChangedSteps()
+
+	// RunPostConncectionSteps runs [post-connection steps] of the Node specified by [NodeCallbacks], if present.
+	//
+	// [post-connection steps]: https://dom.spec.whatwg.org/#concept-node-post-connection-ext
 	RunPostConncectionSteps()
+
+	// RunAdoptingSteps runs [adopting steps] of the Node specified by [NodeCallbacks], if present.
+	//
+	// [adopting steps]: https://dom.spec.whatwg.org/#concept-node-adopt-ext
 	RunAdoptingSteps(oldDoc Document)
+
+	// CssData returns CSS-specific data for this node. dom package doesn't do anything with this.
+	CssData() any
+
+	// SetCssData sets CSS-specific data for this node. dom package doesn't do anything with this.
+	SetCssData(data any)
+
+	// String returns description of the Node.
+	String() string
 }
 type nodeImpl struct {
 	children     []Node
@@ -39,19 +94,22 @@ type nodeImpl struct {
 	callbacks    NodeCallbacks
 	cssData      any
 }
+
+// NodeCallbacks holds callbacks needed for [Node]. All callback functions are optional.
 type NodeCallbacks struct {
-	RunInsertionSteps       func()
-	RunChildrenChangedSteps func()
-	RunPostConnectionSteps  func()
-	RunAdoptingSteps        func(oldDoc Document)
+	RunInsertionSteps       func()                // Callback for [Node.RunChildrenChangedSteps]
+	RunChildrenChangedSteps func()                // Callback for [Node.RunChildrenChangedSteps]
+	RunPostConnectionSteps  func()                // Callback for [Node.RunPostConnectionSteps]
+	RunAdoptingSteps        func(oldDoc Document) // Callback for [Node.RunAdoptingSteps]
 
 	// Element callbacks -------------------------------------------------------
 
-	IntrinsicSize                 func() (width float64, height float64)
-	PoppedFromStackOfOpenElements func()
-	PresentationalHints           func() any
+	IntrinsicSize                 func() (width float64, height float64) // Callback for [Element.IntrinsicSize]
+	PoppedFromStackOfOpenElements func()                                 // Callback called when HTML parser pops node from stack of open elements.
+	PresentationalHints           func() any                             // Callback called by CSS system to get presentational hints.
 }
 
+// NewNode constructs a new [Node].
 func NewNode(doc Document) Node {
 	return &nodeImpl{nodeDocument: doc}
 }
@@ -141,9 +199,9 @@ func (n nodeImpl) FilterElementChildren(filter func(e Element) bool) []Element {
 	}
 	return out
 }
-func (n nodeImpl) FilterElementChildrenByLocalName(p NamePair) []Element {
+func (n nodeImpl) FilterElementChildrenByLocalName(namePair NamePair) []Element {
 	return n.FilterElementChildren(func(e Element) bool {
-		return e.IsElement(p)
+		return e.IsElement(namePair)
 	})
 }
 
@@ -168,6 +226,9 @@ func (n nodeImpl) ChildTextNode() (string, bool) {
 //
 // Functions that are implemented as methods only deal with itself.
 
+// NextSibling returns [next sibling] of the node.
+//
+// [next sibling]: https://dom.spec.whatwg.org/#concept-tree-next-sibling
 func NextSibling(node Node) Node {
 	if util.IsNil(node.Parent()) {
 		return nil
@@ -179,6 +240,10 @@ func NextSibling(node Node) Node {
 	}
 	return p.Children()[idx+1]
 }
+
+// PrevSibling returns [previous sibling] of the node.
+//
+// [previous sibling]: https://dom.spec.whatwg.org/#concept-tree-previous-sibling
 func PrevSibling(node Node) Node {
 	if util.IsNil(node.Parent()) {
 		return nil
@@ -190,6 +255,10 @@ func PrevSibling(node Node) Node {
 	}
 	return p.Children()[idx-1]
 }
+
+// Root returns [root] of the node.
+//
+// [root]: https://dom.spec.whatwg.org/#concept-tree-root
 func Root(node Node) Node {
 	var p Node = node
 	for !util.IsNil(p.Parent()) {
@@ -197,11 +266,15 @@ func Root(node Node) Node {
 	}
 	return p
 }
+
+// InTheSameTreeAs reports whether two nodes share the same root.
 func InTheSameTreeAs(node, other Node) bool {
 	return Root(node) == Root(other)
 }
 
-// https://dom.spec.whatwg.org/#concept-tree-index
+// Index returns [index] of the node.
+//
+// [index]: https://dom.spec.whatwg.org/#concept-tree-index
 func Index(node Node) int {
 	p := node.Parent()
 	if util.IsNil(p) {
@@ -216,7 +289,9 @@ func Index(node Node) int {
 	return -1
 }
 
-// https://dom.spec.whatwg.org/#concept-tree-inclusive-descendant
+// InclusiveDescendants returns [inclusive descendant] nodes of rootNode.
+//
+// [inclusive descendant]: https://dom.spec.whatwg.org/#concept-tree-inclusive-descendant
 func InclusiveDescendants(rootNode Node) []Node {
 	// In a nutshell: It's just DFS search.
 	out := []Node{}
@@ -262,12 +337,16 @@ func InclusiveDescendants(rootNode Node) []Node {
 	return out
 }
 
-// https://dom.spec.whatwg.org/#concept-tree-descendant
+// Descendants returns [descendant] nodes of rootNode.
+//
+// [descendant]: https://dom.spec.whatwg.org/#concept-tree-descendant
 func Descendants(rootNode Node) []Node {
 	return InclusiveDescendants(rootNode)[1:]
 }
 
-// https://dom.spec.whatwg.org/#concept-tree-inclusive-ancestor
+// InclusiveAncestors returns [inclusive ancestor] nodes of rootNode.
+//
+// [inclusive ancestor]: https://dom.spec.whatwg.org/#concept-tree-inclusive-ancestor
 func InclusiveAncestors(node Node) []Node {
 	out := []Node{node}
 	p := node
@@ -278,12 +357,16 @@ func InclusiveAncestors(node Node) []Node {
 	return out
 }
 
-// https://dom.spec.whatwg.org/#concept-tree-ancestor
+// Ancestors returns [ancestor] nodes of rootNode.
+//
+// [ancestor]: https://dom.spec.whatwg.org/#concept-tree-ancestor
 func Ancestors(rootNode Node) []Node {
 	return InclusiveAncestors(rootNode)[1:]
 }
 
-// https://dom.spec.whatwg.org/#concept-shadow-including-root
+// ShadowIncludingRoot returns [shadow-including root] of the node.
+//
+// [shadow-including root]: https://dom.spec.whatwg.org/#concept-shadow-including-root
 func ShadowIncludingRoot(node Node) Node {
 	root := Root(node)
 	if sr, ok := root.(ShadowRoot); ok {
@@ -292,7 +375,9 @@ func ShadowIncludingRoot(node Node) Node {
 	return root
 }
 
-// https://dom.spec.whatwg.org/#concept-shadow-including-inclusive-descendant
+// ShadowIncludingInclusiveDescendants returns [shadow-including inclusive descendant] nodes of rootNode.
+//
+// [shadow-including inclusive descendant]: https://dom.spec.whatwg.org/#concept-shadow-including-inclusive-descendant
 func ShadowIncludingInclusiveDescendants(rootNode Node) []Node {
 	descendants := InclusiveDescendants(rootNode)
 	out := []Node{}
@@ -306,36 +391,34 @@ func ShadowIncludingInclusiveDescendants(rootNode Node) []Node {
 	return out
 }
 
-// https://dom.spec.whatwg.org/#concept-shadow-including-descendant
+// ShadowIncludingDescendants returns [shadow-including descendant] nodes of rootNode.
+//
+// [shadow-including descendant]: https://dom.spec.whatwg.org/#concept-shadow-including-descendant
 func ShadowIncludingDescendants(rootNode Node) []Node {
 	return ShadowIncludingInclusiveDescendants(rootNode)[1:]
 }
 
-func LookupCustomElementRegistry(node Node) *CustomElementRegistry {
-	if x, ok := node.(Element); ok {
-		return x.CustomElementRegistry()
-	}
-	if x, ok := node.(Document); ok {
-		return x.CustomElementRegistry()
-	}
-	if x, ok := node.(ShadowRoot); ok {
-		return x.CustomElementRegistry()
-	}
-	return nil
-}
-
-// https://dom.spec.whatwg.org/#connected
+// IsConnected reports whether node is [connected].
+//
+// [connected]: https://dom.spec.whatwg.org/#connected
 func IsConnected(node Node) bool {
 	return ShadowIncludingRoot(node) == node.NodeDocument()
 }
 
-// https://dom.spec.whatwg.org/#in-a-document-tree
+// IsInDocumentTree reports whether node is [in a document tree].
+//
+// [in a document tree]: https://dom.spec.whatwg.org/#in-a-document-tree
 func IsInDocumentTree(node Node) bool {
 	_, ok := Root(node).(Document)
 	return ok
 }
 
-// https://dom.spec.whatwg.org/#concept-node-insert
+// Insert inserts the node to parent before beforeChild.
+// If beforeChild is nil, node is inserted at the end of parent's children instead.
+//
+// I'm not entirely sure what suppressObservers does yet (it's part of spec).
+//
+// Spec: https://dom.spec.whatwg.org/#concept-node-insert
 func Insert(node, parent, beforeChild Node, suppressObservers bool) {
 	// NOTE: All the step numbers(S#.) are based on spec from when this was initially written(2025.11.13)
 
@@ -441,11 +524,15 @@ func Insert(node, parent, beforeChild Node, suppressObservers bool) {
 
 	node.SetParent(parent)
 }
+
+// AppendChild is shorthand for [Insert], that just adds child to the node.
 func AppendChild(node, child Node) {
 	Insert(child, node, nil, false)
 }
 
-// https://dom.spec.whatwg.org/#concept-node-adopt
+// AdoptNodeInto adopts node into the document.
+//
+// Spec: https://dom.spec.whatwg.org/#concept-node-adopt
 func AdoptNodeInto(node Node, document Document) {
 	// NOTE: All the step numbers(S#.) are based on spec from when this was initially written(2025.11.13)
 
@@ -466,7 +553,7 @@ func AdoptNodeInto(node Node, document Document) {
 				// S3-1-2.
 				_ = inclusiveDescendantSr
 				// TODO: set inclusiveDescendant’s custom element registry to document’s effective global custom element registry.
-				inclusiveDescendantSr.SetCustomElementRegistry(document.EffectiveGLobalCustomElementRegistry())
+				inclusiveDescendantSr.SetCustomElementRegistry(document.EffectiveGlobalCustomElementRegistry())
 				panic("TODO[https://dom.spec.whatwg.org/#concept-node-adopt]")
 			} else if e, ok := inclusiveDescendant.(Element); ok {
 				// S3-1-3.
@@ -498,6 +585,7 @@ func AdoptNodeInto(node Node, document Document) {
 	}
 }
 
+// PrintTree prints DOM tree to standard output.
 func PrintTree(node Node) {
 	currNode := node
 	count := 0
@@ -511,6 +599,23 @@ func PrintTree(node Node) {
 	for _, child := range currNode.Children() {
 		PrintTree(child)
 	}
+}
+
+// LookupCustomElementRegistry returns custom element registry for the node, or
+// nil if not applicable.
+//
+// Spec: https://html.spec.whatwg.org/multipage/custom-elements.html#look-up-a-custom-element-registry
+func LookupCustomElementRegistry(node Node) *CustomElementRegistry {
+	if x, ok := node.(Element); ok {
+		return x.CustomElementRegistry()
+	}
+	if x, ok := node.(Document); ok {
+		return x.CustomElementRegistry()
+	}
+	if x, ok := node.(ShadowRoot); ok {
+		return x.CustomElementRegistry()
+	}
+	return nil
 }
 
 type testNode struct {

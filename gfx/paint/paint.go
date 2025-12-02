@@ -1,4 +1,8 @@
-package gfx
+// Package paint provides paint tree and painting operations.
+//
+// Paint tree is generated during layout process(see layout package), and
+// drawn to the destination image by Paint()ing the root node.
+package paint
 
 import (
 	"fmt"
@@ -6,17 +10,24 @@ import (
 	"image/color"
 	"image/draw"
 	"strings"
+
+	"github.com/inseo-oh/yw/gfx"
 )
 
+// Node represents a node in the paint tree.
 type PaintNode interface {
+	// Paint paints to the dest.
 	Paint(dest *image.RGBA)
+
+	// String returns decscription of the node.
 	String() string
 }
 
+// Text is Node that paints a text.
 type TextPaint struct {
 	Left, Top float64
 	Text      string
-	Font      Font
+	Font      gfx.Font
 	Size      float64
 	Color     color.RGBA
 }
@@ -33,9 +44,10 @@ func (t TextPaint) String() string {
 	return fmt.Sprintf("text-paint(%s) %v %g", t.Text, t.Color, t.Size)
 }
 
+// Text is Node that paints a box.
 type BoxPaint struct {
 	Items []PaintNode
-	Rect  Rect
+	Rect  gfx.Rect
 	Color color.RGBA
 }
 
@@ -55,7 +67,8 @@ func (t BoxPaint) String() string {
 	return fmt.Sprintf("box-paint(color=%v, rect=%v, %d items)", t.Color, t.Rect, len(t.Items))
 }
 
-func PrintPaintTree(node PaintNode) {
+// PrintTree prints paint tree to the standard output.
+func PrintTree(node PaintNode) {
 	var doPrint func(node PaintNode, indentLevel int)
 	doPrint = func(node PaintNode, indentLevel int) {
 		currNode := node

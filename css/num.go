@@ -64,7 +64,7 @@ func (n Num) Clamp(min, max Num) Num {
 	return n
 }
 
-// Represents the number in CSS form
+// Num represents the number in CSS form
 func (n Num) String() string {
 	if n.Type == NumTypeFloat {
 		return fmt.Sprintf("%f", n.ToFloat())
