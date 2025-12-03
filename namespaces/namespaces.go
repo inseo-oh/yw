@@ -1,25 +1,23 @@
+// Package namespaces provides various namespace values.
 package namespaces
 
 import "fmt"
 
+// Namespace is simply a string containing URL. And while they are URL, it's not
+// used to pull data from it. URL is simply used as unique identifier value.
 type Namespace string
 
-const (
-	Html   = Namespace("http://www.w3.org/1999/xhtml")
-	Mathml = Namespace("http://www.w3.org/1998/Math/MathML")
-	Svg    = Namespace("http://www.w3.org/2000/svg")
-	Xlink  = Namespace("http://www.w3.org/1999/xlink")
-	Xml    = Namespace("http://www.w3.org/XML/1998/namespace")
-	Xmlns  = Namespace("http://www.w3.org/2000/xmlns/")
+var (
+	Html   Namespace = "http://www.w3.org/1999/xhtml"
+	Mathml Namespace = "http://www.w3.org/1998/Math/MathML"
+	Svg    Namespace = "http://www.w3.org/2000/svg"
+	Xlink  Namespace = "http://www.w3.org/1999/xlink"
+	Xml    Namespace = "http://www.w3.org/XML/1998/namespace"
+	Xmlns  Namespace = "http://www.w3.org/2000/xmlns/"
 )
 
-func HtmlP() *Namespace   { v := Html; return &v }
-func MathmlP() *Namespace { v := Mathml; return &v }
-func SvgP() *Namespace    { v := Svg; return &v }
-func XlinkP() *Namespace  { v := Xlink; return &v }
-func XmlP() *Namespace    { v := Xml; return &v }
-func XmlnsP() *Namespace  { v := Xmlns; return &v }
-
+// String description of the namespace. For known namespaces, their names will
+// be returned instead of the URL.
 func (n Namespace) String() string {
 	switch n {
 	case Html:

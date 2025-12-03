@@ -3,24 +3,29 @@ package layout
 import "github.com/inseo-oh/yw/gfx/paint"
 
 type Node interface {
-	NodeType() NodeType
-	ParentNode() Node
-	MakePaintNode() paint.PaintNode
-	IsBlockLevel() bool
+	// MakePaintNode creates a paint node for given node and its children.
+	// (So calling this on the root node will generate paint tree for the whole page)
+	MakePaintNode() paint.Node
+
+	// String returns description of the node.
 	String() string
+
+	nodeType() nodeType
+	parentNode() Node
+	isBlockLevel() bool
 }
-type NodeCommon struct {
+type nodeCommon struct {
 	parent Node
 }
 
-type NodeType uint8
+type nodeType uint8
 
 const (
-	NodeTypeInlineBox NodeType = iota
-	NodeTypeBlockContainer
-	NodeTypeText
+	nodeTypeInlineBox nodeType = iota
+	nodeTypeBlockContainer
+	nodeTypeText
 )
 
-func (n NodeCommon) ParentNode() Node {
+func (n nodeCommon) parentNode() Node {
 	return n.parent
 }

@@ -14,7 +14,7 @@ type textImpl struct {
 
 // NewText constructs a new [Text] node.
 func NewText(doc Document, text string) Text {
-	return &textImpl{NewCharacterData(doc, text, TextCharacterData)}
+	return &textImpl{newCharacterData(doc, text, TextCharacterData)}
 }
 func (t textImpl) String() string {
 	return strconv.Quote(t.Text())

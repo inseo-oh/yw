@@ -9,21 +9,27 @@ import (
 	"github.com/inseo-oh/yw/css/cssom"
 	"github.com/inseo-oh/yw/css/csssyntax"
 	"github.com/inseo-oh/yw/dom"
-	"github.com/inseo-oh/yw/html/urlfetch"
+	"github.com/inseo-oh/yw/html/fetch"
 )
 
 // STUB
-type SourceSet struct{}
+type sourceSet struct{}
 
+// HTMLLinkElement represents a [link] element.
+//
+// [link]: https://html.spec.whatwg.org/multipage/semantics.html#the-link-element
 type HTMLLinkElement interface {
 	HTMLElement
-	ProcessLink()
+	processLink()
 }
 type htmlLinkElementImpl struct {
 	HTMLElement
-	sourceSet []SourceSet
+	sourceSet []sourceSet
 }
 
+// NewHTMLLinkElement constructs a new [HTMLLinkElement] node.
+//
+// [html]: https://html.spec.whatwg.org/multipage/semantics.html#the-html-element
 func NewHTMLLinkElement(options dom.ElementCreationCommonOptions) HTMLLinkElement {
 	elem := &htmlLinkElementImpl{
 		HTMLElement: NewHTMLElement(options),
@@ -34,12 +40,12 @@ func NewHTMLLinkElement(options dom.ElementCreationCommonOptions) HTMLLinkElemen
 	// HTML Spec defines precisely when link element should be processed, but this will do the job for now.
 	// (Example: https://html.spec.whatwg.org/multipage/links.html#link-type-stylesheet)
 	cbs.PoppedFromStackOfOpenElements = func() {
-		elem.ProcessLink()
+		elem.processLink()
 	}
 	return elem
 }
 
-func (elem htmlLinkElementImpl) ProcessLink() {
+func (elem htmlLinkElementImpl) processLink() {
 	rel, ok := elem.AttrWithoutNamespace("rel")
 	if !ok {
 		return
@@ -62,16 +68,16 @@ func (elem htmlLinkElementImpl) ProcessLink() {
 		tp              string                          // https://html.spec.whatwg.org/multipage/semantics.html#link-options-type
 		nonce           string                          // https://html.spec.whatwg.org/multipage/semantics.html#link-options-nonce
 		destination     string                          // https://html.spec.whatwg.org/multipage/semantics.html#link-options-destination
-		crossorigin     urlfetch.CorsSettings           // https://html.spec.whatwg.org/multipage/semantics.html#link-options-crossorigin
+		crossorigin     fetch.CorsSettings              // https://html.spec.whatwg.org/multipage/semantics.html#link-options-crossorigin
 		referrerPolicy  any                             // [STUB] https://html.spec.whatwg.org/multipage/semantics.html#link-options-referrer-policy
-		sourceSet       []SourceSet                     // https://html.spec.whatwg.org/multipage/semantics.html#link-options-source-set
+		sourceSet       []sourceSet                     // https://html.spec.whatwg.org/multipage/semantics.html#link-options-source-set
 		baseURL         url.URL                         // https://html.spec.whatwg.org/multipage/semantics.html#link-options-base-url
 		origin          dom.DocumentOrigin              // https://html.spec.whatwg.org/multipage/semantics.html#link-options-origin
 		environment     dom.DocumentEnvironmentSettings // https://html.spec.whatwg.org/multipage/semantics.html#link-options-environment
 		policyContainer dom.DocumentPolicyContainer     // https://html.spec.whatwg.org/multipage/semantics.html#link-options-policy-container
 		document        dom.Document                    // https://html.spec.whatwg.org/multipage/semantics.html#link-options-document
 		onDocumentReady func(doc dom.Document)          // https://html.spec.whatwg.org/multipage/semantics.html#link-options-on-document-ready
-		fetchPriority   urlfetch.FetchPriority          // https://html.spec.whatwg.org/multipage/semantics.html#link-options-fetch-priority
+		fetchPriority   fetch.FetchPriority             // https://html.spec.whatwg.org/multipage/semantics.html#link-options-fetch-priority
 	}
 	defaultLinkProcessingOptions := func() linkProcessingOptions {
 		return linkProcessingOptions{
@@ -81,12 +87,12 @@ func (elem htmlLinkElementImpl) ProcessLink() {
 			tp:              "",
 			nonce:           "",
 			destination:     "",
-			crossorigin:     urlfetch.CorsNone,
+			crossorigin:     fetch.CorsNone,
 			referrerPolicy:  nil,
 			sourceSet:       nil,
 			document:        nil,
 			onDocumentReady: nil,
-			fetchPriority:   urlfetch.FetchPriorityAuto,
+			fetchPriority:   fetch.FetchPriorityAuto,
 		}
 	}
 
@@ -94,7 +100,7 @@ func (elem htmlLinkElementImpl) ProcessLink() {
 	createLinkOptions := func() linkProcessingOptions {
 		document := elem.NodeDocument()
 		options := defaultLinkProcessingOptions()
-		options.crossorigin = urlfetch.CorsSettingsFromAttr(elem, "crossorigin")
+		options.crossorigin = fetch.CorsSettingsFromAttr(elem, "crossorigin")
 		options.referrerPolicy = nil // TODO
 		options.sourceSet = elem.sourceSet
 		options.baseURL = document.BaseURL()
@@ -103,7 +109,7 @@ func (elem htmlLinkElementImpl) ProcessLink() {
 		options.policyContainer = document.PolicyContainer()
 		options.document = document
 		options.nonce = "" // TODO
-		options.fetchPriority = urlfetch.FetchPriorityFromAttr(elem, "fetchpriority")
+		options.fetchPriority = fetch.FetchPriorityFromAttr(elem, "fetchpriority")
 		if attr, ok := elem.AttrWithoutNamespace("href"); ok {
 			options.href = attr
 		}

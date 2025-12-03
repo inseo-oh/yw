@@ -1,3 +1,4 @@
+// Package browser provides entrypoint of the web browser.
 package browser
 
 import (
@@ -21,8 +22,10 @@ import (
 	"github.com/inseo-oh/yw/platform"
 )
 
+// State of the browser
 type Browser struct{}
 
+// Loads the document from urlStr URL, and renders resulting document to viewportImg.
 func (b *Browser) Run(urlStr string, plat platform.Platform, viewportImg *image.RGBA) {
 	debugBuiltinStylesheet := false
 

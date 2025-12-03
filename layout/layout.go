@@ -1,3 +1,4 @@
+// Package layout implements the layout engine.
 package layout
 
 import (
@@ -17,8 +18,9 @@ const (
 	writeModeVertical
 )
 
-// https://www.w3.org/TR/css-display-3/#initial-containing-block
+// Build builds the layout starting from the DOM node root.
 func Build(root dom.Element, viewportWidth, viewportHeight float64, plat platform.Platform) Node {
+	// https://www.w3.org/TR/css-display-3/#initial-containing-block
 	tb := treeBuilder{}
 	tb.font = plat.OpenFont("this_is_not_real_filename.ttf")
 	tb.font.SetTextSize(32)
@@ -33,11 +35,12 @@ func Build(root dom.Element, viewportWidth, viewportHeight float64, plat platfor
 	return icb
 }
 
+// PrintTree prints the layout tree.
 func PrintTree(node Node) {
 	currNode := node
 	count := 0
-	if !util.IsNil(currNode.ParentNode()) {
-		for n := currNode.ParentNode(); !util.IsNil(n); n = n.ParentNode() {
+	if !util.IsNil(currNode.parentNode()) {
+		for n := currNode.parentNode(); !util.IsNil(n); n = n.parentNode() {
 			count += 4
 		}
 	}

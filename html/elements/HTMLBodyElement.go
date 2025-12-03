@@ -98,6 +98,9 @@ func parseLegacyColor(input string) (csscolor.Color, bool) {
 	return csscolor.NewRgba(uint8(red), uint8(green), uint8(blue), 255), true
 }
 
+// NewHTMLBodyElement constructs a new [HTMLElement] node for a [body] element.
+//
+// [body]: https://html.spec.whatwg.org/multipage/sections.html#the-body-element
 func NewHTMLBodyElement(options dom.ElementCreationCommonOptions) HTMLElement {
 	elem := NewHTMLElement(options)
 

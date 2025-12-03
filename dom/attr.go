@@ -40,10 +40,7 @@ type Attr interface {
 
 // AttrData is ligher weight version of [Attr]. This isn't a DOM node, but can
 // hold data needed to create an [Attr].
-//
-// TODO(ois): Remove the Node field!
 type AttrData struct {
-	Node
 	LocalName       string                // local name of the attribute.
 	Value           string                // value of the attribute.
 	Namespace       *namespaces.Namespace // namespace of the attribute, nil if absent.

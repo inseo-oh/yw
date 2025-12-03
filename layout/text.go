@@ -9,8 +9,8 @@ import (
 	"github.com/inseo-oh/yw/gfx/paint"
 )
 
-type Text struct {
-	NodeCommon
+type text struct {
+	nodeCommon
 	rect     gfx.Rect
 	text     string
 	font     gfx.Font
@@ -18,13 +18,13 @@ type Text struct {
 	color    color.RGBA
 }
 
-func (txt Text) String() string {
+func (txt text) String() string {
 	return fmt.Sprintf("text %s at [%v]", strconv.Quote(txt.text), txt.rect)
 }
-func (txt Text) NodeType() NodeType {
-	return NodeTypeText
+func (txt text) nodeType() nodeType {
+	return nodeTypeText
 }
-func (txt Text) MakePaintNode() paint.PaintNode {
+func (txt text) MakePaintNode() paint.Node {
 	return paint.TextPaint{
 		Left:  txt.rect.Left,
 		Top:   txt.rect.Top,
@@ -34,4 +34,4 @@ func (txt Text) MakePaintNode() paint.PaintNode {
 		Color: txt.color,
 	}
 }
-func (txt Text) IsBlockLevel() bool { return false }
+func (txt text) isBlockLevel() bool { return false }

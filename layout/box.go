@@ -18,21 +18,21 @@ type box interface {
 	logicalWidth(writeMode writeMode) float64
 	logicalHeight(writeMode writeMode) float64
 	ChildBoxes() []box
-	ChildTexts() []*Text
+	ChildTexts() []*text
 	isWidthAuto() bool
 	isHeightAuto() bool
 	incrementSize(width, height float64)
 	incrementIfNeeded(width, height float64)
 }
 type boxCommon struct {
-	NodeCommon
+	nodeCommon
 	elem       dom.Element
 	marginRect gfx.Rect
 	margin     gfx.Edges
 	widthAuto  bool
 	heightAuto bool
 	childBoxes []box
-	childTexts []*Text
+	childTexts []*text
 }
 
 func (bx boxCommon) boxElement() dom.Element  { return bx.elem }
@@ -58,7 +58,7 @@ func (bx boxCommon) logicalHeight(writeMode writeMode) float64 {
 func (bx boxCommon) ChildBoxes() []box {
 	return bx.childBoxes
 }
-func (bx boxCommon) ChildTexts() []*Text {
+func (bx boxCommon) ChildTexts() []*text {
 	return bx.childTexts
 }
 func (bx boxCommon) isWidthAuto() bool  { return bx.widthAuto }
@@ -69,7 +69,7 @@ func (bx *boxCommon) incrementSize(width, height float64) {
 	}
 	bx.marginRect.Width += width
 	bx.marginRect.Height += height
-	parent := bx.ParentNode()
+	parent := bx.parentNode()
 	if !util.IsNil(parent) {
 		if parent, ok := parent.(box); ok {
 			w := width
@@ -89,8 +89,8 @@ func (bx *boxCommon) incrementIfNeeded(minWidth, minHeight float64) {
 	hDiff := max(minHeight-bx.boxContentRect().Height, 0)
 	bx.incrementSize(wDiff, hDiff)
 }
-func (bx boxCommon) MakePaintNode() paint.PaintNode {
-	paintNodes := []paint.PaintNode{}
+func (bx boxCommon) MakePaintNode() paint.Node {
+	paintNodes := []paint.Node{}
 
 	var color = csscolor.Transparent
 	if bx.elem != nil {

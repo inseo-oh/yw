@@ -4,7 +4,8 @@ import (
 	"reflect"
 )
 
-func ConsumeLongestString(strs []string) string {
+// LongestString returns longest string from given list of strings.
+func LongestString(strs []string) string {
 	longest := ""
 	for _, str := range strs {
 		if len(longest) < len(str) {
@@ -14,6 +15,9 @@ func ConsumeLongestString(strs []string) string {
 	return longest
 }
 
+// IsNil reports whether value t is a nil value using [reflect.Value.IsNil].
+//
+// This is primaily used for checking nil on a interface value.
 func IsNil(t any) bool {
 	// IsNil() will panic if the value is not supported by it (e.g. Struct).
 	// So we recover() from the panic if that happens.
@@ -22,6 +26,7 @@ func IsNil(t any) bool {
 	return t == nil || reflect.ValueOf(t).IsNil()
 }
 
+// MakeStrPtr returns a new string pointer of s.
 func MakeStrPtr(s string) *string {
 	return &s
 }

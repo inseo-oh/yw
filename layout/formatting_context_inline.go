@@ -15,7 +15,7 @@ type inlineFormattingContext struct {
 	lineBoxes []lineBox       // List of line boxes
 }
 
-func (ifc inlineFormattingContext) formattingContextType() FormattingContextType {
+func (ifc inlineFormattingContext) formattingContextType() formattingContextType {
 	return formattingContextTypeInline
 }
 func (ifc *inlineFormattingContext) addLineBox(bfc *blockFormattingContext) {

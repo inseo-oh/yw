@@ -144,9 +144,9 @@ func TestHtmlParser(t *testing.T) {
 		{"", makeDoc(dom.Quirks,
 			func(doc dom.Document) []dom.Node {
 				return []dom.Node{
-					makeElem(doc, "html", namespaces.HtmlP(), []dom.Node{
-						makeElem(doc, "head", namespaces.HtmlP(), nil),
-						makeElem(doc, "body", namespaces.HtmlP(), nil),
+					makeElem(doc, "html", &namespaces.Html, []dom.Node{
+						makeElem(doc, "head", &namespaces.Html, nil),
+						makeElem(doc, "body", &namespaces.Html, nil),
 					}),
 				}
 			},
@@ -156,9 +156,9 @@ func TestHtmlParser(t *testing.T) {
 			func(doc dom.Document) []dom.Node {
 				return []dom.Node{
 					dom.NewDocumentType(doc, "html", "", ""),
-					makeElem(doc, "html", namespaces.HtmlP(), []dom.Node{
-						makeElem(doc, "head", namespaces.HtmlP(), nil),
-						makeElem(doc, "body", namespaces.HtmlP(), nil),
+					makeElem(doc, "html", &namespaces.Html, []dom.Node{
+						makeElem(doc, "head", &namespaces.Html, nil),
+						makeElem(doc, "body", &namespaces.Html, nil),
 					}),
 				}
 			},
@@ -169,9 +169,9 @@ func TestHtmlParser(t *testing.T) {
 			func(doc dom.Document) []dom.Node {
 				return []dom.Node{
 					dom.NewDocumentType(doc, "html", "", ""),
-					makeElem(doc, "html", namespaces.HtmlP(), []dom.Node{
-						makeElem(doc, "head", namespaces.HtmlP(), nil),
-						makeElem(doc, "body", namespaces.HtmlP(), nil),
+					makeElem(doc, "html", &namespaces.Html, []dom.Node{
+						makeElem(doc, "head", &namespaces.Html, nil),
+						makeElem(doc, "body", &namespaces.Html, nil),
 					}),
 				}
 			},
@@ -181,9 +181,9 @@ func TestHtmlParser(t *testing.T) {
 			func(doc dom.Document) []dom.Node {
 				return []dom.Node{
 					dom.NewDocumentType(doc, "html", "", ""),
-					makeElem(doc, "html", namespaces.HtmlP(), []dom.Node{
-						makeElem(doc, "head", namespaces.HtmlP(), nil),
-						makeElem(doc, "body", namespaces.HtmlP(), []dom.Node{
+					makeElem(doc, "html", &namespaces.Html, []dom.Node{
+						makeElem(doc, "head", &namespaces.Html, nil),
+						makeElem(doc, "body", &namespaces.Html, []dom.Node{
 							dom.NewText(doc, "abc"),
 						}),
 					}),
@@ -195,15 +195,15 @@ func TestHtmlParser(t *testing.T) {
 			func(doc dom.Document) []dom.Node {
 				return []dom.Node{
 					dom.NewDocumentType(doc, "html", "", ""),
-					makeElem(doc, "html", namespaces.HtmlP(), []dom.Node{
-						makeElem(doc, "head", namespaces.HtmlP(), nil),
-						makeElem(doc, "body", namespaces.HtmlP(), []dom.Node{
-							makeElem(doc, "h1", namespaces.HtmlP(), []dom.Node{}),
-							makeElem(doc, "h2", namespaces.HtmlP(), []dom.Node{}),
-							makeElem(doc, "h3", namespaces.HtmlP(), []dom.Node{}),
-							makeElem(doc, "h4", namespaces.HtmlP(), []dom.Node{}),
-							makeElem(doc, "h5", namespaces.HtmlP(), []dom.Node{}),
-							makeElem(doc, "h6", namespaces.HtmlP(), []dom.Node{}),
+					makeElem(doc, "html", &namespaces.Html, []dom.Node{
+						makeElem(doc, "head", &namespaces.Html, nil),
+						makeElem(doc, "body", &namespaces.Html, []dom.Node{
+							makeElem(doc, "h1", &namespaces.Html, []dom.Node{}),
+							makeElem(doc, "h2", &namespaces.Html, []dom.Node{}),
+							makeElem(doc, "h3", &namespaces.Html, []dom.Node{}),
+							makeElem(doc, "h4", &namespaces.Html, []dom.Node{}),
+							makeElem(doc, "h5", &namespaces.Html, []dom.Node{}),
+							makeElem(doc, "h6", &namespaces.Html, []dom.Node{}),
 						}),
 					}),
 				}
@@ -214,19 +214,19 @@ func TestHtmlParser(t *testing.T) {
 			func(doc dom.Document) []dom.Node {
 				return []dom.Node{
 					dom.NewDocumentType(doc, "html", "", ""),
-					makeElem(doc, "html", namespaces.HtmlP(), []dom.Node{
-						makeElem(doc, "head", namespaces.HtmlP(), []dom.Node{}),
-						makeElem(doc, "body", namespaces.HtmlP(), []dom.Node{
-							makeElem(doc, "li", namespaces.HtmlP(), []dom.Node{}),
-							makeElem(doc, "li", namespaces.HtmlP(), []dom.Node{}),
-							makeElem(doc, "li", namespaces.HtmlP(), []dom.Node{}),
-							makeElem(doc, "li", namespaces.HtmlP(), []dom.Node{
-								makeElem(doc, "dd", namespaces.HtmlP(), []dom.Node{}),
-								makeElem(doc, "dt", namespaces.HtmlP(), []dom.Node{}),
-								makeElem(doc, "dd", namespaces.HtmlP(), []dom.Node{}),
-								makeElem(doc, "dt", namespaces.HtmlP(), []dom.Node{}),
-								makeElem(doc, "dd", namespaces.HtmlP(), []dom.Node{}),
-								makeElem(doc, "dt", namespaces.HtmlP(), []dom.Node{}),
+					makeElem(doc, "html", &namespaces.Html, []dom.Node{
+						makeElem(doc, "head", &namespaces.Html, []dom.Node{}),
+						makeElem(doc, "body", &namespaces.Html, []dom.Node{
+							makeElem(doc, "li", &namespaces.Html, []dom.Node{}),
+							makeElem(doc, "li", &namespaces.Html, []dom.Node{}),
+							makeElem(doc, "li", &namespaces.Html, []dom.Node{}),
+							makeElem(doc, "li", &namespaces.Html, []dom.Node{
+								makeElem(doc, "dd", &namespaces.Html, []dom.Node{}),
+								makeElem(doc, "dt", &namespaces.Html, []dom.Node{}),
+								makeElem(doc, "dd", &namespaces.Html, []dom.Node{}),
+								makeElem(doc, "dt", &namespaces.Html, []dom.Node{}),
+								makeElem(doc, "dd", &namespaces.Html, []dom.Node{}),
+								makeElem(doc, "dt", &namespaces.Html, []dom.Node{}),
 							}),
 						}),
 					}),

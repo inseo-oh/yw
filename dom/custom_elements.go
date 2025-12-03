@@ -6,7 +6,7 @@ import "github.com/inseo-oh/yw/namespaces"
 //
 // [HTML CustomElementRegistry]: https://html.spec.whatwg.org/multipage/custom-elements.html#customelementregistry
 //
-// TODO(ois): This type is currently STUB.
+// TODO(ois): CustomElementRegistry is currently STUB.
 type CustomElementRegistry struct {
 	IsScoped          bool       // https://html.spec.whatwg.org/multipage/custom-elements.html#is-scoped
 	ScopedDocumentSet []Document // https://html.spec.whatwg.org/multipage/custom-elements.html#scoped-document-set

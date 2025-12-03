@@ -35,8 +35,8 @@ func (bcon blockContainer) String() string {
 		"block-container [elem %v] at [LTRB %s %s %s %s (%gx%g)] %s",
 		bcon.elem, leftStr, topStr, rightStr, bottomStr, bcon.marginRect.Width, bcon.marginRect.Height, fcStr)
 }
-func (bcon blockContainer) NodeType() NodeType { return NodeTypeBlockContainer }
-func (bcon blockContainer) IsBlockLevel() bool { return true }
+func (bcon blockContainer) nodeType() nodeType { return nodeTypeBlockContainer }
+func (bcon blockContainer) isBlockLevel() bool { return true }
 
 // NOTE: This should *only* be called once after making layout node.
 func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, writeMode writeMode) {
@@ -54,7 +54,7 @@ func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, wr
 			continue
 		}
 		for _, node := range nodes {
-			if node.IsBlockLevel() {
+			if node.isBlockLevel() {
 				hasBlock = true
 			} else {
 				hasInline = true
@@ -103,7 +103,7 @@ func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, wr
 		for _, node := range nodes {
 			if bx, ok := node.(box); ok {
 				bcon.childBoxes = append(bcon.childBoxes, bx)
-			} else if txt, ok := node.(*Text); ok {
+			} else if txt, ok := node.(*text); ok {
 				bcon.childTexts = append(bcon.childTexts, txt)
 			} else {
 				log.Panicf("unknown node result %v", node)

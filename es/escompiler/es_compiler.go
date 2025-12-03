@@ -42,7 +42,7 @@ func (comp *compiler) consumePunctuator() string {
 	}
 	comp.tkh.Cursor = oldCursor
 	candiates = append(candiates, comp.tkh.ConsumeStrIfMatchesOneOf(otherPuncts, 0))
-	return util.ConsumeLongestString(candiates)
+	return util.LongestString(candiates)
 }
 
 var divPuncts = []string{"/", "/="}
@@ -183,7 +183,7 @@ func (comp *compiler) consumeEscapeSequence() string {
 		}
 	}
 
-	res := util.ConsumeLongestString(candidates)
+	res := util.LongestString(candidates)
 	comp.tkh.Cursor = oldCursor + len([]rune(res))
 	return res
 }
@@ -223,7 +223,7 @@ func (comp *compiler) consumeNumericLiteral() string {
 	candidates = append(candidates, comp.consumeLegacyOctalIntegerLiteral())
 	comp.tkh.Cursor = oldCursor
 
-	res := util.ConsumeLongestString(candidates)
+	res := util.LongestString(candidates)
 	comp.tkh.Cursor = oldCursor + len([]rune(res))
 	return res
 }
@@ -264,7 +264,7 @@ func (comp *compiler) consumeDecimalIntegerLiteral() string {
 		candidates = append(candidates, digits)
 	}
 	// TODO: https://tc39.es/ecma262/#prod-NonOctalDecimalIntegerLiteral
-	res := util.ConsumeLongestString(candidates)
+	res := util.LongestString(candidates)
 	comp.tkh.Cursor = oldCursor + len([]rune(res))
 	return res
 }
@@ -310,7 +310,7 @@ func (comp *compiler) consumeNonDecimalIntegerLiteral(flags struct{ sep bool }) 
 	candidates = append(candidates, comp.consumeHexIntegerLiteral(struct{ sep bool }{flags.sep}))
 	comp.tkh.Cursor = oldCursor
 
-	res := util.ConsumeLongestString(candidates)
+	res := util.LongestString(candidates)
 	comp.tkh.Cursor = oldCursor + len([]rune(res))
 	return res
 }

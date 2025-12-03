@@ -24,9 +24,9 @@ func (bx inlineBox) String() string {
 		bx.elem, leftStr, topStr, rightStr, bottomStr, bx.marginRect.Width, bx.marginRect.Height,
 	)
 }
-func (bx inlineBox) NodeType() NodeType      { return NodeTypeInlineBox }
+func (bx inlineBox) nodeType() nodeType      { return nodeTypeInlineBox }
 func (bx inlineBox) boxMarginRect() gfx.Rect { return bx.marginRect }
-func (bx inlineBox) IsBlockLevel() bool      { return false }
+func (bx inlineBox) isBlockLevel() bool      { return false }
 
 // NOTE: This should *only* be called once after making layout node.
 func (bx *inlineBox) initChildren(
@@ -45,7 +45,7 @@ func (bx *inlineBox) initChildren(
 		for _, node := range nodes {
 			if subBx, ok := node.(box); ok {
 				bx.childBoxes = append(bx.childBoxes, subBx)
-			} else if txt, ok := node.(*Text); ok {
+			} else if txt, ok := node.(*text); ok {
 				bx.childTexts = append(bx.childTexts, txt)
 			} else {
 				log.Panicf("unknown node result %v", node)

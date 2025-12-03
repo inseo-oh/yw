@@ -15,7 +15,7 @@ import (
 )
 
 // Node represents a node in the paint tree.
-type PaintNode interface {
+type Node interface {
 	// Paint paints to the dest.
 	Paint(dest *image.RGBA)
 
@@ -46,7 +46,7 @@ func (t TextPaint) String() string {
 
 // Text is Node that paints a box.
 type BoxPaint struct {
-	Items []PaintNode
+	Items []Node
 	Rect  gfx.Rect
 	Color color.RGBA
 }
@@ -68,9 +68,9 @@ func (t BoxPaint) String() string {
 }
 
 // PrintTree prints paint tree to the standard output.
-func PrintTree(node PaintNode) {
-	var doPrint func(node PaintNode, indentLevel int)
-	doPrint = func(node PaintNode, indentLevel int) {
+func PrintTree(node Node) {
+	var doPrint func(node Node, indentLevel int)
+	doPrint = func(node Node, indentLevel int) {
 		currNode := node
 		indent := strings.Repeat(" ", indentLevel*4)
 		fmt.Printf("%s%v\n", indent, node)

@@ -87,7 +87,7 @@ func (v Value) ExpectBoolean() bool {
 
 // String returns debug string for the value.
 //
-// TODO(ois): We probably could make this represent value using ES syntax.
+// TODO(ois): We probably could make Value.String represent value using ES syntax.
 func (v Value) String() string {
 	switch v.Type {
 	case ValueTypeNull:
@@ -112,7 +112,7 @@ func (v Value) String() string {
 
 // Reference represents a [ES ReferenceRecord].
 //
-// TODO(ois): This is currently just STUB.
+// TODO(ois): Reference is currently just STUB.
 //
 // [ES ReferenceRecord]: https://tc39.es/ecma262/#sec-reference-record-specification-type
 type Reference struct{}

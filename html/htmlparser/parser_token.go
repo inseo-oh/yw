@@ -849,7 +849,7 @@ func (t *tokenizer) run() {
 			if t.tkh.ConsumeStrIfMatches("--", 0) != "" {
 				currTk = &commentToken{data: ""}
 				t.state = commentStartState
-			} else if t.tkh.ConsumeStrIfMatches("DOCTYPE", util.MatchFlagsAsciiCaseInsensitive) != "" {
+			} else if t.tkh.ConsumeStrIfMatches("DOCTYPE", util.AsciiCaseInsensitive) != "" {
 				t.state = doctypeState
 			} else if t.tkh.ConsumeStrIfMatches("[CDATA[", 0) != "" {
 				panic("TODO[https://html.spec.whatwg.org/multipage/parsing.html#markup-declaration-open-state]")
@@ -1053,9 +1053,9 @@ func (t *tokenizer) run() {
 				emitToken(&eofToken{})
 				return
 			default:
-				if t.tkh.ConsumeStrIfMatches("PUBLIC", util.MatchFlagsAsciiCaseInsensitive) != "" {
+				if t.tkh.ConsumeStrIfMatches("PUBLIC", util.AsciiCaseInsensitive) != "" {
 					panic("TODO[https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-name-state]")
-				} else if t.tkh.ConsumeStrIfMatches("SYSTEM", util.MatchFlagsAsciiCaseInsensitive) != "" {
+				} else if t.tkh.ConsumeStrIfMatches("SYSTEM", util.AsciiCaseInsensitive) != "" {
 					panic("TODO[https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-name-state]")
 				} else {
 					t.parseErrorEncountered(invalid_character_sequence_after_doctype_name_error)

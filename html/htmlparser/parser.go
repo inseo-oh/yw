@@ -1,5 +1,7 @@
-//go:generate go run ./entities_gen
+// Package htmlparser provides HTML parser.
 package htmlparser
+
+//go:generate go run ./entities_gen
 
 import (
 	"log"
@@ -142,6 +144,9 @@ func (sot *stackOfTemplateInsertionModes) pop() insertionMode {
 	return node
 }
 
+// Parser holds state of a HTML parser.
+//
+// Empty value won't do anything useful - Use [NewParser] to create one.
 type Parser struct {
 	tokenizer tokenizer
 
@@ -169,10 +174,12 @@ type Parser struct {
 	pendingTableCharTokens []charToken // https://html.spec.whatwg.org/multipage/parsing.html#concept-pending-table-char-tokens
 }
 
-func NewParser(str string) Parser {
-	return Parser{tokenizer: newTokenizer(str)}
+// NewParser creates new parser for given sourceCode.
+func NewParser(sourceCode string) Parser {
+	return Parser{tokenizer: newTokenizer(sourceCode)}
 }
 
+// Run runs the parser, and returns resulting [dom.Document].
 func (p *Parser) Run() dom.Document {
 	if p.Document == nil {
 		p.Document = dom.NewDocument()
@@ -755,7 +762,7 @@ func (p *Parser) applyBeforeHtmlInsertionModeRules(token htmlToken) {
 	} else {
 		elem := elements.NewHTMLHtmlElement(dom.ElementCreationCommonOptions{
 			NodeDocument: p.Document,
-			Namespace:    namespaces.HtmlP(),
+			Namespace:    &namespaces.Html,
 			LocalName:    "html",
 		})
 		dom.AppendChild(p.Document, elem)

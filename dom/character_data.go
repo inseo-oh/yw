@@ -26,10 +26,8 @@ type characterDataImpl struct {
 	text string
 }
 
-// NewCharacterData constructs a new [CharacterData] node.
-//
-// TODO(ois): Make this private
-func NewCharacterData(doc Document, text string, tp CharacterDataType) CharacterData {
+// newCharacterData constructs a new [CharacterData] node.
+func newCharacterData(doc Document, text string, tp CharacterDataType) CharacterData {
 	return &characterDataImpl{NewNode(doc), tp, text}
 }
 
@@ -43,7 +41,7 @@ func (c characterDataImpl) Text() string {
 	return c.text
 }
 
-// AppendText appends the given s to s text.
+// AppendText appends the given s to c's text.
 func (c *characterDataImpl) AppendText(s string) {
 	c.text += s
 }

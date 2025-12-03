@@ -8,11 +8,17 @@ import (
 	"github.com/inseo-oh/yw/dom"
 )
 
+// HTMLStyleElement represents a [style] element.
+//
+// [style]: https://html.spec.whatwg.org/multipage/semantics.html#the-style-element
 type HTMLStyleElement interface{ HTMLElement }
 type htmlStyleElementImpl struct {
 	HTMLElement
 }
 
+// NewHTMLStyleElement constructs a new [HTMLStyleElement] node.
+//
+// [html]: https://html.spec.whatwg.org/multipage/semantics.html#the-html-element
 func NewHTMLStyleElement(options dom.ElementCreationCommonOptions) HTMLStyleElement {
 	elem := htmlStyleElementImpl{
 		HTMLElement: NewHTMLElement(options),

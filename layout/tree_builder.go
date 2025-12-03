@@ -21,14 +21,14 @@ type treeBuilder struct {
 
 func (tb treeBuilder) newText(
 	parent box,
-	text string,
+	txt string,
 	rect gfx.Rect,
 	color color.RGBA,
 	fontSize float64,
-) *Text {
-	t := Text{}
+) *text {
+	t := text{}
 	t.parent = parent
-	t.text = text
+	t.text = txt
 	t.rect = rect
 	t.font = tb.font
 	t.color = color
@@ -135,7 +135,7 @@ func (tb treeBuilder) makeLayoutForNode(
 	{
 		currNode := parentNode
 		for currNode.boxElement() == nil {
-			parent := currNode.ParentNode()
+			parent := currNode.parentNode()
 			if parent == nil {
 				break
 			}
@@ -184,14 +184,14 @@ func (tb treeBuilder) makeLayoutForNode(
 		// You are a very rare person with built-in devtools inside your brain.
 		return nil
 	}
-	if text, ok := domNode.(dom.CharacterData); ok && text.CharacterDataType() == dom.TextCharacterData {
+	if txt, ok := domNode.(dom.CharacterData); ok && txt.CharacterDataType() == dom.TextCharacterData {
 		parentStyleSet := cssom.ElementDataOf(parentElem).ComputedStyleSet
 
 		//======================================================================
 		// Layout for Text nodes
 		//======================================================================
-		var textNode *Text
-		str := text.Text()
+		var textNode *text
+		str := txt.Text()
 
 		// Apply text-transform
 		if v := parentStyleSet.TextTransform(); !util.IsNil(v) {
@@ -407,7 +407,7 @@ func (tb treeBuilder) makeLayoutForNode(
 						if _, ok := parentBcon.(*blockContainer); ok {
 							break
 						}
-						parentBcon = parentBcon.ParentNode().(box)
+						parentBcon = parentBcon.parentNode().(box)
 					}
 					ibox := tb.newInlineBox(parentBcon.(*blockContainer), elem, boxRect, margin, widthAuto, heightAuto)
 					if !dryRun {

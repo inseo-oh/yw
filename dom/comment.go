@@ -16,7 +16,7 @@ type commentImpl struct {
 
 // NewComment constructs a new [Comment] node.
 func NewComment(doc Document, text string) Comment {
-	return &commentImpl{NewCharacterData(doc, text, CommentCharacterData)}
+	return &commentImpl{newCharacterData(doc, text, CommentCharacterData)}
 }
 func (cm commentImpl) String() string {
 	return fmt.Sprintf("<!-- %s -->", cm.Text())
