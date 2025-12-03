@@ -76,7 +76,7 @@ func (ts *tokenStream) parseClassSelector() (res *selector.ClassSelector, err er
 	oldCursor := ts.cursor
 	if err := ts.consumeDelimTokenWith('.'); err != nil {
 		ts.cursor = oldCursor
-		return nil, nil
+		return nil, err
 	}
 	var identTk identToken
 	if temp, err := ts.consumeTokenWith(tokenTypeIdent); err == nil {
@@ -166,7 +166,7 @@ func (ts *tokenStream) parsePseudoClassSelector() (*selector.PseudoClassSelector
 	// <:>name ----------------------------------------------------------------
 	// <:>func(value) ----------------------------------------------------------
 	if _, err := ts.consumeTokenWith(tokenTypeColon); err != nil {
-		return nil, nil
+		return nil, err
 	} else if identTk, err := ts.consumeTokenWith(tokenTypeIdent); err == nil {
 		// :<name> ------------------------------------------------------------
 		name := identTk.(identToken).value
@@ -191,7 +191,7 @@ func (ts *tokenStream) parsePseudoClassSelector() (*selector.PseudoClassSelector
 		return &selector.PseudoClassSelector{Name: name, Args: argsNew}, nil
 	} else {
 		ts.cursor = oldCursor
-		return nil, nil
+		return nil, err
 	}
 }
 
@@ -200,14 +200,14 @@ func (ts *tokenStream) parsePseudoElementSelector() (*selector.PseudoClassSelect
 	oldCursor := ts.cursor
 	if _, err := ts.consumeTokenWith(tokenTypeColon); err != nil {
 		ts.cursor = oldCursor
-		return nil, nil
+		return nil, err
 	}
 	if temp, err := ts.parsePseudoClassSelector(); temp != nil {
 		return temp, nil
 	} else if err != nil {
 		return nil, err
 	}
-	return nil, nil
+	return nil, errors.New("expected a pseudo element selector")
 }
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-subclass-selector
@@ -234,7 +234,7 @@ func (ts *tokenStream) parseSubclassSelector() (selector.Selector, error) {
 		return nil, err
 	}
 
-	return nil, nil
+	return nil, errors.New("expected a subclass selector")
 }
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-compound-selector
@@ -282,7 +282,7 @@ func (ts *tokenStream) parseCompoundSelector() (*selector.CompoundSelector, erro
 
 	if typeSel == nil && len(subclassSels) == 0 && len(pseudoItems) == 0 {
 		ts.cursor = oldCursor
-		return nil, nil
+		return nil, errors.New("expected a compound selector")
 	}
 	return &selector.CompoundSelector{TypeSelector: typeSel, SubclassSelector: subclassSels, PseudoItems: pseudoItems}, nil
 }
@@ -339,7 +339,7 @@ func (ts *tokenStream) parseComplexSelector() (res *selector.ComplexSelector, er
 		rest = append(rest, selector.ComplexSelectorRest{Combinator: comb, Selector: *anotherUnit})
 	}
 	if base == nil && len(rest) == 0 {
-		return nil, nil
+		return nil, errors.New("expected a complex selector")
 	}
 	return &selector.ComplexSelector{Base: *base, Rest: rest}, nil
 }
