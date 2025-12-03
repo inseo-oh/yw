@@ -1704,9 +1704,9 @@ func parseStyleRulesFromNodes(ruleNodes []token) []cssom.StyleRule {
 				}
 				innerAs := tokenStream{tokens: declNode.value}
 				innerAs.skipWhitespaces()
-				value, ok := parseFunc(&innerAs)
-				if !ok {
-					log.Printf("bad value for property: %v (token list: %v)", declNode.name, innerAs.tokens)
+				value, err := parseFunc(&innerAs)
+				if err != nil {
+					log.Printf("bad value for property: %v (%v)", declNode.name, err)
 					continue
 				}
 				innerAs.skipWhitespaces()

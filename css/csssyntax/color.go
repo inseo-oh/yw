@@ -2,6 +2,7 @@ package csssyntax
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/inseo-oh/yw/css/values"
 )
 
-func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
+func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 	oldCursor := ts.cursor
 	// Try hex notation --------------------------------------------------------
 	if tk, err := ts.consumeTokenWith(tokenTypeHash); err == nil {
@@ -42,30 +43,30 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 			bStr = string(chrs[4:6])
 			aStr = string(chrs[6:8])
 		default:
-			return csscolor.Color{}, false
+			return csscolor.Color{}, fmt.Errorf("invalid hex digit length: %s", tk.(hashToken).value)
 		}
 		r, err := strconv.ParseUint(rStr, 16, 8)
 		if err != nil {
-			return csscolor.Color{}, false
+			return csscolor.Color{}, err
 		}
 		g, err := strconv.ParseUint(gStr, 16, 8)
 		if err != nil {
-			return csscolor.Color{}, false
+			return csscolor.Color{}, err
 		}
 		b, err := strconv.ParseUint(bStr, 16, 8)
 		if err != nil {
-			return csscolor.Color{}, false
+			return csscolor.Color{}, err
 		}
 		a, err := strconv.ParseUint(aStr, 16, 8)
 		if err != nil {
-			return csscolor.Color{}, false
+			return csscolor.Color{}, err
 		}
 		return csscolor.Color{Type: csscolor.Rgb, Components: [4]css.Num{
 			css.NumFromInt(int64(r)),
 			css.NumFromInt(int64(g)),
 			css.NumFromInt(int64(b)),
 			css.NumFromInt(int64(a)),
-		}}, true
+		}}, nil
 	} else {
 		ts.cursor = oldCursor
 	}
@@ -78,7 +79,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 	if err == nil {
 		ts := tokenStream{tokens: fn.value}
 
-		parseAlpha := func() *css.Num {
+		parseAlpha := func() (css.Num, error) {
 			var v css.Num
 			if num := ts.parseNumber(); num != nil {
 				v = css.NumFromFloat(num.Clamp(css.NumFromInt(0), css.NumFromInt(1)).ToFloat() * 255)
@@ -86,9 +87,9 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 				aPer := num.Value.Clamp(css.NumFromInt(0), css.NumFromInt(100)).ToFloat()
 				v = css.NumFromFloat((aPer / 100) * 255)
 			} else {
-				return nil
+				return v, errors.New("expected number or percentage")
 			}
-			return &v
+			return v, nil
 		}
 
 		// https://www.w3.org/TR/css-color-4/#funcdef-rgb
@@ -109,8 +110,8 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 		per, err := parseCommaSeparatedRepeation(&ts, 3, func(ts *tokenStream) (values.Percentage, error) {
 			return ts.parsePercentage()
 		})
-		if per == nil && err != nil {
-			return csscolor.Color{}, false
+		if err != nil {
+			return csscolor.Color{}, err
 		} else if len(per) == 3 {
 			// Percentage value
 			rPer := per[0].Value.Clamp(css.NumFromInt(0), css.NumFromInt(100)).ToFloat()
@@ -127,8 +128,8 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 				}
 				return ts.parseNumber(), nil
 			})
-			if num == nil && err != nil {
-				return csscolor.Color{}, false
+			if err != nil {
+				return csscolor.Color{}, err
 			} else if len(num) == 3 {
 				// Number value
 				r = num[0].Clamp(css.NumFromInt(0), css.NumFromInt(255))
@@ -146,10 +147,10 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 			// rgb(  r  ,  g  ,  b  ,<  >a  ) ----------------------------------
 			ts.skipWhitespaces()
 			// rgb(  r  ,  g  ,  b  ,  <a>  ) ----------------------------------
-			if v := parseAlpha(); v != nil {
-				a = *v
+			if v, err := parseAlpha(); err == nil {
+				a = v
 			} else {
-				return csscolor.Color{}, false
+				return csscolor.Color{}, err
 			}
 			// rgb(  r  ,  g  ,  b  ,  a<  >) ----------------------------------
 			ts.skipWhitespaces()
@@ -157,9 +158,9 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 			ts.cursor = oldCursor
 		}
 		if !ts.isEnd() {
-			return csscolor.Color{}, false
+			return csscolor.Color{}, errors.New("expected end")
 		}
-		return csscolor.Color{Type: csscolor.Rgb, Components: [4]css.Num{r, g, b, a}}, true
+		return csscolor.Color{Type: csscolor.Rgb, Components: [4]css.Num{r, g, b, a}}, nil
 	modernSyntax:
 		ts.cursor = oldCursor
 
@@ -186,7 +187,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 			} else if err := ts.consumeIdentTokenWith("none"); err == nil {
 				panic("TODO")
 			} else {
-				return csscolor.Color{}, false
+				return csscolor.Color{}, errors.New("expected number or percentage")
 			}
 			components = append(components, v)
 			// rgb(  r<  >g<  >b<  >) ------------------------------------------
@@ -199,18 +200,18 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 			// rgb(  r  g  b  /<  >a  ) --------------------------------------------
 			ts.skipWhitespaces()
 			// rgb(  r  g  b  /  <a>  ) --------------------------------------------
-			if v := parseAlpha(); v != nil {
-				a = *v
+			if v, err := parseAlpha(); err == nil {
+				a = v
 			} else {
-				return csscolor.Color{}, false
+				return csscolor.Color{}, err
 			}
 			// rgb(  r  g  b  /  a<  >) --------------------------------------------
 			ts.skipWhitespaces()
 		}
 		if !ts.isEnd() {
-			return csscolor.Color{}, false
+			return csscolor.Color{}, errors.New("expected end")
 		}
-		return csscolor.Color{Type: csscolor.Rgb, Components: [4]css.Num{components[0], components[1], components[2], a}}, true
+		return csscolor.Color{Type: csscolor.Rgb, Components: [4]css.Num{components[0], components[1], components[2], a}}, nil
 	}
 	ts.cursor = oldCursor
 	// Try hsl()/hsla() function -----------------------------------------------
@@ -263,7 +264,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 				css.NumFromInt(int64(rgba.G)),
 				css.NumFromInt(int64(rgba.B)),
 				css.NumFromInt(int64(rgba.A)),
-			}}, true
+			}}, nil
 		}
 	} else {
 		ts.cursor = oldCursor
@@ -271,14 +272,14 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 	// Try transparent ---------------------------------------------------------
 	if err := ts.consumeIdentTokenWith("transparent"); err == nil {
 		c := csscolor.Transparent
-		return c, true
+		return c, nil
 	}
 	ts.cursor = oldCursor
 	// Try currentColor --------------------------------------------------------
 	if err := ts.consumeIdentTokenWith("currentColor"); err == nil {
-		return csscolor.Color{Type: csscolor.CurrentColor}, true
+		return csscolor.Color{Type: csscolor.CurrentColor}, nil
 	}
 	ts.cursor = oldCursor
 	// TODO: Try system colors
-	return csscolor.Color{}, false
+	return csscolor.Color{}, nil
 }

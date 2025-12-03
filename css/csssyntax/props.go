@@ -4,6 +4,8 @@
 package csssyntax
 
 import (
+	"errors"
+
 	"github.com/inseo-oh/yw/css/backgrounds"
 	"github.com/inseo-oh/yw/css/box"
 	"github.com/inseo-oh/yw/css/csscolor"
@@ -13,17 +15,17 @@ import (
 	"github.com/inseo-oh/yw/css/values"
 )
 
-func (ts *tokenStream) parseBorderColorShorthand() (props.BorderColorShorthand, bool) {
+func (ts *tokenStream) parseBorderColorShorthand() (props.BorderColorShorthand, error) {
 	items, err := parseRepeation(ts, 4, func(ts *tokenStream) (*csscolor.Color, error) {
 		var res csscolor.Color
-		res, ok := ts.parseColor()
-		if !ok {
+		res, err := ts.parseColor()
+		if err != nil {
 			return nil, nil
 		}
 		return &res, nil
 	})
 	if err != nil {
-		return props.BorderColorShorthand{}, false
+		return props.BorderColorShorthand{}, err
 	}
 	res := props.BorderColorShorthand{}
 	switch len(items) {
@@ -48,20 +50,20 @@ func (ts *tokenStream) parseBorderColorShorthand() (props.BorderColorShorthand, 
 		res.Bottom = *items[2]
 		res.Left = *items[3]
 	}
-	return res, true
+	return res, nil
 }
 
-func (ts *tokenStream) parseBorderStyleShorthand() (props.BorderStyleShorthand, bool) {
+func (ts *tokenStream) parseBorderStyleShorthand() (props.BorderStyleShorthand, error) {
 	items, err := parseRepeation(ts, 4, func(ts *tokenStream) (*backgrounds.LineStyle, error) {
 		var res backgrounds.LineStyle
-		res, ok := ts.parseLineStyle()
-		if !ok {
+		res, err := ts.parseLineStyle()
+		if err != nil {
 			return nil, nil
 		}
 		return &res, nil
 	})
 	if err != nil {
-		return props.BorderStyleShorthand{}, false
+		return props.BorderStyleShorthand{}, err
 	}
 	res := props.BorderStyleShorthand{}
 	switch len(items) {
@@ -86,20 +88,20 @@ func (ts *tokenStream) parseBorderStyleShorthand() (props.BorderStyleShorthand, 
 		res.Bottom = *items[2]
 		res.Left = *items[3]
 	}
-	return res, true
+	return res, nil
 }
 
-func (ts *tokenStream) parseBorderWidthShorthand() (props.BorderWidthShorthand, bool) {
+func (ts *tokenStream) parseBorderWidthShorthand() (props.BorderWidthShorthand, error) {
 	items, err := parseRepeation(ts, 4, func(ts *tokenStream) (*values.Length, error) {
 		var res values.Length
-		res, ok := ts.parseLineWidth()
-		if !ok {
+		res, err := ts.parseLineWidth()
+		if err != nil {
 			return nil, nil
 		}
 		return &res, nil
 	})
 	if err != nil {
-		return props.BorderWidthShorthand{}, false
+		return props.BorderWidthShorthand{}, err
 	}
 	res := props.BorderWidthShorthand{}
 	switch len(items) {
@@ -124,10 +126,10 @@ func (ts *tokenStream) parseBorderWidthShorthand() (props.BorderWidthShorthand, 
 		res.Bottom = *items[2]
 		res.Left = *items[3]
 	}
-	return res, true
+	return res, nil
 }
 
-func (ts *tokenStream) parseBorderTopShorthand() (props.BorderTopShorthand, bool) {
+func (ts *tokenStream) parseBorderTopShorthand() (props.BorderTopShorthand, error) {
 	out := props.BorderTopShorthand{BorderTopWidth: backgrounds.LineWidthMedium, BorderTopStyle: backgrounds.NoLine, BorderTopColor: csscolor.Color{Type: csscolor.CurrentColor}}
 	gotBorderTopWidth := false
 	gotBorderTopStyle := false
@@ -137,7 +139,7 @@ func (ts *tokenStream) parseBorderTopShorthand() (props.BorderTopShorthand, bool
 		valid := false
 		if !gotBorderTopWidth {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseLineWidth(); ok {
+			if res, err := ts.parseLineWidth(); err == nil {
 				out.BorderTopWidth = res
 				gotBorderTopWidth = true
 				valid = true
@@ -145,7 +147,7 @@ func (ts *tokenStream) parseBorderTopShorthand() (props.BorderTopShorthand, bool
 		}
 		if !gotBorderTopStyle {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseLineStyle(); ok {
+			if res, err := ts.parseLineStyle(); err == nil {
 				out.BorderTopStyle = res
 				gotBorderTopStyle = true
 				valid = true
@@ -153,7 +155,7 @@ func (ts *tokenStream) parseBorderTopShorthand() (props.BorderTopShorthand, bool
 		}
 		if !gotBorderTopColor {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseColor(); ok {
+			if res, err := ts.parseColor(); err == nil {
 				out.BorderTopColor = res
 				gotBorderTopColor = true
 				valid = true
@@ -166,12 +168,12 @@ func (ts *tokenStream) parseBorderTopShorthand() (props.BorderTopShorthand, bool
 		gotAny = true
 	}
 	if !gotAny {
-		return out, false
+		return out, errors.New("expected a value")
 	}
-	return out, true
+	return out, nil
 }
 
-func (ts *tokenStream) parseBorderRightShorthand() (props.BorderRightShorthand, bool) {
+func (ts *tokenStream) parseBorderRightShorthand() (props.BorderRightShorthand, error) {
 	out := props.BorderRightShorthand{BorderRightWidth: backgrounds.LineWidthMedium, BorderRightStyle: backgrounds.NoLine, BorderRightColor: csscolor.Color{Type: csscolor.CurrentColor}}
 	gotBorderRightWidth := false
 	gotBorderRightStyle := false
@@ -181,7 +183,7 @@ func (ts *tokenStream) parseBorderRightShorthand() (props.BorderRightShorthand, 
 		valid := false
 		if !gotBorderRightWidth {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseLineWidth(); ok {
+			if res, err := ts.parseLineWidth(); err == nil {
 				out.BorderRightWidth = res
 				gotBorderRightWidth = true
 				valid = true
@@ -189,7 +191,7 @@ func (ts *tokenStream) parseBorderRightShorthand() (props.BorderRightShorthand, 
 		}
 		if !gotBorderRightStyle {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseLineStyle(); ok {
+			if res, err := ts.parseLineStyle(); err == nil {
 				out.BorderRightStyle = res
 				gotBorderRightStyle = true
 				valid = true
@@ -197,7 +199,7 @@ func (ts *tokenStream) parseBorderRightShorthand() (props.BorderRightShorthand, 
 		}
 		if !gotBorderRightColor {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseColor(); ok {
+			if res, err := ts.parseColor(); err == nil {
 				out.BorderRightColor = res
 				gotBorderRightColor = true
 				valid = true
@@ -210,12 +212,12 @@ func (ts *tokenStream) parseBorderRightShorthand() (props.BorderRightShorthand, 
 		gotAny = true
 	}
 	if !gotAny {
-		return out, false
+		return out, errors.New("expected a value")
 	}
-	return out, true
+	return out, nil
 }
 
-func (ts *tokenStream) parseBorderBottomShorthand() (props.BorderBottomShorthand, bool) {
+func (ts *tokenStream) parseBorderBottomShorthand() (props.BorderBottomShorthand, error) {
 	out := props.BorderBottomShorthand{BorderBottomWidth: backgrounds.LineWidthMedium, BorderBottomStyle: backgrounds.NoLine, BorderBottomColor: csscolor.Color{Type: csscolor.CurrentColor}}
 	gotBorderBottomWidth := false
 	gotBorderBottomStyle := false
@@ -225,7 +227,7 @@ func (ts *tokenStream) parseBorderBottomShorthand() (props.BorderBottomShorthand
 		valid := false
 		if !gotBorderBottomWidth {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseLineWidth(); ok {
+			if res, err := ts.parseLineWidth(); err == nil {
 				out.BorderBottomWidth = res
 				gotBorderBottomWidth = true
 				valid = true
@@ -233,7 +235,7 @@ func (ts *tokenStream) parseBorderBottomShorthand() (props.BorderBottomShorthand
 		}
 		if !gotBorderBottomStyle {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseLineStyle(); ok {
+			if res, err := ts.parseLineStyle(); err == nil {
 				out.BorderBottomStyle = res
 				gotBorderBottomStyle = true
 				valid = true
@@ -241,7 +243,7 @@ func (ts *tokenStream) parseBorderBottomShorthand() (props.BorderBottomShorthand
 		}
 		if !gotBorderBottomColor {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseColor(); ok {
+			if res, err := ts.parseColor(); err == nil {
 				out.BorderBottomColor = res
 				gotBorderBottomColor = true
 				valid = true
@@ -254,12 +256,12 @@ func (ts *tokenStream) parseBorderBottomShorthand() (props.BorderBottomShorthand
 		gotAny = true
 	}
 	if !gotAny {
-		return out, false
+		return out, errors.New("expected a value")
 	}
-	return out, true
+	return out, nil
 }
 
-func (ts *tokenStream) parseBorderLeftShorthand() (props.BorderLeftShorthand, bool) {
+func (ts *tokenStream) parseBorderLeftShorthand() (props.BorderLeftShorthand, error) {
 	out := props.BorderLeftShorthand{BorderLeftWidth: backgrounds.LineWidthMedium, BorderLeftStyle: backgrounds.NoLine, BorderLeftColor: csscolor.Color{Type: csscolor.CurrentColor}}
 	gotBorderLeftWidth := false
 	gotBorderLeftStyle := false
@@ -269,7 +271,7 @@ func (ts *tokenStream) parseBorderLeftShorthand() (props.BorderLeftShorthand, bo
 		valid := false
 		if !gotBorderLeftWidth {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseLineWidth(); ok {
+			if res, err := ts.parseLineWidth(); err == nil {
 				out.BorderLeftWidth = res
 				gotBorderLeftWidth = true
 				valid = true
@@ -277,7 +279,7 @@ func (ts *tokenStream) parseBorderLeftShorthand() (props.BorderLeftShorthand, bo
 		}
 		if !gotBorderLeftStyle {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseLineStyle(); ok {
+			if res, err := ts.parseLineStyle(); err == nil {
 				out.BorderLeftStyle = res
 				gotBorderLeftStyle = true
 				valid = true
@@ -285,7 +287,7 @@ func (ts *tokenStream) parseBorderLeftShorthand() (props.BorderLeftShorthand, bo
 		}
 		if !gotBorderLeftColor {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseColor(); ok {
+			if res, err := ts.parseColor(); err == nil {
 				out.BorderLeftColor = res
 				gotBorderLeftColor = true
 				valid = true
@@ -298,12 +300,12 @@ func (ts *tokenStream) parseBorderLeftShorthand() (props.BorderLeftShorthand, bo
 		gotAny = true
 	}
 	if !gotAny {
-		return out, false
+		return out, errors.New("expected a value")
 	}
-	return out, true
+	return out, nil
 }
 
-func (ts *tokenStream) parseBorderShorthand() (props.BorderShorthand, bool) {
+func (ts *tokenStream) parseBorderShorthand() (props.BorderShorthand, error) {
 	out := props.BorderShorthand{BorderWidthShorthand: props.BorderWidthShorthand{Left: backgrounds.LineWidthMedium, Top: backgrounds.LineWidthMedium, Right: backgrounds.LineWidthMedium, Bottom: backgrounds.LineWidthMedium}, BorderStyleShorthand: props.BorderStyleShorthand{Left: backgrounds.NoLine, Top: backgrounds.NoLine, Right: backgrounds.NoLine, Bottom: backgrounds.NoLine}, BorderColorShorthand: props.BorderColorShorthand{Left: csscolor.Color{Type: csscolor.CurrentColor}, Top: csscolor.Color{Type: csscolor.CurrentColor}, Right: csscolor.Color{Type: csscolor.CurrentColor}, Bottom: csscolor.Color{Type: csscolor.CurrentColor}}}
 	gotBorderWidthShorthand := false
 	gotBorderStyleShorthand := false
@@ -313,7 +315,7 @@ func (ts *tokenStream) parseBorderShorthand() (props.BorderShorthand, bool) {
 		valid := false
 		if !gotBorderWidthShorthand {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseLineWidth(); ok {
+			if res, err := ts.parseLineWidth(); err == nil {
 				out.BorderWidthShorthand.Left = res
 				out.BorderWidthShorthand.Top = res
 				out.BorderWidthShorthand.Right = res
@@ -324,7 +326,7 @@ func (ts *tokenStream) parseBorderShorthand() (props.BorderShorthand, bool) {
 		}
 		if !gotBorderStyleShorthand {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseLineStyle(); ok {
+			if res, err := ts.parseLineStyle(); err == nil {
 				out.BorderStyleShorthand.Left = res
 				out.BorderStyleShorthand.Top = res
 				out.BorderStyleShorthand.Right = res
@@ -335,7 +337,7 @@ func (ts *tokenStream) parseBorderShorthand() (props.BorderShorthand, bool) {
 		}
 		if !gotBorderColorShorthand {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseColor(); ok {
+			if res, err := ts.parseColor(); err == nil {
 				out.BorderColorShorthand.Left = res
 				out.BorderColorShorthand.Top = res
 				out.BorderColorShorthand.Right = res
@@ -351,22 +353,22 @@ func (ts *tokenStream) parseBorderShorthand() (props.BorderShorthand, bool) {
 		gotAny = true
 	}
 	if !gotAny {
-		return out, false
+		return out, errors.New("expected a value")
 	}
-	return out, true
+	return out, nil
 }
 
-func (ts *tokenStream) parseMarginShorthand() (props.MarginShorthand, bool) {
+func (ts *tokenStream) parseMarginShorthand() (props.MarginShorthand, error) {
 	items, err := parseRepeation(ts, 4, func(ts *tokenStream) (*box.Margin, error) {
 		var res box.Margin
-		res, ok := ts.parseMargin()
-		if !ok {
+		res, err := ts.parseMargin()
+		if err != nil {
 			return nil, nil
 		}
 		return &res, nil
 	})
 	if err != nil {
-		return props.MarginShorthand{}, false
+		return props.MarginShorthand{}, err
 	}
 	res := props.MarginShorthand{}
 	switch len(items) {
@@ -391,20 +393,20 @@ func (ts *tokenStream) parseMarginShorthand() (props.MarginShorthand, bool) {
 		res.Bottom = *items[2]
 		res.Left = *items[3]
 	}
-	return res, true
+	return res, nil
 }
 
-func (ts *tokenStream) parsePaddingShorthand() (props.PaddingShorthand, bool) {
+func (ts *tokenStream) parsePaddingShorthand() (props.PaddingShorthand, error) {
 	items, err := parseRepeation(ts, 4, func(ts *tokenStream) (*values.LengthResolvable, error) {
 		var res values.LengthResolvable
-		res, ok := ts.parsePadding()
-		if !ok {
+		res, err := ts.parsePadding()
+		if err != nil {
 			return nil, nil
 		}
 		return &res, nil
 	})
 	if err != nil {
-		return props.PaddingShorthand{}, false
+		return props.PaddingShorthand{}, err
 	}
 	res := props.PaddingShorthand{}
 	switch len(items) {
@@ -429,10 +431,10 @@ func (ts *tokenStream) parsePaddingShorthand() (props.PaddingShorthand, bool) {
 		res.Bottom = *items[2]
 		res.Left = *items[3]
 	}
-	return res, true
+	return res, nil
 }
 
-func (ts *tokenStream) parseFontShorthand() (props.FontShorthand, bool) {
+func (ts *tokenStream) parseFontShorthand() (props.FontShorthand, error) {
 	out := props.FontShorthand{FontFamily: fonts.FamilyList{Families: []fonts.Family{{Type: fonts.SansSerif}}}, FontWeight: fonts.NormalWeight, FontStretch: fonts.NormalStretch, FontStyle: fonts.NormalStyle, FontSize: fonts.MediumSize}
 	gotFontFamily := false
 	gotFontWeight := false
@@ -444,7 +446,7 @@ func (ts *tokenStream) parseFontShorthand() (props.FontShorthand, bool) {
 		valid := false
 		if !gotFontFamily {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseFontFamily(); ok {
+			if res, err := ts.parseFontFamily(); err == nil {
 				out.FontFamily = res
 				gotFontFamily = true
 				valid = true
@@ -452,7 +454,7 @@ func (ts *tokenStream) parseFontShorthand() (props.FontShorthand, bool) {
 		}
 		if !gotFontWeight {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseFontWeight(); ok {
+			if res, err := ts.parseFontWeight(); err == nil {
 				out.FontWeight = res
 				gotFontWeight = true
 				valid = true
@@ -460,7 +462,7 @@ func (ts *tokenStream) parseFontShorthand() (props.FontShorthand, bool) {
 		}
 		if !gotFontStretch {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseFontStretch(); ok {
+			if res, err := ts.parseFontStretch(); err == nil {
 				out.FontStretch = res
 				gotFontStretch = true
 				valid = true
@@ -468,7 +470,7 @@ func (ts *tokenStream) parseFontShorthand() (props.FontShorthand, bool) {
 		}
 		if !gotFontStyle {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseFontStyle(); ok {
+			if res, err := ts.parseFontStyle(); err == nil {
 				out.FontStyle = res
 				gotFontStyle = true
 				valid = true
@@ -476,7 +478,7 @@ func (ts *tokenStream) parseFontShorthand() (props.FontShorthand, bool) {
 		}
 		if !gotFontSize {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseFontSize(); ok {
+			if res, err := ts.parseFontSize(); err == nil {
 				out.FontSize = res
 				gotFontSize = true
 				valid = true
@@ -489,12 +491,12 @@ func (ts *tokenStream) parseFontShorthand() (props.FontShorthand, bool) {
 		gotAny = true
 	}
 	if !gotAny {
-		return out, false
+		return out, errors.New("expected a value")
 	}
-	return out, true
+	return out, nil
 }
 
-func (ts *tokenStream) parseTextDecorationShorthand() (props.TextDecorationShorthand, bool) {
+func (ts *tokenStream) parseTextDecorationShorthand() (props.TextDecorationShorthand, error) {
 	out := props.TextDecorationShorthand{TextDecorationLine: textdecor.NoLine, TextDecorationStyle: textdecor.Solid, TextDecorationColor: csscolor.Color{Type: csscolor.CurrentColor}}
 	gotTextDecorationLine := false
 	gotTextDecorationStyle := false
@@ -504,7 +506,7 @@ func (ts *tokenStream) parseTextDecorationShorthand() (props.TextDecorationShort
 		valid := false
 		if !gotTextDecorationLine {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseTextDecorationLine(); ok {
+			if res, err := ts.parseTextDecorationLine(); err == nil {
 				out.TextDecorationLine = res
 				gotTextDecorationLine = true
 				valid = true
@@ -512,7 +514,7 @@ func (ts *tokenStream) parseTextDecorationShorthand() (props.TextDecorationShort
 		}
 		if !gotTextDecorationStyle {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseTextDecorationStyle(); ok {
+			if res, err := ts.parseTextDecorationStyle(); err == nil {
 				out.TextDecorationStyle = res
 				gotTextDecorationStyle = true
 				valid = true
@@ -520,7 +522,7 @@ func (ts *tokenStream) parseTextDecorationShorthand() (props.TextDecorationShort
 		}
 		if !gotTextDecorationColor {
 			ts.skipWhitespaces()
-			if res, ok := ts.parseColor(); ok {
+			if res, err := ts.parseColor(); err == nil {
 				out.TextDecorationColor = res
 				gotTextDecorationColor = true
 				valid = true
@@ -533,166 +535,166 @@ func (ts *tokenStream) parseTextDecorationShorthand() (props.TextDecorationShort
 		gotAny = true
 	}
 	if !gotAny {
-		return out, false
+		return out, errors.New("expected a value")
 	}
-	return out, true
+	return out, nil
 }
 
-var parseFuncMap = map[string]func(ts *tokenStream) (props.PropertyValue, bool){
-	"color": func(ts *tokenStream) (props.PropertyValue, bool) {
+var parseFuncMap = map[string]func(ts *tokenStream) (props.PropertyValue, error){
+	"color": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseColor()
 	},
-	"width": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"width": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseSizeOrAuto()
 	},
-	"height": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"height": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseSizeOrAuto()
 	},
-	"min-width": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"min-width": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseSizeOrAuto()
 	},
-	"min-height": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"min-height": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseSizeOrAuto()
 	},
-	"max-width": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"max-width": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseSizeOrNone()
 	},
-	"max-height": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"max-height": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseSizeOrNone()
 	},
-	"display": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"display": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseDisplay()
 	},
-	"visibility": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"visibility": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseVisibility()
 	},
-	"background-color": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"background-color": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseColor()
 	},
-	"border-top-color": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"border-top-color": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseColor()
 	},
-	"border-right-color": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"border-right-color": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseColor()
 	},
-	"border-bottom-color": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"border-bottom-color": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseColor()
 	},
-	"border-left-color": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"border-left-color": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseColor()
 	},
-	"border-color": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"border-color": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseBorderColorShorthand()
 	},
-	"border-top-style": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"border-top-style": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseLineStyle()
 	},
-	"border-right-style": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"border-right-style": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseLineStyle()
 	},
-	"border-bottom-style": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"border-bottom-style": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseLineStyle()
 	},
-	"border-left-style": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"border-left-style": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseLineStyle()
 	},
-	"border-style": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"border-style": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseBorderStyleShorthand()
 	},
-	"border-top-width": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"border-top-width": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseLineWidth()
 	},
-	"border-right-width": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"border-right-width": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseLineWidth()
 	},
-	"border-bottom-width": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"border-bottom-width": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseLineWidth()
 	},
-	"border-left-width": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"border-left-width": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseLineWidth()
 	},
-	"border-width": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"border-width": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseBorderWidthShorthand()
 	},
-	"border-top": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"border-top": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseBorderTopShorthand()
 	},
-	"border-right": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"border-right": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseBorderRightShorthand()
 	},
-	"border-bottom": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"border-bottom": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseBorderBottomShorthand()
 	},
-	"border-left": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"border-left": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseBorderLeftShorthand()
 	},
-	"border": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"border": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseBorderShorthand()
 	},
-	"margin-top": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"margin-top": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseMargin()
 	},
-	"margin-right": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"margin-right": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseMargin()
 	},
-	"margin-bottom": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"margin-bottom": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseMargin()
 	},
-	"margin-left": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"margin-left": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseMargin()
 	},
-	"margin": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"margin": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseMarginShorthand()
 	},
-	"padding-top": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"padding-top": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parsePadding()
 	},
-	"padding-right": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"padding-right": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parsePadding()
 	},
-	"padding-bottom": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"padding-bottom": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parsePadding()
 	},
-	"padding-left": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"padding-left": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parsePadding()
 	},
-	"padding": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"padding": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parsePaddingShorthand()
 	},
-	"font-family": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"font-family": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseFontFamily()
 	},
-	"font-weight": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"font-weight": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseFontWeight()
 	},
-	"font-stretch": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"font-stretch": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseFontStretch()
 	},
-	"font-style": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"font-style": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseFontStyle()
 	},
-	"font-size": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"font-size": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseFontSize()
 	},
-	"font": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"font": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseFontShorthand()
 	},
-	"text-transform": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"text-transform": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseTextTransform()
 	},
-	"text-decoration-line": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"text-decoration-line": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseTextDecorationLine()
 	},
-	"text-decoration-style": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"text-decoration-style": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseTextDecorationStyle()
 	},
-	"text-decoration-color": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"text-decoration-color": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseColor()
 	},
-	"text-decoration": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"text-decoration": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseTextDecorationShorthand()
 	},
-	"text-underline-position": func(ts *tokenStream) (props.PropertyValue, bool) {
+	"text-underline-position": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseTextDecorationPosition()
 	},
 }

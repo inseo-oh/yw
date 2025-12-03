@@ -1,13 +1,15 @@
 package csssyntax
 
 import (
+	"errors"
+
 	"github.com/inseo-oh/yw/css/text"
 )
 
 // https://www.w3.org/TR/css-text-3/#propdef-text-transform
-func (ts *tokenStream) parseTextTransform() (text.Transform, bool) {
+func (ts *tokenStream) parseTextTransform() (text.Transform, error) {
 	if err := ts.consumeIdentTokenWith("none"); err == nil {
-		return text.Transform{Type: text.NoTransform}, true
+		return text.Transform{Type: text.NoTransform}, nil
 	}
 	out := text.Transform{Type: text.OriginalCaps}
 	gotType := false
@@ -55,7 +57,7 @@ func (ts *tokenStream) parseTextTransform() (text.Transform, bool) {
 		gotAny = true
 	}
 	if !gotAny {
-		return out, false
+		return out, errors.New("invalid text-transform value")
 	}
-	return out, true
+	return out, nil
 }

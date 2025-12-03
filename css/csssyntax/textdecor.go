@@ -1,13 +1,15 @@
 package csssyntax
 
 import (
+	"errors"
+
 	"github.com/inseo-oh/yw/css/textdecor"
 )
 
 // https://www.w3.org/TR/css-text-decor-3/#propdef-text-decoration-line
-func (ts *tokenStream) parseTextDecorationLine() (textdecor.LineFlags, bool) {
+func (ts *tokenStream) parseTextDecorationLine() (textdecor.LineFlags, error) {
 	if err := ts.consumeIdentTokenWith("none"); err == nil {
-		return textdecor.NoLine, true
+		return textdecor.NoLine, nil
 	}
 	var out textdecor.LineFlags
 	gotAny := false
@@ -34,31 +36,31 @@ func (ts *tokenStream) parseTextDecorationLine() (textdecor.LineFlags, bool) {
 		gotAny = true
 	}
 	if !gotAny {
-		return out, false
+		return 0, errors.New("invalid text-decoration-line value")
 	}
-	return out, true
+	return out, nil
 }
 
 // https://www.w3.org/TR/css-text-decor-3/#propdef-text-decoration-style
-func (ts *tokenStream) parseTextDecorationStyle() (textdecor.Style, bool) {
+func (ts *tokenStream) parseTextDecorationStyle() (textdecor.Style, error) {
 	if err := ts.consumeIdentTokenWith("solid"); err == nil {
-		return textdecor.Solid, true
+		return textdecor.Solid, nil
 	} else if err := ts.consumeIdentTokenWith("double"); err == nil {
-		return textdecor.Double, true
+		return textdecor.Double, nil
 	} else if err := ts.consumeIdentTokenWith("dotted"); err == nil {
-		return textdecor.Dotted, true
+		return textdecor.Dotted, nil
 	} else if err := ts.consumeIdentTokenWith("dashed"); err == nil {
-		return textdecor.Dashed, true
+		return textdecor.Dashed, nil
 	} else if err := ts.consumeIdentTokenWith("wavy"); err == nil {
-		return textdecor.Wavy, true
+		return textdecor.Wavy, nil
 	}
-	return 0, false
+	return 0, errors.New("invalid text-decoration-style value")
 }
 
 // https://www.w3.org/TR/css-text-decor-3/#propdef-text-underline-position
-func (ts *tokenStream) parseTextDecorationPosition() (textdecor.PositionFlags, bool) {
+func (ts *tokenStream) parseTextDecorationPosition() (textdecor.PositionFlags, error) {
 	if err := ts.consumeIdentTokenWith("auto"); err == nil {
-		return textdecor.PositionAuto, true
+		return textdecor.PositionAuto, nil
 	}
 	var out textdecor.PositionFlags
 	gotUnder := false
@@ -101,7 +103,7 @@ func (ts *tokenStream) parseTextDecorationPosition() (textdecor.PositionFlags, b
 		gotAny = true
 	}
 	if !gotAny {
-		return out, false
+		return out, errors.New("invalid text-underline-position value")
 	}
-	return out, true
+	return out, nil
 }

@@ -17,6 +17,7 @@ import (
 )
 
 var requiredImports = []string{
+	"errors",
 	"github.com/inseo-oh/yw/css/props",
 	"github.com/inseo-oh/yw/css/csscolor",
 	"github.com/inseo-oh/yw/css/box",
@@ -52,17 +53,17 @@ func main() {
 		switch sh := prop.(type) {
 		case propsdef.ShorthandSidesProp:
 			sbInner.WriteString( /*      */ "\n")
-			sbInner.WriteString(fmt.Sprintf("func (ts *tokenStream) %s() (%s, bool) {\n", sh.ParseMethodName(), sh.TypeName(true)))
+			sbInner.WriteString(fmt.Sprintf("func (ts *tokenStream) %s() (%s, error) {\n", sh.ParseMethodName(), sh.TypeName(true)))
 			sbInner.WriteString(fmt.Sprintf("\titems, err := parseRepeation(ts, 4, func(ts *tokenStream) (*%s, error) {\n", sh.PropRight.PropType(false).TypeName))
 			sbInner.WriteString(fmt.Sprintf("\t\tvar res %s\n", sh.PropRight.PropType(false).TypeName))
-			sbInner.WriteString(fmt.Sprintf("\t\tres, ok := ts.%s()\n", sh.PropTop.PropType(false).ParseMethodName))
-			sbInner.WriteString( /*      */ "\t\tif !ok {\n")
+			sbInner.WriteString(fmt.Sprintf("\t\tres, err := ts.%s()\n", sh.PropTop.PropType(false).ParseMethodName))
+			sbInner.WriteString( /*      */ "\t\tif err != nil {\n")
 			sbInner.WriteString( /*      */ "\t\t\treturn nil, nil\n")
 			sbInner.WriteString( /*      */ "\t\t}\n")
 			sbInner.WriteString( /*      */ "\t\treturn &res, nil\n")
 			sbInner.WriteString( /*      */ "\t})\n")
 			sbInner.WriteString( /*      */ "\tif err != nil {\n")
-			sbInner.WriteString(fmt.Sprintf("\t\treturn %s{}, false\n", sh.TypeName(true)))
+			sbInner.WriteString(fmt.Sprintf("\t\treturn %s{}, err\n", sh.TypeName(true)))
 			sbInner.WriteString( /*      */ "\t}\n")
 			sbInner.WriteString(fmt.Sprintf("\tres := %s{}\n", sh.TypeName(true)))
 			sbInner.WriteString( /*      */ "\tswitch len(items) {\n")
@@ -87,11 +88,11 @@ func main() {
 			sbInner.WriteString( /*      */ "\t\tres.Bottom = *items[2]\n")
 			sbInner.WriteString( /*      */ "\t\tres.Left = *items[3]\n")
 			sbInner.WriteString( /*      */ "\t}\n")
-			sbInner.WriteString( /*      */ "\treturn res, true\n")
+			sbInner.WriteString( /*      */ "\treturn res, nil\n")
 			sbInner.WriteString( /*      */ "}\n")
 		case propsdef.ShorthandAnyProp:
 			sbInner.WriteString( /*      */ "\n")
-			sbInner.WriteString(fmt.Sprintf("func (ts *tokenStream) %s() (%s, bool) {\n", sh.ParseMethodName(), sh.TypeName(true)))
+			sbInner.WriteString(fmt.Sprintf("func (ts *tokenStream) %s() (%s, error) {\n", sh.ParseMethodName(), sh.TypeName(true)))
 			sbInner.WriteString(fmt.Sprintf("\tout := %s\n", sh.PropInitialValue(true)))
 			for _, prop := range sh.Props {
 				sbInner.WriteString(fmt.Sprintf("\tgot%s := false\n", propsdef.GoIdentNameOfProp(prop)))
@@ -103,13 +104,13 @@ func main() {
 				sbInner.WriteString(fmt.Sprintf("\t\tif !got%s {\n", propsdef.GoIdentNameOfProp(prop)))
 				sbInner.WriteString( /*      */ "\t\t\tts.skipWhitespaces()\n")
 				if sides, ok := prop.(propsdef.ShorthandSidesProp); ok {
-					sbInner.WriteString(fmt.Sprintf("\t\t\tif res, ok := ts.%s(); ok {\n", sides.PropTop.PropType(false).ParseMethodName))
+					sbInner.WriteString(fmt.Sprintf("\t\t\tif res, err := ts.%s(); err == nil {\n", sides.PropTop.PropType(false).ParseMethodName))
 					sbInner.WriteString(fmt.Sprintf("\t\t\t\tout.%s.Left = res\n", propsdef.GoIdentNameOfProp(prop)))
 					sbInner.WriteString(fmt.Sprintf("\t\t\t\tout.%s.Top = res\n", propsdef.GoIdentNameOfProp(prop)))
 					sbInner.WriteString(fmt.Sprintf("\t\t\t\tout.%s.Right = res\n", propsdef.GoIdentNameOfProp(prop)))
 					sbInner.WriteString(fmt.Sprintf("\t\t\t\tout.%s.Bottom = res\n", propsdef.GoIdentNameOfProp(prop)))
 				} else {
-					sbInner.WriteString(fmt.Sprintf("\t\t\tif res, ok := ts.%s(); ok {\n", prop.PropType(false).ParseMethodName))
+					sbInner.WriteString(fmt.Sprintf("\t\t\tif res, err := ts.%s(); err == nil {\n", prop.PropType(false).ParseMethodName))
 					sbInner.WriteString(fmt.Sprintf("\t\t\t\tout.%s = res\n", propsdef.GoIdentNameOfProp(prop)))
 				}
 				sbInner.WriteString(fmt.Sprintf("\t\t\t\tgot%s = true\n", propsdef.GoIdentNameOfProp(prop)))
@@ -124,18 +125,18 @@ func main() {
 			sbInner.WriteString( /*      */ "\t\tgotAny = true\n")
 			sbInner.WriteString( /*      */ "\t}\n")
 			sbInner.WriteString( /*      */ "\tif !gotAny {\n")
-			sbInner.WriteString( /*      */ "\t\treturn out, false\n")
+			sbInner.WriteString( /*      */ "\t\treturn out, errors.New(\"expected a value\")\n")
 			sbInner.WriteString( /*      */ "\t}\n")
-			sbInner.WriteString( /*      */ "\treturn out, true\n")
+			sbInner.WriteString( /*      */ "\treturn out, nil\n")
 			sbInner.WriteString( /*      */ "}\n\n")
 		}
 		sb.WriteString(sbInner.String())
 	}
 	// Write parser function map -----------------------------------------------
-	sb.WriteString("var parseFuncMap = map[string]func(ts *tokenStream) (props.PropertyValue, bool){\n")
+	sb.WriteString("var parseFuncMap = map[string]func(ts *tokenStream) (props.PropertyValue, error){\n")
 	for _, prop := range propsdef.Props {
 		sbInner := strings.Builder{}
-		sbInner.WriteString(fmt.Sprintf("\t%s: func(ts *tokenStream) (props.PropertyValue, bool) {\n", strconv.Quote(prop.PropName())))
+		sbInner.WriteString(fmt.Sprintf("\t%s: func(ts *tokenStream) (props.PropertyValue, error) {\n", strconv.Quote(prop.PropName())))
 		sbInner.WriteString(fmt.Sprintf("\t\treturn ts.%s()\n", prop.PropType(false).ParseMethodName))
 		sbInner.WriteString( /*      */ "\t},\n")
 		sb.WriteString(sbInner.String())

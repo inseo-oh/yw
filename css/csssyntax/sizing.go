@@ -1,27 +1,28 @@
 package csssyntax
 
 import (
+	"errors"
+
 	"github.com/inseo-oh/yw/css/sizing"
 	"github.com/inseo-oh/yw/css/values"
-	"github.com/inseo-oh/yw/util"
 )
 
-func (ts *tokenStream) parseSizeValueImpl(acceptAuto, acceptNone bool) (sizing.Size, bool) {
+func (ts *tokenStream) parseSizeValueImpl(acceptAuto, acceptNone bool) (sizing.Size, error) {
 	if acceptAuto {
-		if tk := ts.consumeIdentTokenWith("auto"); !util.IsNil(tk) {
-			return sizing.Size{Type: sizing.Auto}, true
+		if err := ts.consumeIdentTokenWith("auto"); err == nil {
+			return sizing.Size{Type: sizing.Auto}, nil
 		}
 	}
 	if acceptNone {
-		if tk := ts.consumeIdentTokenWith("none"); !util.IsNil(tk) {
-			return sizing.Size{Type: sizing.Auto}, true
+		if err := ts.consumeIdentTokenWith("none"); err == nil {
+			return sizing.Size{Type: sizing.Auto}, nil
 		}
 	}
-	if tk := ts.consumeIdentTokenWith("min-content"); !util.IsNil(tk) {
-		return sizing.Size{Type: sizing.MinContent}, true
+	if err := ts.consumeIdentTokenWith("min-content"); err == nil {
+		return sizing.Size{Type: sizing.MinContent}, nil
 	}
-	if tk := ts.consumeIdentTokenWith("max-content"); !util.IsNil(tk) {
-		return sizing.Size{Type: sizing.MaxContent}, true
+	if err := ts.consumeIdentTokenWith("max-content"); err == nil {
+		return sizing.Size{Type: sizing.MaxContent}, nil
 	}
 	if tk, err := ts.consumeAstFuncWith("fit-content"); err == nil {
 		ts := tokenStream{tokens: tk.value}
@@ -30,18 +31,18 @@ func (ts *tokenStream) parseSizeValueImpl(acceptAuto, acceptNone bool) (sizing.S
 			size = v
 		}
 		if !ts.isEnd() {
-			return sizing.Size{}, false
+			return sizing.Size{}, errors.New("expected end")
 		}
-		return sizing.Size{Type: sizing.FitContent, Size: size}, true
+		return sizing.Size{Type: sizing.FitContent, Size: size}, nil
 	}
 	if v, err := ts.parseLengthOrPercentage(true); err == nil {
-		return sizing.Size{Type: sizing.ManualSize, Size: v}, true
+		return sizing.Size{Type: sizing.ManualSize, Size: v}, nil
 	}
-	return sizing.Size{}, false
+	return sizing.Size{}, errors.New("expected size value")
 }
-func (ts *tokenStream) parseSizeOrAuto() (sizing.Size, bool) {
+func (ts *tokenStream) parseSizeOrAuto() (sizing.Size, error) {
 	return ts.parseSizeValueImpl(true, false)
 }
-func (ts *tokenStream) parseSizeOrNone() (sizing.Size, bool) {
+func (ts *tokenStream) parseSizeOrNone() (sizing.Size, error) {
 	return ts.parseSizeValueImpl(false, true)
 }
