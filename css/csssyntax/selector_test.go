@@ -9,7 +9,6 @@ import (
 
 	"github.com/inseo-oh/yw/css"
 	"github.com/inseo-oh/yw/css/selector"
-	"github.com/inseo-oh/yw/util"
 )
 
 func selectorTestHelper(t *testing.T, css string, expected selector.Selector, parser func(ts *tokenStream) (selector.Selector, error)) {
@@ -21,12 +20,12 @@ func selectorTestHelper(t *testing.T, css string, expected selector.Selector, pa
 		}
 		t.Logf("Tokens: %v", tokens)
 		got, err := parse(tokens, parser)
-		if util.IsNil(got) && err != nil {
+		if err != nil {
 			t.Errorf("failed to parse: %v", err)
 			return
 		}
 		t.Logf("Parsed: %v", got)
-		if util.IsNil(got) || !got.Equals(expected) {
+		if !got.Equals(expected) {
 			t.Errorf("expected %v, got %v", expected, got)
 
 		}
