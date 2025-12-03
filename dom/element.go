@@ -180,6 +180,7 @@ const (
 	CustomElementCustom
 )
 
+// NewElement constructs a new Element node.
 func NewElement(options ElementCreationCommonOptions) Element {
 	return &elementImpl{
 		Node:                  NewNode(options.NodeDocument),
