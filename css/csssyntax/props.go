@@ -5,7 +5,6 @@ package csssyntax
 
 import (
 	"errors"
-
 	"github.com/inseo-oh/yw/css/backgrounds"
 	"github.com/inseo-oh/yw/css/box"
 	"github.com/inseo-oh/yw/css/csscolor"
@@ -20,7 +19,7 @@ func (ts *tokenStream) parseBorderColorShorthand() (props.BorderColorShorthand, 
 		var res csscolor.Color
 		res, err := ts.parseColor()
 		if err != nil {
-			return nil, nil
+			return nil, err
 		}
 		return &res, nil
 	})
@@ -58,7 +57,7 @@ func (ts *tokenStream) parseBorderStyleShorthand() (props.BorderStyleShorthand, 
 		var res backgrounds.LineStyle
 		res, err := ts.parseLineStyle()
 		if err != nil {
-			return nil, nil
+			return nil, err
 		}
 		return &res, nil
 	})
@@ -96,7 +95,7 @@ func (ts *tokenStream) parseBorderWidthShorthand() (props.BorderWidthShorthand, 
 		var res values.Length
 		res, err := ts.parseLineWidth()
 		if err != nil {
-			return nil, nil
+			return nil, err
 		}
 		return &res, nil
 	})
@@ -363,7 +362,7 @@ func (ts *tokenStream) parseMarginShorthand() (props.MarginShorthand, error) {
 		var res box.Margin
 		res, err := ts.parseMargin()
 		if err != nil {
-			return nil, nil
+			return nil, err
 		}
 		return &res, nil
 	})
@@ -401,7 +400,7 @@ func (ts *tokenStream) parsePaddingShorthand() (props.PaddingShorthand, error) {
 		var res values.LengthResolvable
 		res, err := ts.parsePadding()
 		if err != nil {
-			return nil, nil
+			return nil, err
 		}
 		return &res, nil
 	})

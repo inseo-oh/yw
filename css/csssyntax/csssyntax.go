@@ -1057,8 +1057,10 @@ func (ts *tokenStream) consumeSimpleBlock(openTokenType, closeTokenType tokenTyp
 	var closeToken token
 	for {
 		tempTk, err := ts.consumeComponentValue()
-		if err != nil || tempTk.tokenType() == closeTokenType {
+		if err == nil && tempTk.tokenType() == closeTokenType {
 			closeToken = tempTk
+			break
+		} else if err != nil {
 			break
 		}
 		resNodes = append(resNodes, tempTk)
@@ -1095,9 +1097,11 @@ func (ts *tokenStream) consumeFunc() (astFuncToken, error) {
 	var closeToken token
 	for {
 		tempTk, err := ts.consumeComponentValue()
-		if err != nil || tempTk.tokenType() == tokenTypeRightParen {
+		if err == nil && tempTk.tokenType() == tokenTypeRightParen {
 			closeToken = tempTk
 			break
+		} else if err != nil {
+			panic("TODO: Handle error")
 		}
 		fnValueNodes = append(fnValueNodes, tempTk)
 	}
@@ -1146,7 +1150,8 @@ func (ts *tokenStream) consumeQualifiedRule() (qualifiedRuleToken, error) {
 		}
 		comp, err := ts.consumeComponentValue()
 		if err != nil {
-			panic("TODO: Handle error")
+			ts.cursor = oldCursor
+			return qualifiedRuleToken{}, err
 		}
 		prelude = append(prelude, comp)
 	}
@@ -1373,6 +1378,8 @@ func (ts *tokenStream) consumeListOfRules(topLevelFlag bool) []token {
 			ts.cursor--
 			if rule, err := ts.consumeQualifiedRule(); err == nil {
 				rules = append(rules, rule)
+			} else {
+				break
 			}
 		}
 	}

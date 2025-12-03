@@ -58,7 +58,7 @@ func main() {
 			sbInner.WriteString(fmt.Sprintf("\t\tvar res %s\n", sh.PropRight.PropType(false).TypeName))
 			sbInner.WriteString(fmt.Sprintf("\t\tres, err := ts.%s()\n", sh.PropTop.PropType(false).ParseMethodName))
 			sbInner.WriteString( /*      */ "\t\tif err != nil {\n")
-			sbInner.WriteString( /*      */ "\t\t\treturn nil, nil\n")
+			sbInner.WriteString( /*      */ "\t\t\treturn nil, err\n")
 			sbInner.WriteString( /*      */ "\t\t}\n")
 			sbInner.WriteString( /*      */ "\t\treturn &res, nil\n")
 			sbInner.WriteString( /*      */ "\t})\n")
