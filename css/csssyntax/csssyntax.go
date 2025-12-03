@@ -1592,7 +1592,7 @@ func parse[T any](tokens []token, parser func(ts *tokenStream) (T, error)) (T, e
 
 // https://www.w3.org/TR/2021/CRD-css-syntax-3-20211224/#css-decode-bytes
 func decodeBytes(bytes []byte) string {
-	fallback := cssDetermineFallbackEncoding(bytes)
+	fallback := determineFallbackEncoding(bytes)
 	input := encoding.IoQueueFromSlice(bytes)
 	output := encoding.IoQueueFromSlice[rune](nil)
 	encoding.Decode(&input, fallback, &output)
@@ -1600,7 +1600,7 @@ func decodeBytes(bytes []byte) string {
 }
 
 // https://www.w3.org/TR/2021/CRD-css-syntax-3-20211224/#determine-the-fallback-encoding
-func cssDetermineFallbackEncoding(bytes []byte) encoding.Type {
+func determineFallbackEncoding(bytes []byte) encoding.Type {
 	// Check if HTTP or equivalent protocol provides an encoding label ---------
 	// TODO
 
