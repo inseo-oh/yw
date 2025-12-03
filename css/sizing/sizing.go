@@ -1,3 +1,7 @@
+// This file is part of YW project. Copyright 2025 Oh Inseo (YJK)
+// SPDX-License-Identifier: BSD-3-Clause
+// See LICENSE for details, and LICENSE.thirdparty.md for third-party license information.
+
 // Package sizing provides types and values for [CSS Sizing Module Level 3]
 //
 // [CSS Sizing Module Level 3]: https://www.w3.org/TR/2021/WD-css-sizing-3-20211217/

@@ -1,3 +1,7 @@
+// This file is part of YW project. Copyright 2025 Oh Inseo (YJK)
+// SPDX-License-Identifier: BSD-3-Clause
+// See LICENSE for details, and LICENSE.thirdparty.md for third-party license information.
+
 // Package box provide types and values for [CSS Color Module Level 4].
 //
 // [CSS Color Module Level 4]: https://www.w3.org/TR/css-color-4/

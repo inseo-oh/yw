@@ -1,3 +1,7 @@
+// This file is part of YW project. Copyright 2025 Oh Inseo (YJK)
+// SPDX-License-Identifier: BSD-3-Clause
+// See LICENSE for details, and LICENSE.thirdparty.md for third-party license information.
+
 // Package backgrounds provide types and values for CSS Backgrounds and Borders Module Level 3
 //
 // Releavnt spec: https://www.w3.org/TR/css-backgrounds-3/

@@ -1,3 +1,7 @@
+// This file is part of YW project. Copyright 2025 Oh Inseo (YJK)
+// SPDX-License-Identifier: BSD-3-Clause
+// See LICENSE for details, and LICENSE.thirdparty.md for third-party license information.
+
 // Package cascade provide CSS cascading logic based on [CSS Cascading and Inheritance Level 4].
 //
 // [CSS Cascading and Inheritance Level 4]: https://www.w3.org/TR/css-cascade-4
