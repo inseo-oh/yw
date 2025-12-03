@@ -1124,19 +1124,21 @@ func (ts *tokenStream) consumeComponentValue() (token, error) {
 	return nil, errors.New("expected component value")
 }
 
-func (ts *tokenStream) consumeQualifiedRule() *qualifiedRuleToken {
+func (ts *tokenStream) consumeQualifiedRule() (qualifiedRuleToken, error) {
+	oldCursor := ts.cursor
 	prelude := []token{}
 
 	for {
 		block, err := ts.consumeCurlyBlock()
 		if err == nil {
-			return &qualifiedRuleToken{
+			return qualifiedRuleToken{
 				tokenCommon{block.cursorFrom, block.cursorTo},
 				prelude,
 				block.body,
-			}
+			}, nil
 		} else if ts.isEnd() {
-			return nil
+			ts.cursor = oldCursor
+			return qualifiedRuleToken{}, errors.New("expected qualified rule")
 		}
 		comp, err := ts.consumeComponentValue()
 		if err != nil {
@@ -1319,8 +1321,8 @@ func (ts *tokenStream) consumeStyleBlockContents() []token {
 			decls = append(decls, *decl)
 		} else if token.tokenType() == tokenTypeDelim && token.(delimToken).value == '&' {
 			ts.cursor--
-			if rule := ts.consumeQualifiedRule(); rule != nil {
-				rules = append(rules, *rule)
+			if rule, err := ts.consumeQualifiedRule(); err == nil {
+				rules = append(rules, rule)
 			}
 		} else {
 			// PARSE ERROR
@@ -1356,8 +1358,8 @@ func (ts *tokenStream) consumeListOfRules(topLevelFlag bool) []token {
 				continue
 			}
 			ts.cursor--
-			if rule := ts.consumeQualifiedRule(); rule != nil {
-				rules = append(rules, *rule)
+			if rule, err := ts.consumeQualifiedRule(); err == nil {
+				rules = append(rules, rule)
 			}
 		} else if token.tokenType() == tokenTypeAtKeyword {
 			ts.cursor--
@@ -1368,8 +1370,8 @@ func (ts *tokenStream) consumeListOfRules(topLevelFlag bool) []token {
 			rules = append(rules, *rule)
 		} else {
 			ts.cursor--
-			if rule := ts.consumeQualifiedRule(); rule != nil {
-				rules = append(rules, *rule)
+			if rule, err := ts.consumeQualifiedRule(); err == nil {
+				rules = append(rules, rule)
 			}
 		}
 	}
@@ -1453,7 +1455,12 @@ func parseRule(tokens []token) token {
 	var res token
 	res = ts.consumeAtRule()
 	if util.IsNil(res) {
-		res = ts.consumeQualifiedRule()
+		var err error
+		res, err = ts.consumeQualifiedRule()
+		// TODO: Remove this once we replace above util.IsNil(res) with err == nil
+		if err != nil {
+			res = nil
+		}
 	}
 	if util.IsNil(res) {
 		panic("TODO: syntax error: expected at-rule or qualified-rule")
