@@ -1033,10 +1033,8 @@ func (ts *tokenStream) consumePreservedToken() (token, error) {
 	return tk, nil
 }
 
-// Returns nil if not found
-func (ts *tokenStream) consumeSimpleBlock(openTokenType, closeTokenType tokenType) *simpleBlockToken {
+func (ts *tokenStream) consumeSimpleBlock(openTokenType, closeTokenType tokenType) (simpleBlockToken, error) {
 	resNodes := []token{}
-	oldCursor := ts.cursor
 	var blockType simpleBlockType
 	switch openTokenType {
 	case tokenTypeLeftCurlyBracket:
@@ -1051,8 +1049,7 @@ func (ts *tokenStream) consumeSimpleBlock(openTokenType, closeTokenType tokenTyp
 
 	openToken, err := ts.consumeTokenWith(openTokenType)
 	if err != nil {
-		ts.cursor = oldCursor
-		return nil
+		return simpleBlockToken{}, err
 	}
 	var closeToken token
 	for {
@@ -1064,26 +1061,23 @@ func (ts *tokenStream) consumeSimpleBlock(openTokenType, closeTokenType tokenTyp
 		resNodes = append(resNodes, tempTk)
 	}
 	if util.IsNil(closeToken) {
-		return nil
+		return simpleBlockToken{}, errors.New("expected closing character")
 	}
-	return &simpleBlockToken{
+	return simpleBlockToken{
 		tokenCommon{openToken.tokenCursorFrom(), closeToken.tokenCursorTo()},
 		blockType, resNodes,
-	}
+	}, nil
 }
 
-// Returns nil if not found
-func (ts *tokenStream) consumeCurlyBlock() *simpleBlockToken {
+func (ts *tokenStream) consumeCurlyBlock() (simpleBlockToken, error) {
 	return ts.consumeSimpleBlock(tokenTypeLeftCurlyBracket, tokenTypeRightCurlyBracket)
 }
 
-// Returns nil if not found
-func (ts *tokenStream) consumeSquareBlock() *simpleBlockToken {
+func (ts *tokenStream) consumeSquareBlock() (simpleBlockToken, error) {
 	return ts.consumeSimpleBlock(tokenTypeLeftSquareBracket, tokenTypeRightSquareBracket)
 }
 
-// Returns nil if not found
-func (ts *tokenStream) consumeParenBlock() *simpleBlockToken {
+func (ts *tokenStream) consumeParenBlock() (simpleBlockToken, error) {
 	return ts.consumeSimpleBlock(tokenTypeLeftParen, tokenTypeRightParen)
 }
 
@@ -1116,14 +1110,14 @@ func (ts *tokenStream) consumeFunc() *astFuncToken {
 
 // Returns nil if not found
 func (ts *tokenStream) consumeComponentValue() token {
-	if res := ts.consumeCurlyBlock(); res != nil {
-		return *res
+	if res, err := ts.consumeCurlyBlock(); err == nil {
+		return res
 	}
-	if res := ts.consumeSquareBlock(); res != nil {
-		return *res
+	if res, err := ts.consumeSquareBlock(); err == nil {
+		return res
 	}
-	if res := ts.consumeParenBlock(); res != nil {
-		return *res
+	if res, err := ts.consumeParenBlock(); err == nil {
+		return res
 	}
 	if res := ts.consumeFunc(); res != nil {
 		return *res
@@ -1139,8 +1133,8 @@ func (ts *tokenStream) consumeQualifiedRule() *qualifiedRuleToken {
 	prelude := []token{}
 
 	for {
-		block := ts.consumeCurlyBlock()
-		if block != nil {
+		block, err := ts.consumeCurlyBlock()
+		if err == nil {
 			return &qualifiedRuleToken{
 				tokenCommon{block.cursorFrom, block.cursorTo},
 				prelude,
@@ -1166,8 +1160,8 @@ func (ts *tokenStream) consumeAtRule() *atRuleToken {
 	}
 
 	for {
-		block := ts.consumeCurlyBlock()
-		if block != nil {
+		block, err := ts.consumeCurlyBlock()
+		if err == nil {
 			return &atRuleToken{
 				tokenCommon{block.cursorFrom, block.cursorTo},
 				kwdToken.name,
