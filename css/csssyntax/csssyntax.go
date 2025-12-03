@@ -1181,15 +1181,13 @@ func (ts *tokenStream) consumeAtRule() (atRuleToken, error) {
 }
 
 // Returns nil if not found
-func (ts *tokenStream) consumeDeclaration() *declarationToken {
-	oldCursor := ts.cursor
+func (ts *tokenStream) consumeDeclaration() (declarationToken, error) {
 	// <name>  :  contents  !important -----------------------------------------
 	var identTk identToken
 	if temp, err := ts.consumeTokenWith(tokenTypeIdent); err == nil {
 		identTk = temp.(identToken)
 	} else {
-		ts.cursor = oldCursor
-		return nil
+		return declarationToken{}, err
 	}
 	declName := identTk.value
 	declValue := []token{}
@@ -1199,8 +1197,7 @@ func (ts *tokenStream) consumeDeclaration() *declarationToken {
 	// name  <:>  contents  !important -----------------------------------------
 	if _, err := ts.consumeTokenWith(tokenTypeColon); err != nil {
 		// Parse error
-		ts.cursor = oldCursor
-		return nil
+		return declarationToken{}, err
 	}
 	// name  :<  >contents  !important -----------------------------------------
 	ts.skipWhitespaces()
@@ -1224,12 +1221,12 @@ func (ts *tokenStream) consumeDeclaration() *declarationToken {
 			declIsImportant = true
 		}
 	}
-	return &declarationToken{
+	return declarationToken{
 		tokenCommon{identTk.cursorFrom, lastNode.tokenCursorTo()},
 		declName,
 		declValue,
 		declIsImportant,
-	}
+	}, nil
 }
 
 func (ts *tokenStream) consumeDeclarationList() []token {
@@ -1262,11 +1259,11 @@ func (ts *tokenStream) consumeDeclarationList() []token {
 				}
 				tempStream.tokens = append(tempStream.tokens, token)
 			}
-			decl := tempStream.consumeDeclaration()
-			if decl == nil {
+			decl, err := tempStream.consumeDeclaration()
+			if err != nil {
 				break
 			}
-			decls = append(decls, *decl)
+			decls = append(decls, decl)
 		} else {
 			// PARSE ERROR
 			for {
@@ -1314,11 +1311,11 @@ func (ts *tokenStream) consumeStyleBlockContents() []token {
 				}
 				tempStream.tokens = append(tempStream.tokens, token)
 			}
-			decl := tempStream.consumeDeclaration()
-			if decl == nil {
+			decl, err := tempStream.consumeDeclaration()
+			if err != nil {
 				break
 			}
-			decls = append(decls, *decl)
+			decls = append(decls, decl)
 		} else if token.tokenType() == tokenTypeDelim && token.(delimToken).value == '&' {
 			ts.cursor--
 			if rule, err := ts.consumeQualifiedRule(); err == nil {
@@ -1436,15 +1433,15 @@ func parseStyleBlockContents(tokens []token) []token {
 	stream := tokenStream{tokens: tokens}
 	return stream.consumeStyleBlockContents()
 }
-func parseDeclaration(tokens []token) *declarationToken {
+func parseDeclaration(tokens []token) declarationToken {
 	stream := tokenStream{tokens: tokens}
 	stream.skipWhitespaces()
 	if _, err := stream.consumeTokenWith(tokenTypeIdent); err != nil {
 		panic("TODO: syntax error: expected identifier")
 	}
 	stream.cursor--
-	node := stream.consumeDeclaration()
-	if node == nil {
+	node, err := stream.consumeDeclaration()
+	if err != nil {
 		panic("TODO: syntax error: expected declaration")
 	}
 	return node
