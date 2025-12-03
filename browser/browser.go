@@ -74,12 +74,12 @@ func (b *Browser) Run(urlStr string, plat platform.Platform, viewportImg *image.
 	if err != nil {
 		log.Fatal(err)
 	}
-	sheetBytes, err = io.ReadAll(resp.Body)
+	htmlBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
 	// Parse the HTML ----------------------------------------------------------
-	html := string(sheetBytes)
+	html := string(htmlBytes)
 	par := htmlparser.NewParser(html)
 	par.Document = dom.NewDocument()
 	par.Document.SetBaseURL(*urlObj)
