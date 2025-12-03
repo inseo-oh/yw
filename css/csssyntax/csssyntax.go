@@ -1080,16 +1080,13 @@ func (ts *tokenStream) consumeParenBlock() (simpleBlockToken, error) {
 	return ts.consumeSimpleBlock(tokenTypeLeftParen, tokenTypeRightParen)
 }
 
-// Returns nil if not found
-func (ts *tokenStream) consumeFunc() *astFuncToken {
+func (ts *tokenStream) consumeFunc() (astFuncToken, error) {
 	fnValueNodes := []token{}
-	oldCursor := ts.cursor
 	var fnToken funcKeywordToken
 	if temp, err := ts.consumeTokenWith(tokenTypeFuncKeyword); err == nil {
 		fnToken = temp.(funcKeywordToken)
 	} else {
-		ts.cursor = oldCursor
-		return nil
+		return astFuncToken{}, err
 	}
 	var closeToken token
 	for {
@@ -1101,10 +1098,10 @@ func (ts *tokenStream) consumeFunc() *astFuncToken {
 		fnValueNodes = append(fnValueNodes, tempTk)
 	}
 
-	return &astFuncToken{
+	return astFuncToken{
 		tokenCommon{fnToken.tokenCursorFrom(), closeToken.tokenCursorTo()},
 		fnToken.value, fnValueNodes,
-	}
+	}, nil
 }
 
 // Returns nil if not found
@@ -1118,8 +1115,8 @@ func (ts *tokenStream) consumeComponentValue() token {
 	if res, err := ts.consumeParenBlock(); err == nil {
 		return res
 	}
-	if res := ts.consumeFunc(); res != nil {
-		return *res
+	if res, err := ts.consumeFunc(); err == nil {
+		return res
 	}
 	if res, err := ts.consumePreservedToken(); err == nil {
 		return res
