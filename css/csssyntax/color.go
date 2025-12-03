@@ -7,12 +7,12 @@ import (
 	"github.com/inseo-oh/yw/css"
 	"github.com/inseo-oh/yw/css/csscolor"
 	"github.com/inseo-oh/yw/css/values"
-	"github.com/inseo-oh/yw/util"
 )
 
 func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
+	oldCursor := ts.cursor
 	// Try hex notation --------------------------------------------------------
-	if tk := ts.consumeTokenWith(tokenTypeHash); !util.IsNil(tk) {
+	if tk, err := ts.consumeTokenWith(tokenTypeHash); err == nil {
 		// https://www.w3.org/TR/css-color-4/#hex-notation
 		chrs := []rune(tk.(hashToken).value)
 		var rStr, gStr, bStr, aStr string
@@ -65,6 +65,8 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 			css.NumFromInt(int64(b)),
 			css.NumFromInt(int64(a)),
 		}}, true
+	} else {
+		ts.cursor = oldCursor
 	}
 	// Try rgb()/rgba() function -----------------------------------------------
 	fn := ts.consumeAstFuncWith("rgb")
@@ -135,7 +137,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 		// rgb(  r  ,  g  ,  b<  >,  a  ) --------------------------------------
 		ts.skipWhitespaces()
 		// rgb(  r  ,  g  ,  b  <,>  a  ) --------------------------------------
-		if tk := ts.consumeTokenWith(tokenTypeComma); !util.IsNil(tk) {
+		if _, err := ts.consumeTokenWith(tokenTypeComma); err == nil {
 			// rgb(  r  ,  g  ,  b  ,<  >a  ) ----------------------------------
 			ts.skipWhitespaces()
 			// rgb(  r  ,  g  ,  b  ,  <a>  ) ----------------------------------
@@ -146,6 +148,8 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 			}
 			// rgb(  r  ,  g  ,  b  ,  a<  >) ----------------------------------
 			ts.skipWhitespaces()
+		} else {
+			ts.cursor = oldCursor
 		}
 		if !ts.isEnd() {
 			return csscolor.Color{}, false
@@ -203,6 +207,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 		}
 		return csscolor.Color{Type: csscolor.Rgb, Components: [4]css.Num{components[0], components[1], components[2], a}}, true
 	}
+	ts.cursor = oldCursor
 	// Try hsl()/hsla() function -----------------------------------------------
 	fn = ts.consumeAstFuncWith("hsl")
 	if fn == nil {
@@ -244,9 +249,8 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 		panic("TODO[https://www.w3.org/TR/css-color-4/#funcdef-color]")
 	}
 	// Try named color ---------------------------------------------------------
-	oldCursor := ts.cursor
-	ident := ts.consumeTokenWith(tokenTypeIdent)
-	if !util.IsNil(ident) {
+	ident, err := ts.consumeTokenWith(tokenTypeIdent)
+	if err == nil {
 		rgba, ok := csscolor.NamedColors[ident.(identToken).value]
 		if ok {
 			return csscolor.Color{Type: csscolor.Rgb, Components: [4]css.Num{
@@ -256,6 +260,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 				css.NumFromInt(int64(rgba.A)),
 			}}, true
 		}
+	} else {
 		ts.cursor = oldCursor
 	}
 	// Try transparent ---------------------------------------------------------
@@ -263,10 +268,12 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 		c := csscolor.Transparent
 		return c, true
 	}
+	ts.cursor = oldCursor
 	// Try currentColor --------------------------------------------------------
 	if ts.consumeIdentTokenWith("currentColor") {
 		return csscolor.Color{Type: csscolor.CurrentColor}, true
 	}
+	ts.cursor = oldCursor
 	// TODO: Try system colors
 	return csscolor.Color{}, false
 }

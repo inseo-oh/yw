@@ -8,12 +8,15 @@ import (
 
 // https://www.w3.org/TR/css-fonts-3/#propdef-font-family
 func (ts *tokenStream) parseFamilyName() (string, bool) {
-	if tk := ts.consumeTokenWith(tokenTypeString); !util.IsNil(tk) {
+	oldCursor := ts.cursor
+	if tk, err := ts.consumeTokenWith(tokenTypeString); err == nil {
 		return tk.(stringToken).value, true
+	} else {
+		ts.cursor = oldCursor
 	}
 	out := ""
 	identTks, _ := parseRepeation(ts, 0, func(ts *tokenStream) (token, error) {
-		return ts.consumeTokenWith(tokenTypeIdent), nil
+		return ts.consumeTokenWith(tokenTypeIdent)
 	})
 	if identTks == nil {
 		return "", false

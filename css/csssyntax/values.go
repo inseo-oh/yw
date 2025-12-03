@@ -5,13 +5,14 @@ import (
 
 	"github.com/inseo-oh/yw/css"
 	"github.com/inseo-oh/yw/css/values"
-	"github.com/inseo-oh/yw/util"
 )
 
 // Returns nil if not found
 func (ts *tokenStream) parseNumber() *css.Num {
-	numTk := ts.consumeTokenWith(tokenTypeNumber)
-	if util.IsNil(numTk) {
+	oldCursor := ts.cursor
+	numTk, err := ts.consumeTokenWith(tokenTypeNumber)
+	if err != nil {
+		ts.cursor = oldCursor
 		return nil
 	}
 	per := numTk.(numberToken)
@@ -23,12 +24,13 @@ func (ts *tokenStream) parseNumber() *css.Num {
 // allowZeroShorthand should not be set if the property(such as line-height) also accepts number token.
 // (In that case, 0 should be parsed as <number 0>, not <length 0>)
 func (ts *tokenStream) parseLength(allowZeroShorthand bool) (*values.Length, error) {
-	dimTk := ts.consumeTokenWith(tokenTypeDimension)
-	if util.IsNil(dimTk) {
+	oldCursor := ts.cursor
+	dimTk, err := ts.consumeTokenWith(tokenTypeDimension)
+	if err != nil {
 		if allowZeroShorthand {
 			oldCursor := ts.cursor
-			numTk := ts.consumeTokenWith(tokenTypeNumber)
-			if util.IsNil(numTk) || !numTk.(numberToken).value.Equals(css.NumFromInt(0)) {
+			numTk, err := ts.consumeTokenWith(tokenTypeNumber)
+			if err != nil || !numTk.(numberToken).value.Equals(css.NumFromInt(0)) {
 				ts.cursor = oldCursor
 			} else {
 				return &values.Length{Value: css.NumFromInt(0), Unit: values.Px}, nil
@@ -36,6 +38,8 @@ func (ts *tokenStream) parseLength(allowZeroShorthand bool) (*values.Length, err
 		}
 
 		return nil, nil
+	} else {
+		ts.cursor = oldCursor
 	}
 	dim := dimTk.(dimensionToken)
 	var unit values.LengthUnit
@@ -76,8 +80,10 @@ func (ts *tokenStream) parseLength(allowZeroShorthand bool) (*values.Length, err
 
 // Returns nil if not found
 func (ts *tokenStream) parsePercentage() *values.Percentage {
-	perTk := ts.consumeTokenWith(tokenTypePercentage)
-	if util.IsNil(perTk) {
+	oldCursor := ts.cursor
+	perTk, err := ts.consumeTokenWith(tokenTypePercentage)
+	if err != nil {
+		ts.cursor = oldCursor
 		return nil
 	}
 	per := perTk.(percentageToken)

@@ -946,28 +946,34 @@ func (ts *tokenStream) consumeToken() (token, error) {
 	res := ts.tokens[ts.cursor-1]
 	return res, nil
 }
-func (ts *tokenStream) consumeTokenWith(tp tokenType) token {
-	if ts.isEnd() {
-		return nil
-	}
+func (ts *tokenStream) consumeTokenWith(tp tokenType) (token, error) {
 	oldCursor := ts.cursor
 	tk, err := ts.consumeToken()
-	if err != nil || tk.tokenType() != tp {
+	if err != nil {
+		return nil, err
+	} else if tk.tokenType() != tp {
+		// TODO: Describe what token we want in more friendly way.
 		ts.cursor = oldCursor
-		return nil
+		return nil, fmt.Errorf("expected token with type %v", tp)
 	}
-	return tk
+	return tk, nil
 }
 
 func (ts *tokenStream) skipWhitespaces() {
-	for !util.IsNil(ts.consumeTokenWith(tokenTypeWhitespace)) {
+	for {
+		oldCursor := ts.cursor
+		_, err := ts.consumeTokenWith(tokenTypeWhitespace)
+		if err != nil {
+			ts.cursor = oldCursor
+			break
+		}
 	}
 }
 
 func (ts *tokenStream) consumeDelimTokenWith(d rune) *delimToken {
 	oldCursor := ts.cursor
-	tk := ts.consumeTokenWith(tokenTypeDelim)
-	if util.IsNil(tk) || tk.(delimToken).value != d {
+	tk, err := ts.consumeTokenWith(tokenTypeDelim)
+	if err != nil || tk.(delimToken).value != d {
 		ts.cursor = oldCursor
 		return nil
 	}
@@ -976,8 +982,8 @@ func (ts *tokenStream) consumeDelimTokenWith(d rune) *delimToken {
 }
 func (ts *tokenStream) consumeIdentTokenWith(i string) bool {
 	oldCursor := ts.cursor
-	tk := ts.consumeTokenWith(tokenTypeIdent)
-	if util.IsNil(tk) || tk.(identToken).value != i {
+	tk, err := ts.consumeTokenWith(tokenTypeIdent)
+	if err != nil || tk.(identToken).value != i {
 		ts.cursor = oldCursor
 		return false
 	}
@@ -985,12 +991,12 @@ func (ts *tokenStream) consumeIdentTokenWith(i string) bool {
 }
 func (ts *tokenStream) consumeSimpleBlockWith(tp simpleBlockType) *simpleBlockToken {
 	oldCursor := ts.cursor
-	n := ts.consumeTokenWith(tokenTypeSimpleBlock)
-	if util.IsNil(n) {
+	tk, err := ts.consumeTokenWith(tokenTypeSimpleBlock)
+	if err != nil {
 		ts.cursor = oldCursor
 		return nil
 	}
-	blk := n.(simpleBlockToken)
+	blk := tk.(simpleBlockToken)
 	if blk.tp != tp {
 		ts.cursor = oldCursor
 		return nil
@@ -999,8 +1005,8 @@ func (ts *tokenStream) consumeSimpleBlockWith(tp simpleBlockType) *simpleBlockTo
 }
 func (ts *tokenStream) consumeAstFuncWith(name string) *astFuncToken {
 	oldCursor := ts.cursor
-	tk := ts.consumeTokenWith(tokenTypeAstFunc)
-	if util.IsNil(tk) || tk.(astFuncToken).name != name {
+	tk, err := ts.consumeTokenWith(tokenTypeAstFunc)
+	if err != nil || tk.(astFuncToken).name != name {
 		ts.cursor = oldCursor
 		return nil
 	}
@@ -1029,6 +1035,7 @@ func (ts *tokenStream) consumePreservedToken() token {
 // Returns nil if not found
 func (ts *tokenStream) consumeSimpleBlock(openTokenType, closeTokenType tokenType) *simpleBlockToken {
 	resNodes := []token{}
+	oldCursor := ts.cursor
 	var blockType simpleBlockType
 	switch openTokenType {
 	case tokenTypeLeftCurlyBracket:
@@ -1041,8 +1048,9 @@ func (ts *tokenStream) consumeSimpleBlock(openTokenType, closeTokenType tokenTyp
 		panic("unsupported openTokenType")
 	}
 
-	openToken := ts.consumeTokenWith(openTokenType)
-	if util.IsNil(openToken) {
+	openToken, err := ts.consumeTokenWith(openTokenType)
+	if err != nil {
+		ts.cursor = oldCursor
 		return nil
 	}
 	var closeToken token
@@ -1081,10 +1089,12 @@ func (ts *tokenStream) consumeParenBlock() *simpleBlockToken {
 // Returns nil if not found
 func (ts *tokenStream) consumeFunc() *astFuncToken {
 	fnValueNodes := []token{}
+	oldCursor := ts.cursor
 	var fnToken funcKeywordToken
-	if temp := ts.consumeTokenWith(tokenTypeFuncKeyword); !util.IsNil(temp) {
+	if temp, err := ts.consumeTokenWith(tokenTypeFuncKeyword); err == nil {
 		fnToken = temp.(funcKeywordToken)
 	} else {
+		ts.cursor = oldCursor
 		return nil
 	}
 	var closeToken token
@@ -1144,11 +1154,13 @@ func (ts *tokenStream) consumeQualifiedRule() *qualifiedRuleToken {
 
 // Returns nil if not found
 func (ts *tokenStream) consumeAtRule() *atRuleToken {
+	oldCursor := ts.cursor
 	prelude := []token{}
 	var kwdToken atKeywordToken
-	if temp := ts.consumeTokenWith(tokenTypeAtKeyword); !util.IsNil(temp) {
+	if temp, err := ts.consumeTokenWith(tokenTypeAtKeyword); err == nil {
 		kwdToken = temp.(atKeywordToken)
 	} else {
+		ts.cursor = oldCursor
 		return nil
 	}
 
@@ -1170,27 +1182,28 @@ func (ts *tokenStream) consumeAtRule() *atRuleToken {
 
 // Returns nil if not found
 func (ts *tokenStream) consumeDeclaration() *declarationToken {
+	oldCursor := ts.cursor
 	// <name>  :  contents  !important -----------------------------------------
 	var identTk identToken
-	if temp := ts.consumeTokenWith(tokenTypeIdent); temp != nil {
+	if temp, err := ts.consumeTokenWith(tokenTypeIdent); err == nil {
 		identTk = temp.(identToken)
 	} else {
+		ts.cursor = oldCursor
 		return nil
 	}
 	declName := identTk.value
 	declValue := []token{}
 	declIsImportant := false
 	// name<  >:  contents  !important -----------------------------------------
-	for !util.IsNil(ts.consumeTokenWith(tokenTypeWhitespace)) {
-	}
+	ts.skipWhitespaces()
 	// name  <:>  contents  !important -----------------------------------------
-	if ts.consumeTokenWith(tokenTypeColon) == nil {
+	if _, err := ts.consumeTokenWith(tokenTypeColon); err != nil {
 		// Parse error
+		ts.cursor = oldCursor
 		return nil
 	}
 	// name  :<  >contents  !important -----------------------------------------
-	for !util.IsNil(ts.consumeTokenWith(tokenTypeWhitespace)) {
-	}
+	ts.skipWhitespaces()
 
 	// name  :  <contents  !important> -----------------------------------------
 	for {
@@ -1423,7 +1436,7 @@ func parseStyleBlockContents(tokens []token) []token {
 func parseDeclaration(tokens []token) *declarationToken {
 	stream := tokenStream{tokens: tokens}
 	stream.skipWhitespaces()
-	if util.IsNil(stream.consumeTokenWith(tokenTypeIdent)) {
+	if _, err := stream.consumeTokenWith(tokenTypeIdent); err != nil {
 		panic("TODO: syntax error: expected identifier")
 	}
 	stream.cursor--
@@ -1530,7 +1543,9 @@ func parseCommaSeparatedRepeation[T any](ts *tokenStream, maxRepeats int, parser
 			break
 		}
 		ts.skipWhitespaces()
-		if util.IsNil(ts.consumeTokenWith(tokenTypeComma)) {
+		oldCursor := ts.cursor
+		if _, err := ts.consumeTokenWith(tokenTypeComma); err != nil {
+			ts.cursor = oldCursor
 			break
 		}
 		ts.skipWhitespaces()

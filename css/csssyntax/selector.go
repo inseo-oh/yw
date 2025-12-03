@@ -2,6 +2,7 @@ package csssyntax
 
 import (
 	"errors"
+	"log"
 
 	"github.com/inseo-oh/yw/css/selector"
 	"github.com/inseo-oh/yw/util"
@@ -18,9 +19,10 @@ func (ts *tokenStream) parseSelectorNsPrefix() *selector.NsPrefix {
 // Returns nil if not found
 func (ts *tokenStream) parseSelectorWqName() *selector.WqName {
 	oldCursor := ts.cursor
+
 	nsPrefix := ts.parseSelectorNsPrefix()
 	var identTk identToken
-	if temp := ts.consumeTokenWith(tokenTypeIdent); !util.IsNil(temp) {
+	if temp, err := ts.consumeTokenWith(tokenTypeIdent); err == nil {
 		identTk = temp.(identToken)
 	} else {
 		ts.cursor = oldCursor
@@ -40,7 +42,7 @@ func (ts *tokenStream) parseTypeSelector() selector.Selector {
 	} else {
 		// <ns-prefix?> *
 		nsPrefix := ts.parseSelectorNsPrefix()
-		if tk := ts.consumeTokenWith(tokenTypeDelim); !util.IsNil(tk) {
+		if tk, err := ts.consumeTokenWith(tokenTypeDelim); err == nil {
 			if tk.(delimToken).value != '*' {
 				ts.cursor = oldCursor
 				return nil
@@ -57,7 +59,7 @@ func (ts *tokenStream) parseTypeSelector() selector.Selector {
 func (ts *tokenStream) parseIdSelector() *selector.IdSelector {
 	oldCursor := ts.cursor
 	var hashTk hashToken
-	if temp := ts.consumeTokenWith(tokenTypeHash); !util.IsNil(temp) {
+	if temp, err := ts.consumeTokenWith(tokenTypeHash); err == nil {
 		hashTk = temp.(hashToken)
 	} else {
 		ts.cursor = oldCursor
@@ -74,10 +76,10 @@ func (ts *tokenStream) parseClassSelector() (*selector.ClassSelector, error) {
 		return nil, nil
 	}
 	var identTk identToken
-	if temp := ts.consumeTokenWith(tokenTypeIdent); !util.IsNil(temp) {
+	if temp, err := ts.consumeTokenWith(tokenTypeIdent); err == nil {
 		identTk = temp.(identToken)
 	} else {
-		return nil, errors.New("expected identifier after '.'")
+		return nil, err
 	}
 	return &selector.ClassSelector{Class: identTk.value}, nil
 }
@@ -99,6 +101,7 @@ func (ts *tokenStream) parseAttrSelector() (*selector.AttrSelector, error) {
 	// [  <attr>  =  value  modifier  ] ----------------------------------------
 	wqName := bodyStream.parseSelectorWqName()
 	if wqName == nil {
+		log.Println(blk.body)
 		return nil, errors.New("expected name after '['")
 	}
 	// [  attr<  >] ------------------------------------------------------------
@@ -128,11 +131,12 @@ func (ts *tokenStream) parseAttrSelector() (*selector.AttrSelector, error) {
 		bodyStream.skipWhitespaces()
 		// [  attr  =  <value>  modifier  ] ------------------------------------
 		var attrValue string
-		if n := bodyStream.consumeTokenWith(tokenTypeIdent); !util.IsNil(n) {
+		if n, err := bodyStream.consumeTokenWith(tokenTypeIdent); err == nil {
 			attrValue = n.(identToken).value
-		} else if n := bodyStream.consumeTokenWith(tokenTypeString); !util.IsNil(n) {
+		} else if n, err := bodyStream.consumeTokenWith(tokenTypeString); err == nil {
 			attrValue = n.(stringToken).value
 		} else {
+			ts.cursor = oldCursor
 			return nil, errors.New("expected attribute value after the operator")
 		}
 		// [  attr  =  value<  >modifier  ] ------------------------------------
@@ -160,15 +164,14 @@ func (ts *tokenStream) parsePseudoClassSelector() (*selector.PseudoClassSelector
 
 	// <:>name ----------------------------------------------------------------
 	// <:>func(value) ----------------------------------------------------------
-	if util.IsNil(ts.consumeTokenWith(tokenTypeColon)) {
-		ts.cursor = oldCursor
+	if _, err := ts.consumeTokenWith(tokenTypeColon); err != nil {
 		return nil, nil
-	}
-	if identTk := ts.consumeTokenWith(tokenTypeIdent); !util.IsNil(identTk) {
+	} else if identTk, err := ts.consumeTokenWith(tokenTypeIdent); err == nil {
 		// :<name> ------------------------------------------------------------
 		name := identTk.(identToken).value
 		return &selector.PseudoClassSelector{Name: name, Args: nil}, nil
-	} else if funcNode := ts.consumeTokenWith(tokenTypeAstFunc); !util.IsNil(funcNode) {
+	}
+	if funcNode, err := ts.consumeTokenWith(tokenTypeAstFunc); err == nil {
 		// :<func(value)> ------------------------------------------------------
 		name := funcNode.(astFuncToken).name
 		subStream := tokenStream{tokens: funcNode.(astFuncToken).value}
@@ -194,7 +197,7 @@ func (ts *tokenStream) parsePseudoClassSelector() (*selector.PseudoClassSelector
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-pseudo-element-selector
 func (ts *tokenStream) parsePseudoElementSelector() (*selector.PseudoClassSelector, error) {
 	oldCursor := ts.cursor
-	if util.IsNil(ts.consumeTokenWith(tokenTypeColon)) {
+	if _, err := ts.consumeTokenWith(tokenTypeColon); err != nil {
 		ts.cursor = oldCursor
 		return nil, nil
 	}
@@ -296,11 +299,16 @@ func (ts *tokenStream) parseCompoundSelectorList() ([]*selector.CompoundSelector
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-complex-selector
 
-func (ts *tokenStream) parseComplexSelector() (*selector.ComplexSelector, error) {
+func (ts *tokenStream) parseComplexSelector() (res *selector.ComplexSelector, err error) {
 	oldCursor := ts.cursor
+	defer func() {
+		if err != nil {
+			ts.cursor = oldCursor
+		}
+	}()
+
 	base, err := ts.parseCompoundSelector()
 	if base == nil {
-		ts.cursor = oldCursor
 		return nil, err
 	}
 	rest := []selector.ComplexSelectorRest{}
@@ -318,7 +326,7 @@ func (ts *tokenStream) parseComplexSelector() (*selector.ComplexSelector, error)
 			} else {
 				ts.cursor -= 2
 			}
-		} else if !util.IsNil(ts.consumeTokenWith(tokenTypeWhitespace)) {
+		} else if _, err := ts.consumeTokenWith(tokenTypeWhitespace); err != nil {
 			ts.skipWhitespaces()
 			comb = selector.ChildCombinator
 		}
@@ -332,7 +340,6 @@ func (ts *tokenStream) parseComplexSelector() (*selector.ComplexSelector, error)
 		rest = append(rest, selector.ComplexSelectorRest{Combinator: comb, Selector: *anotherUnit})
 	}
 	if base == nil && len(rest) == 0 {
-		ts.cursor = oldCursor
 		return nil, nil
 	}
 	return &selector.ComplexSelector{Base: *base, Rest: rest}, nil
