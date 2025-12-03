@@ -139,9 +139,9 @@ func (ts *tokenStream) parseAttrSelector() (*selector.AttrSelector, error) {
 		bodyStream.skipWhitespaces()
 		// [  attr  =  value  <modifier>  ] ------------------------------------
 		isCaseSensitive := true
-		if !util.IsNil(bodyStream.consumeIdentTokenWith("i")) {
+		if bodyStream.consumeIdentTokenWith("i") {
 			isCaseSensitive = false
-		} else if !util.IsNil(bodyStream.consumeIdentTokenWith("s")) {
+		} else if bodyStream.consumeIdentTokenWith("s") {
 			isCaseSensitive = true
 		}
 		// [  attr  =  value  modifier<  >] ------------------------------------

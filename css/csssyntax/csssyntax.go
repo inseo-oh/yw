@@ -968,7 +968,7 @@ func (ts *tokenStream) skipWhitespaces() {
 func (ts *tokenStream) consumeDelimTokenWith(d rune) *delimToken {
 	oldCursor := ts.cursor
 	tk := ts.consumeTokenWith(tokenTypeDelim)
-	if tk == nil || tk.(delimToken).value != d {
+	if util.IsNil(tk) || tk.(delimToken).value != d {
 		ts.cursor = oldCursor
 		return nil
 	}
@@ -978,7 +978,8 @@ func (ts *tokenStream) consumeDelimTokenWith(d rune) *delimToken {
 func (ts *tokenStream) consumeIdentTokenWith(i string) bool {
 	oldCursor := ts.cursor
 	tk := ts.consumeTokenWith(tokenTypeIdent)
-	if tk == nil || tk.(identToken).value != i {
+	log.Println(tk)
+	if util.IsNil(tk) || tk.(identToken).value != i {
 		ts.cursor = oldCursor
 		return false
 	}
@@ -1001,7 +1002,7 @@ func (ts *tokenStream) consumeSimpleBlockWith(tp simpleBlockType) *simpleBlockTo
 func (ts *tokenStream) consumeAstFuncWith(name string) *astFuncToken {
 	oldCursor := ts.cursor
 	tk := ts.consumeTokenWith(tokenTypeAstFunc)
-	if tk == nil || tk.(astFuncToken).name != name {
+	if util.IsNil(tk) || tk.(astFuncToken).name != name {
 		ts.cursor = oldCursor
 		return nil
 	}
