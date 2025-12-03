@@ -53,7 +53,7 @@ func main() {
 		case propsdef.ShorthandSidesProp:
 			sbInner.WriteString( /*      */ "\n")
 			sbInner.WriteString(fmt.Sprintf("func (ts *tokenStream) %s() (%s, bool) {\n", sh.ParseMethodName(), sh.TypeName(true)))
-			sbInner.WriteString(fmt.Sprintf("\titems, _ := parseRepeation(ts, 4, func(ts *tokenStream) (*%s, error) {\n", sh.PropRight.PropType(false).TypeName))
+			sbInner.WriteString(fmt.Sprintf("\titems, err := parseRepeation(ts, 4, func(ts *tokenStream) (*%s, error) {\n", sh.PropRight.PropType(false).TypeName))
 			sbInner.WriteString(fmt.Sprintf("\t\tvar res %s\n", sh.PropRight.PropType(false).TypeName))
 			sbInner.WriteString(fmt.Sprintf("\t\tres, ok := ts.%s()\n", sh.PropTop.PropType(false).ParseMethodName))
 			sbInner.WriteString( /*      */ "\t\tif !ok {\n")
@@ -61,7 +61,7 @@ func main() {
 			sbInner.WriteString( /*      */ "\t\t}\n")
 			sbInner.WriteString( /*      */ "\t\treturn &res, nil\n")
 			sbInner.WriteString( /*      */ "\t})\n")
-			sbInner.WriteString( /*      */ "\tif items == nil {\n")
+			sbInner.WriteString( /*      */ "\tif err != nil {\n")
 			sbInner.WriteString(fmt.Sprintf("\t\treturn %s{}, false\n", sh.TypeName(true)))
 			sbInner.WriteString( /*      */ "\t}\n")
 			sbInner.WriteString(fmt.Sprintf("\tres := %s{}\n", sh.TypeName(true)))

@@ -1538,6 +1538,7 @@ func parseCommaSeparatedRepeation[T any](ts *tokenStream, maxRepeats int, parser
 			ts.cursor = oldCursor
 			break
 		}
+		// FIXME: Remove this when we know it's safe to remove this check.
 		if util.IsNil(x) {
 			panic("callback returned a nil value")
 		}
@@ -1565,13 +1566,19 @@ func parseCommaSeparatedRepeation[T any](ts *tokenStream, maxRepeats int, parser
 func parseRepeation[T any](ts *tokenStream, maxRepeats int, parser func(ts *tokenStream) (T, error)) ([]T, error) {
 	res := []T{}
 	for {
+		oldCursor := ts.cursor
 		x, err := parser(ts)
-		if util.IsNil(x) {
-			if err != nil {
+		if err != nil {
+			if len(res) != 0 {
+				// We encountered an error after ' '
 				return nil, err
-			} else {
-				break
 			}
+			ts.cursor = oldCursor
+			break
+		}
+		// FIXME: Remove this when we know it's safe to remove this check.
+		if util.IsNil(x) {
+			panic("callback returned a nil value")
 		}
 		res = append(res, x)
 		if maxRepeats != 0 && maxRepeats <= len(res) {
@@ -1580,7 +1587,7 @@ func parseRepeation[T any](ts *tokenStream, maxRepeats int, parser func(ts *toke
 		ts.skipWhitespaces()
 	}
 	if len(res) == 0 {
-		return nil, nil
+		return nil, errors.New("expected a value")
 	}
 	return res, nil
 }

@@ -14,7 +14,7 @@ import (
 )
 
 func (ts *tokenStream) parseBorderColorShorthand() (props.BorderColorShorthand, bool) {
-	items, _ := parseRepeation(ts, 4, func(ts *tokenStream) (*csscolor.Color, error) {
+	items, err := parseRepeation(ts, 4, func(ts *tokenStream) (*csscolor.Color, error) {
 		var res csscolor.Color
 		res, ok := ts.parseColor()
 		if !ok {
@@ -22,7 +22,7 @@ func (ts *tokenStream) parseBorderColorShorthand() (props.BorderColorShorthand, 
 		}
 		return &res, nil
 	})
-	if items == nil {
+	if err != nil {
 		return props.BorderColorShorthand{}, false
 	}
 	res := props.BorderColorShorthand{}
@@ -52,7 +52,7 @@ func (ts *tokenStream) parseBorderColorShorthand() (props.BorderColorShorthand, 
 }
 
 func (ts *tokenStream) parseBorderStyleShorthand() (props.BorderStyleShorthand, bool) {
-	items, _ := parseRepeation(ts, 4, func(ts *tokenStream) (*backgrounds.LineStyle, error) {
+	items, err := parseRepeation(ts, 4, func(ts *tokenStream) (*backgrounds.LineStyle, error) {
 		var res backgrounds.LineStyle
 		res, ok := ts.parseLineStyle()
 		if !ok {
@@ -60,7 +60,7 @@ func (ts *tokenStream) parseBorderStyleShorthand() (props.BorderStyleShorthand, 
 		}
 		return &res, nil
 	})
-	if items == nil {
+	if err != nil {
 		return props.BorderStyleShorthand{}, false
 	}
 	res := props.BorderStyleShorthand{}
@@ -90,7 +90,7 @@ func (ts *tokenStream) parseBorderStyleShorthand() (props.BorderStyleShorthand, 
 }
 
 func (ts *tokenStream) parseBorderWidthShorthand() (props.BorderWidthShorthand, bool) {
-	items, _ := parseRepeation(ts, 4, func(ts *tokenStream) (*values.Length, error) {
+	items, err := parseRepeation(ts, 4, func(ts *tokenStream) (*values.Length, error) {
 		var res values.Length
 		res, ok := ts.parseLineWidth()
 		if !ok {
@@ -98,7 +98,7 @@ func (ts *tokenStream) parseBorderWidthShorthand() (props.BorderWidthShorthand, 
 		}
 		return &res, nil
 	})
-	if items == nil {
+	if err != nil {
 		return props.BorderWidthShorthand{}, false
 	}
 	res := props.BorderWidthShorthand{}
@@ -357,7 +357,7 @@ func (ts *tokenStream) parseBorderShorthand() (props.BorderShorthand, bool) {
 }
 
 func (ts *tokenStream) parseMarginShorthand() (props.MarginShorthand, bool) {
-	items, _ := parseRepeation(ts, 4, func(ts *tokenStream) (*box.Margin, error) {
+	items, err := parseRepeation(ts, 4, func(ts *tokenStream) (*box.Margin, error) {
 		var res box.Margin
 		res, ok := ts.parseMargin()
 		if !ok {
@@ -365,7 +365,7 @@ func (ts *tokenStream) parseMarginShorthand() (props.MarginShorthand, bool) {
 		}
 		return &res, nil
 	})
-	if items == nil {
+	if err != nil {
 		return props.MarginShorthand{}, false
 	}
 	res := props.MarginShorthand{}
@@ -395,7 +395,7 @@ func (ts *tokenStream) parseMarginShorthand() (props.MarginShorthand, bool) {
 }
 
 func (ts *tokenStream) parsePaddingShorthand() (props.PaddingShorthand, bool) {
-	items, _ := parseRepeation(ts, 4, func(ts *tokenStream) (*values.LengthResolvable, error) {
+	items, err := parseRepeation(ts, 4, func(ts *tokenStream) (*values.LengthResolvable, error) {
 		var res values.LengthResolvable
 		res, ok := ts.parsePadding()
 		if !ok {
@@ -403,7 +403,7 @@ func (ts *tokenStream) parsePaddingShorthand() (props.PaddingShorthand, bool) {
 		}
 		return &res, nil
 	})
-	if items == nil {
+	if err != nil {
 		return props.PaddingShorthand{}, false
 	}
 	res := props.PaddingShorthand{}

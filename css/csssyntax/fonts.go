@@ -16,10 +16,10 @@ func (ts *tokenStream) parseFamilyName() (string, bool) {
 		ts.cursor = oldCursor
 	}
 	out := ""
-	identTks, _ := parseRepeation(ts, 0, func(ts *tokenStream) (token, error) {
+	identTks, err := parseRepeation(ts, 0, func(ts *tokenStream) (token, error) {
 		return ts.consumeTokenWith(tokenTypeIdent)
 	})
-	if identTks == nil {
+	if err != nil {
 		return "", false
 	}
 	for _, tk := range identTks {
