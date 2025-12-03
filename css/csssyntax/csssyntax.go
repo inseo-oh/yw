@@ -1528,22 +1528,24 @@ func (ts *tokenStream) consumeAnyValue() []token {
 func parseCommaSeparatedRepeation[T any](ts *tokenStream, maxRepeats int, parser func(ts *tokenStream) (T, error)) ([]T, error) {
 	res := []T{}
 	for {
+		oldCursor := ts.cursor
 		x, err := parser(ts)
-		if util.IsNil(x) {
-			if err != nil {
+		if err != nil {
+			if len(res) != 0 {
+				// We encountered an error after ','
 				return nil, err
-			} else if len(res) != 0 {
-				return nil, errors.New("expected something after ','")
-			} else {
-				break
 			}
+			ts.cursor = oldCursor
+			break
+		}
+		if util.IsNil(x) {
+			panic("callback returned a nil value")
 		}
 		res = append(res, x)
 		if maxRepeats != 0 && maxRepeats <= len(res) {
 			break
 		}
 		ts.skipWhitespaces()
-		oldCursor := ts.cursor
 		if _, err := ts.consumeTokenWith(tokenTypeComma); err != nil {
 			ts.cursor = oldCursor
 			break
@@ -1551,7 +1553,7 @@ func parseCommaSeparatedRepeation[T any](ts *tokenStream, maxRepeats int, parser
 		ts.skipWhitespaces()
 	}
 	if len(res) == 0 {
-		return nil, nil
+		return nil, errors.New("expected a value")
 	}
 	return res, nil
 }

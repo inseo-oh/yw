@@ -1,6 +1,8 @@
 package csssyntax
 
 import (
+	"errors"
+
 	"github.com/inseo-oh/yw/css"
 	"github.com/inseo-oh/yw/css/fonts"
 )
@@ -55,7 +57,7 @@ func (ts *tokenStream) parseFontFamily() (fonts.FamilyList, bool) {
 		if name, ok := ts.parseFamilyName(); ok {
 			return &fonts.Family{Type: fonts.NonGeneric, Name: name}, nil
 		}
-		return nil, nil
+		return nil, errors.New("expected generic family or family name")
 	})
 	if familyPtrs == nil {
 		return fonts.FamilyList{}, false

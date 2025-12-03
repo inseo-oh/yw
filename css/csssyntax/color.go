@@ -1,6 +1,7 @@
 package csssyntax
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 
@@ -120,6 +121,10 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 			b = css.NumFromFloat((bBer / 100) * 255)
 		} else {
 			num, err := parseCommaSeparatedRepeation(&ts, 3, func(ts *tokenStream) (*css.Num, error) {
+				n := ts.parseNumber()
+				if n == nil {
+					return nil, errors.New("expected number")
+				}
 				return ts.parseNumber(), nil
 			})
 			if num == nil && err != nil {
