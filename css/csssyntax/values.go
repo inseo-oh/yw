@@ -73,15 +73,13 @@ func (ts *tokenStream) parseLength(allowZeroShorthand bool) (values.Length, erro
 }
 
 // Returns nil if not found
-func (ts *tokenStream) parsePercentage() *values.Percentage {
-	oldCursor := ts.cursor
+func (ts *tokenStream) parsePercentage() (values.Percentage, error) {
 	perTk, err := ts.consumeTokenWith(tokenTypePercentage)
 	if err != nil {
-		ts.cursor = oldCursor
-		return nil
+		return values.Percentage{}, err
 	}
 	per := perTk.(percentageToken)
-	return &values.Percentage{Value: per.value}
+	return values.Percentage{Value: per.value}, nil
 }
 
 // https://www.w3.org/TR/css-values-3/#typedef-length-percentage
@@ -89,7 +87,7 @@ func (ts *tokenStream) parseLengthOrPercentage(allowZeroShorthand bool) (values.
 	if len, err := ts.parseLength(allowZeroShorthand); err == nil {
 		return len, nil
 	}
-	if per := ts.parsePercentage(); per != nil {
+	if per, err := ts.parsePercentage(); err == nil {
 		return per, nil
 	}
 	return nil, nil

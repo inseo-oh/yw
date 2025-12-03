@@ -81,7 +81,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 			var v css.Num
 			if num := ts.parseNumber(); num != nil {
 				v = css.NumFromFloat(num.Clamp(css.NumFromInt(0), css.NumFromInt(1)).ToFloat() * 255)
-			} else if num := ts.parsePercentage(); num != nil {
+			} else if num, err := ts.parsePercentage(); err == nil {
 				aPer := num.Value.Clamp(css.NumFromInt(0), css.NumFromInt(100)).ToFloat()
 				v = css.NumFromFloat((aPer / 100) * 255)
 			} else {
@@ -105,8 +105,8 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 		ts.skipWhitespaces()
 		// rgb(  <r  ,  g  ,  b>  ) --------------------------------------------
 		// rgb(  <r  ,  g  ,  b>  ,  a  ) --------------------------------------
-		per, err := parseCommaSeparatedRepeation(&ts, 3, func(ts *tokenStream) (*values.Percentage, error) {
-			return ts.parsePercentage(), nil
+		per, err := parseCommaSeparatedRepeation(&ts, 3, func(ts *tokenStream) (values.Percentage, error) {
+			return ts.parsePercentage()
 		})
 		if per == nil && err != nil {
 			return csscolor.Color{}, false
@@ -175,7 +175,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 			var v css.Num
 			if num := ts.parseNumber(); num != nil {
 				v = num.Clamp(css.NumFromInt(0), css.NumFromInt(255))
-			} else if num := ts.parsePercentage(); num != nil {
+			} else if num, err := ts.parsePercentage(); err == nil {
 				per := num.Value.Clamp(css.NumFromInt(0), css.NumFromInt(100)).ToFloat()
 				v = css.NumFromFloat((per / 100) * 255)
 			} else if err := ts.consumeIdentTokenWith("none"); err == nil {
