@@ -988,19 +988,19 @@ func (ts *tokenStream) consumeIdentTokenWith(i string) error {
 	}
 	return nil
 }
-func (ts *tokenStream) consumeSimpleBlockWith(tp simpleBlockType) *simpleBlockToken {
+func (ts *tokenStream) consumeSimpleBlockWith(tp simpleBlockType) (*simpleBlockToken, error) {
 	oldCursor := ts.cursor
 	tk, err := ts.consumeTokenWith(tokenTypeSimpleBlock)
 	if err != nil {
-		ts.cursor = oldCursor
-		return nil
+		return nil, err
 	}
 	blk := tk.(simpleBlockToken)
 	if blk.tp != tp {
+		// TODO: Describe what token we want in more friendly way.
 		ts.cursor = oldCursor
-		return nil
+		return nil, fmt.Errorf("expected simple block with type %v", tp)
 	}
-	return &blk
+	return &blk, nil
 }
 func (ts *tokenStream) consumeAstFuncWith(name string) *astFuncToken {
 	oldCursor := ts.cursor

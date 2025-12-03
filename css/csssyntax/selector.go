@@ -87,10 +87,9 @@ func (ts *tokenStream) parseClassSelector() (res *selector.ClassSelector, err er
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-attribute-selector
 func (ts *tokenStream) parseAttrSelector() (*selector.AttrSelector, error) {
 	oldCursor := ts.cursor
-	blk := ts.consumeSimpleBlockWith(simpleBlockTypeSquare)
-	if blk == nil {
-		ts.cursor = oldCursor
-		return nil, nil
+	blk, err := ts.consumeSimpleBlockWith(simpleBlockTypeSquare)
+	if err != nil {
+		return nil, err
 	}
 
 	bodyStream := tokenStream{tokens: blk.body}
@@ -223,10 +222,8 @@ func (ts *tokenStream) parseSubclassSelector() (selector.Selector, error) {
 		return nil, err
 	}
 
-	if sel, err := ts.parseAttrSelector(); sel != nil {
+	if sel, err := ts.parseAttrSelector(); err == nil {
 		return *sel, nil
-	} else if err != nil {
-		return nil, err
 	}
 
 	if sel, err := ts.parsePseudoClassSelector(); sel != nil {
