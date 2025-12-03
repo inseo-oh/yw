@@ -6,7 +6,7 @@ import (
 
 // https://www.w3.org/TR/css-text-decor-3/#propdef-text-decoration-line
 func (ts *tokenStream) parseTextDecorationLine() (textdecor.LineFlags, bool) {
-	if ts.consumeIdentTokenWith("none") {
+	if err := ts.consumeIdentTokenWith("none"); err == nil {
 		return textdecor.NoLine, true
 	}
 	var out textdecor.LineFlags
@@ -14,16 +14,16 @@ func (ts *tokenStream) parseTextDecorationLine() (textdecor.LineFlags, bool) {
 	for {
 		valid := false
 		ts.skipWhitespaces()
-		if ts.consumeIdentTokenWith("underline") {
+		if err := ts.consumeIdentTokenWith("underline"); err == nil {
 			out |= textdecor.Underline
 			valid = true
-		} else if ts.consumeIdentTokenWith("overline") {
+		} else if err := ts.consumeIdentTokenWith("overline"); err == nil {
 			out |= textdecor.Overline
 			valid = true
-		} else if ts.consumeIdentTokenWith("line-through") {
+		} else if err := ts.consumeIdentTokenWith("line-through"); err == nil {
 			out |= textdecor.LineThrough
 			valid = true
-		} else if ts.consumeIdentTokenWith("blink") {
+		} else if err := ts.consumeIdentTokenWith("blink"); err == nil {
 			out |= textdecor.Blink
 			valid = true
 		}
@@ -41,15 +41,15 @@ func (ts *tokenStream) parseTextDecorationLine() (textdecor.LineFlags, bool) {
 
 // https://www.w3.org/TR/css-text-decor-3/#propdef-text-decoration-style
 func (ts *tokenStream) parseTextDecorationStyle() (textdecor.Style, bool) {
-	if ts.consumeIdentTokenWith("solid") {
+	if err := ts.consumeIdentTokenWith("solid"); err == nil {
 		return textdecor.Solid, true
-	} else if ts.consumeIdentTokenWith("double") {
+	} else if err := ts.consumeIdentTokenWith("double"); err == nil {
 		return textdecor.Double, true
-	} else if ts.consumeIdentTokenWith("dotted") {
+	} else if err := ts.consumeIdentTokenWith("dotted"); err == nil {
 		return textdecor.Dotted, true
-	} else if ts.consumeIdentTokenWith("dashed") {
+	} else if err := ts.consumeIdentTokenWith("dashed"); err == nil {
 		return textdecor.Dashed, true
-	} else if ts.consumeIdentTokenWith("wavy") {
+	} else if err := ts.consumeIdentTokenWith("wavy"); err == nil {
 		return textdecor.Wavy, true
 	}
 	return 0, false
@@ -57,7 +57,7 @@ func (ts *tokenStream) parseTextDecorationStyle() (textdecor.Style, bool) {
 
 // https://www.w3.org/TR/css-text-decor-3/#propdef-text-underline-position
 func (ts *tokenStream) parseTextDecorationPosition() (textdecor.PositionFlags, bool) {
-	if ts.consumeIdentTokenWith("auto") {
+	if err := ts.consumeIdentTokenWith("auto"); err == nil {
 		return textdecor.PositionAuto, true
 	}
 	var out textdecor.PositionFlags
@@ -68,7 +68,7 @@ func (ts *tokenStream) parseTextDecorationPosition() (textdecor.PositionFlags, b
 		valid := false
 		if !gotUnder {
 			ts.skipWhitespaces()
-			if ts.consumeIdentTokenWith("under") {
+			if err := ts.consumeIdentTokenWith("under"); err == nil {
 				out |= textdecor.Under
 				gotUnder = true
 				valid = true
@@ -76,7 +76,7 @@ func (ts *tokenStream) parseTextDecorationPosition() (textdecor.PositionFlags, b
 		}
 		if !gotSide {
 			ts.skipWhitespaces()
-			if ts.consumeIdentTokenWith("left") {
+			if err := ts.consumeIdentTokenWith("left"); err == nil {
 				out |= textdecor.SideLeft
 				if out == textdecor.SideLeft {
 					// If these were used alone, auto is also implied
@@ -84,7 +84,7 @@ func (ts *tokenStream) parseTextDecorationPosition() (textdecor.PositionFlags, b
 				}
 				gotSide = true
 				valid = true
-			} else if ts.consumeIdentTokenWith("right") {
+			} else if err := ts.consumeIdentTokenWith("right"); err == nil {
 				out |= textdecor.SideRight
 				if out == textdecor.SideRight {
 					// If these were used alone, auto is also implied

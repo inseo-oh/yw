@@ -12,7 +12,7 @@ func (ts *tokenStream) parseMargin() (box.Margin, bool) {
 	} else if err != nil {
 		return box.Margin{}, false
 	}
-	if ts.consumeIdentTokenWith("auto") {
+	if err := ts.consumeIdentTokenWith("auto"); err == nil {
 		return box.Margin{Value: nil}, true
 	}
 	return box.Margin{}, false

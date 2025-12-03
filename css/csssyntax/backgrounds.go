@@ -7,25 +7,25 @@ import (
 
 // https://www.w3.org/TR/css-backgrounds-3/#typedef-line-style
 func (ts *tokenStream) parseLineStyle() (backgrounds.LineStyle, bool) {
-	if ts.consumeIdentTokenWith("none") {
+	if err := ts.consumeIdentTokenWith("none"); err == nil {
 		return backgrounds.NoLine, true
-	} else if ts.consumeIdentTokenWith("hidden") {
+	} else if err := ts.consumeIdentTokenWith("hidden"); err == nil {
 		return backgrounds.HiddenLine, true
-	} else if ts.consumeIdentTokenWith("dotted") {
+	} else if err := ts.consumeIdentTokenWith("dotted"); err == nil {
 		return backgrounds.DottedLine, true
-	} else if ts.consumeIdentTokenWith("dashed") {
+	} else if err := ts.consumeIdentTokenWith("dashed"); err == nil {
 		return backgrounds.DashedLine, true
-	} else if ts.consumeIdentTokenWith("solid") {
+	} else if err := ts.consumeIdentTokenWith("solid"); err == nil {
 		return backgrounds.SolidLine, true
-	} else if ts.consumeIdentTokenWith("double") {
+	} else if err := ts.consumeIdentTokenWith("double"); err == nil {
 		return backgrounds.DoubleLine, true
-	} else if ts.consumeIdentTokenWith("groove") {
+	} else if err := ts.consumeIdentTokenWith("groove"); err == nil {
 		return backgrounds.GrovveLine, true
-	} else if ts.consumeIdentTokenWith("ridge") {
+	} else if err := ts.consumeIdentTokenWith("ridge"); err == nil {
 		return backgrounds.RidgeLine, true
-	} else if ts.consumeIdentTokenWith("inset") {
+	} else if err := ts.consumeIdentTokenWith("inset"); err == nil {
 		return backgrounds.InsetLine, true
-	} else if ts.consumeIdentTokenWith("outset") {
+	} else if err := ts.consumeIdentTokenWith("outset"); err == nil {
 		return backgrounds.OutsetLine, true
 	}
 	return 0, false
@@ -33,13 +33,13 @@ func (ts *tokenStream) parseLineStyle() (backgrounds.LineStyle, bool) {
 
 // https://www.w3.org/TR/css-backgrounds-3/#typedef-line-width
 func (ts *tokenStream) parseLineWidth() (values.Length, bool) {
-	if ts.consumeIdentTokenWith("thin") {
+	if err := ts.consumeIdentTokenWith("thin"); err == nil {
 		return backgrounds.LineWidthThin, true
 	}
-	if ts.consumeIdentTokenWith("medium") {
+	if err := ts.consumeIdentTokenWith("medium"); err == nil {
 		return backgrounds.LineWidthMedium, true
 	}
-	if ts.consumeIdentTokenWith("thick") {
+	if err := ts.consumeIdentTokenWith("thick"); err == nil {
 		return backgrounds.LineWidthThick, true
 	}
 	if len, _ := ts.parseLength(true); len != nil {

@@ -6,7 +6,7 @@ import (
 
 // https://www.w3.org/TR/css-text-3/#propdef-text-transform
 func (ts *tokenStream) parseTextTransform() (text.Transform, bool) {
-	if ts.consumeIdentTokenWith("none") {
+	if err := ts.consumeIdentTokenWith("none"); err == nil {
 		return text.Transform{Type: text.NoTransform}, true
 	}
 	out := text.Transform{Type: text.OriginalCaps}
@@ -18,15 +18,15 @@ func (ts *tokenStream) parseTextTransform() (text.Transform, bool) {
 		valid := false
 		if !gotType {
 			ts.skipWhitespaces()
-			if ts.consumeIdentTokenWith("capitalize") {
+			if err := ts.consumeIdentTokenWith("capitalize"); err == nil {
 				out.Type = text.Capitalize
 				gotType = true
 				valid = true
-			} else if ts.consumeIdentTokenWith("uppercase") {
+			} else if err := ts.consumeIdentTokenWith("uppercase"); err == nil {
 				out.Type = text.Uppercase
 				gotType = true
 				valid = true
-			} else if ts.consumeIdentTokenWith("lowercase") {
+			} else if err := ts.consumeIdentTokenWith("lowercase"); err == nil {
 				out.Type = text.Lowercase
 				gotType = true
 				valid = true
@@ -34,7 +34,7 @@ func (ts *tokenStream) parseTextTransform() (text.Transform, bool) {
 		}
 		if !gotIsFullWidth {
 			ts.skipWhitespaces()
-			if ts.consumeIdentTokenWith("full-width") {
+			if err := ts.consumeIdentTokenWith("full-width"); err == nil {
 				out.FullWidth = true
 				gotIsFullWidth = true
 				valid = true
@@ -42,7 +42,7 @@ func (ts *tokenStream) parseTextTransform() (text.Transform, bool) {
 		}
 		if !gotIsFullKana {
 			ts.skipWhitespaces()
-			if ts.consumeIdentTokenWith("full-size-kana") {
+			if err := ts.consumeIdentTokenWith("full-size-kana"); err == nil {
 				out.FullSizeKana = true
 				gotIsFullWidth = true
 				valid = true

@@ -979,14 +979,14 @@ func (ts *tokenStream) consumeDelimTokenWith(d rune) error {
 	}
 	return nil
 }
-func (ts *tokenStream) consumeIdentTokenWith(i string) bool {
+func (ts *tokenStream) consumeIdentTokenWith(i string) error {
 	oldCursor := ts.cursor
 	tk, err := ts.consumeTokenWith(tokenTypeIdent)
 	if err != nil || tk.(identToken).value != i {
 		ts.cursor = oldCursor
-		return false
+		return fmt.Errorf("expected %s", i)
 	}
-	return true
+	return nil
 }
 func (ts *tokenStream) consumeSimpleBlockWith(tp simpleBlockType) *simpleBlockToken {
 	oldCursor := ts.cursor
