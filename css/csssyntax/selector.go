@@ -2,7 +2,6 @@ package csssyntax
 
 import (
 	"errors"
-	"log"
 
 	"github.com/inseo-oh/yw/css/selector"
 	"github.com/inseo-oh/yw/util"
@@ -100,7 +99,6 @@ func (ts *tokenStream) parseAttrSelector() (*selector.AttrSelector, error) {
 	// [  <attr>  =  value  modifier  ] ----------------------------------------
 	wqName := bodyStream.parseSelectorWqName()
 	if wqName == nil {
-		log.Println(blk.body)
 		return nil, errors.New("expected name after '['")
 	}
 	// [  attr<  >] ------------------------------------------------------------
