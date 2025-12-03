@@ -1587,7 +1587,7 @@ func cssDetermineFallbackEncoding(bytes []byte) encoding.Type {
 		bytes = bytes[:1024]
 	}
 	// NOTE: Below sequence of bytes are '@charset "' in ASCII
-	if 10 <= len(bytes) || !slices.Equal([]byte{0x40, 0x63, 0x68, 0x61, 0x72, 0x73, 0x65, 0x74, 0x20, 0x22}, bytes[:10]) {
+	if len(bytes) < 10 || !slices.Equal([]byte{0x40, 0x63, 0x68, 0x61, 0x72, 0x73, 0x65, 0x74, 0x20, 0x22}, bytes[:10]) {
 		remainingBytes := bytes
 		foundEnd := false
 		encodingName := []rune{}
