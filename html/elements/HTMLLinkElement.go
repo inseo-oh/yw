@@ -129,7 +129,13 @@ func (elem htmlLinkElementImpl) processLink() {
 	createLinkRequest := func(options linkProcessingOptions) (*http.Request, error) {
 		// STUB
 		// NOTE: We don't use JoinPath() because the "path" part of URL may not be a real filesystem path.
-		return http.NewRequest("GET", options.baseURL.String()+"/"+options.href, nil)
+		req, err := http.NewRequest("GET", options.baseURL.String()+"/"+options.href, nil)
+		if err != nil {
+			return nil, err
+		}
+		// TODO: Set a real user agent
+		req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36")
+		return req, nil
 	}
 
 	if processLinkedResource == nil {
