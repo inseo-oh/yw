@@ -19,12 +19,9 @@ func (ts *tokenStream) parseNumber() *css.Num {
 	return &per.value
 }
 
-// Returns nil if not found
-//
 // allowZeroShorthand should not be set if the property(such as line-height) also accepts number token.
 // (In that case, 0 should be parsed as <number 0>, not <length 0>)
-func (ts *tokenStream) parseLength(allowZeroShorthand bool) (*values.Length, error) {
-	oldCursor := ts.cursor
+func (ts *tokenStream) parseLength(allowZeroShorthand bool) (values.Length, error) {
 	dimTk, err := ts.consumeTokenWith(tokenTypeDimension)
 	if err != nil {
 		if allowZeroShorthand {
@@ -33,13 +30,10 @@ func (ts *tokenStream) parseLength(allowZeroShorthand bool) (*values.Length, err
 			if err != nil || !numTk.(numberToken).value.Equals(css.NumFromInt(0)) {
 				ts.cursor = oldCursor
 			} else {
-				return &values.Length{Value: css.NumFromInt(0), Unit: values.Px}, nil
+				return values.Length{Value: css.NumFromInt(0), Unit: values.Px}, nil
 			}
 		}
-
-		return nil, nil
-	} else {
-		ts.cursor = oldCursor
+		return values.Length{}, fmt.Errorf("expected length")
 	}
 	dim := dimTk.(dimensionToken)
 	var unit values.LengthUnit
@@ -73,9 +67,9 @@ func (ts *tokenStream) parseLength(allowZeroShorthand bool) (*values.Length, err
 	case "px":
 		unit = values.Px
 	default:
-		return nil, fmt.Errorf("<bad LengthUnit %s>", dim.unit)
+		return values.Length{}, fmt.Errorf("<bad LengthUnit %s>", dim.unit)
 	}
-	return &values.Length{Value: dim.value, Unit: unit}, nil
+	return values.Length{Value: dim.value, Unit: unit}, nil
 }
 
 // Returns nil if not found
@@ -92,10 +86,8 @@ func (ts *tokenStream) parsePercentage() *values.Percentage {
 
 // https://www.w3.org/TR/css-values-3/#typedef-length-percentage
 func (ts *tokenStream) parseLengthOrPercentage(allowZeroShorthand bool) (values.LengthResolvable, error) {
-	if len, err := ts.parseLength(allowZeroShorthand); len != nil {
+	if len, err := ts.parseLength(allowZeroShorthand); err == nil {
 		return len, nil
-	} else if err != nil {
-		return nil, err
 	}
 	if per := ts.parsePercentage(); per != nil {
 		return per, nil

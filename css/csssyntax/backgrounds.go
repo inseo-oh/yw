@@ -42,8 +42,8 @@ func (ts *tokenStream) parseLineWidth() (values.Length, bool) {
 	if err := ts.consumeIdentTokenWith("thick"); err == nil {
 		return backgrounds.LineWidthThick, true
 	}
-	if len, _ := ts.parseLength(true); len != nil {
-		return *len, true
+	if len, err := ts.parseLength(true); err == nil {
+		return len, true
 	}
 	return values.Length{}, false
 }
