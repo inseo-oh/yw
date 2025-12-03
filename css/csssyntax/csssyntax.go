@@ -1002,15 +1002,17 @@ func (ts *tokenStream) consumeSimpleBlockWith(tp simpleBlockType) (simpleBlockTo
 	}
 	return blk, nil
 }
-func (ts *tokenStream) consumeAstFuncWith(name string) *astFuncToken {
+func (ts *tokenStream) consumeAstFuncWith(name string) (astFuncToken, error) {
 	oldCursor := ts.cursor
 	tk, err := ts.consumeTokenWith(tokenTypeAstFunc)
-	if err != nil || tk.(astFuncToken).name != name {
-		ts.cursor = oldCursor
-		return nil
+	if err != nil {
+		return astFuncToken{}, err
 	}
-	v := tk.(astFuncToken)
-	return &v
+	if tk.(astFuncToken).name != name {
+		ts.cursor = oldCursor
+		return astFuncToken{}, fmt.Errorf("expected function %s()", name)
+	}
+	return tk.(astFuncToken), nil
 }
 
 // Returns nil if not found

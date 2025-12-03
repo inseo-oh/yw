@@ -69,12 +69,12 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 		ts.cursor = oldCursor
 	}
 	// Try rgb()/rgba() function -----------------------------------------------
-	fn := ts.consumeAstFuncWith("rgb")
-	if fn == nil {
+	fn, err := ts.consumeAstFuncWith("rgb")
+	if err != nil {
 		// rgba() is alias for rgb()
-		fn = ts.consumeAstFuncWith("rgba")
+		fn, err = ts.consumeAstFuncWith("rgba")
 	}
-	if fn != nil {
+	if err == nil {
 		ts := tokenStream{tokens: fn.value}
 
 		parseAlpha := func() *css.Num {
@@ -209,42 +209,42 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 	}
 	ts.cursor = oldCursor
 	// Try hsl()/hsla() function -----------------------------------------------
-	fn = ts.consumeAstFuncWith("hsl")
-	if fn == nil {
+	fn, err = ts.consumeAstFuncWith("hsl")
+	if err != nil {
 		// hsla() is alias for hsl()
-		fn = ts.consumeAstFuncWith("hsl")
+		fn, err = ts.consumeAstFuncWith("hsl")
 	}
-	if fn != nil {
+	if err == nil {
 		// https://www.w3.org/TR/css-color-4/#funcdef-hsl
 		panic("TODO[https://www.w3.org/TR/css-color-4/#funcdef-hsl]")
 	}
 	// Try hwb() function ------------------------------------------------------
-	if fn = ts.consumeAstFuncWith("hwb"); fn != nil {
+	if _, err := ts.consumeAstFuncWith("hwb"); err == nil {
 		// https://www.w3.org/TR/css-color-4/#funcdef-hwb
 		panic("TODO[https://www.w3.org/TR/css-color-4/#funcdef-hwb]")
 	}
 	// Try lab() function ------------------------------------------------------
-	if fn = ts.consumeAstFuncWith("hwb"); fn != nil {
+	if _, err := ts.consumeAstFuncWith("hwb"); err == nil {
 		// https://www.w3.org/TR/css-color-4/#funcdef-lab
 		panic("TODO[https://www.w3.org/TR/css-color-4/#funcdef-lab]")
 	}
 	// Try lch() function ------------------------------------------------------
-	if fn = ts.consumeAstFuncWith("lch"); fn != nil {
+	if _, err := ts.consumeAstFuncWith("lch"); err == nil {
 		// https://www.w3.org/TR/css-color-4/#funcdef-lch
 		panic("TODO[https://www.w3.org/TR/css-color-4/#funcdef-lch]")
 	}
 	// Try oklab() function ----------------------------------------------------
-	if fn = ts.consumeAstFuncWith("oklab"); fn != nil {
+	if _, err := ts.consumeAstFuncWith("oklab"); err == nil {
 		// https://www.w3.org/TR/css-color-4/#funcdef-oklab
 		panic("TODO[https://www.w3.org/TR/css-color-4/#funcdef-oklab]")
 	}
 	// Try oklch() function ----------------------------------------------------
-	if fn = ts.consumeAstFuncWith("oklch"); fn != nil {
+	if _, err := ts.consumeAstFuncWith("oklch"); err == nil {
 		// https://www.w3.org/TR/css-color-4/#funcdef-oklch
 		panic("TODO[https://www.w3.org/TR/css-color-4/#funcdef-oklch]")
 	}
 	// Try color() function ----------------------------------------------------
-	if fn = ts.consumeAstFuncWith("color"); fn != nil {
+	if _, err := ts.consumeAstFuncWith("color"); err == nil {
 		// https://www.w3.org/TR/css-color-4/#funcdef-color
 		panic("TODO[https://www.w3.org/TR/css-color-4/#funcdef-color]")
 	}

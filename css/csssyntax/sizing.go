@@ -23,7 +23,7 @@ func (ts *tokenStream) parseSizeValueImpl(acceptAuto, acceptNone bool) (sizing.S
 	if tk := ts.consumeIdentTokenWith("max-content"); !util.IsNil(tk) {
 		return sizing.Size{Type: sizing.MaxContent}, true
 	}
-	if tk := ts.consumeAstFuncWith("fit-content"); !util.IsNil(tk) {
+	if tk, err := ts.consumeAstFuncWith("fit-content"); err == nil {
 		ts := tokenStream{tokens: tk.value}
 		var size values.LengthResolvable
 		if v, err := ts.parseLengthOrPercentage(true); !util.IsNil(v) {
