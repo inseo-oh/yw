@@ -1015,7 +1015,6 @@ func (ts *tokenStream) consumeAstFuncWith(name string) (astFuncToken, error) {
 	return tk.(astFuncToken), nil
 }
 
-// Returns nil if not found
 func (ts *tokenStream) consumePreservedToken() (token, error) {
 	oldCursor := ts.cursor
 	tk, err := ts.consumeToken()
