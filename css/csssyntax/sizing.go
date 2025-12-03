@@ -26,20 +26,16 @@ func (ts *tokenStream) parseSizeValueImpl(acceptAuto, acceptNone bool) (sizing.S
 	if tk, err := ts.consumeAstFuncWith("fit-content"); err == nil {
 		ts := tokenStream{tokens: tk.value}
 		var size values.LengthResolvable
-		if v, err := ts.parseLengthOrPercentage(true); !util.IsNil(v) {
+		if v, err := ts.parseLengthOrPercentage(true); err == nil {
 			size = v
-		} else if err != nil {
-			return sizing.Size{}, false
 		}
 		if !ts.isEnd() {
 			return sizing.Size{}, false
 		}
 		return sizing.Size{Type: sizing.FitContent, Size: size}, true
 	}
-	if v, err := ts.parseLengthOrPercentage(true); !util.IsNil(v) {
+	if v, err := ts.parseLengthOrPercentage(true); err == nil {
 		return sizing.Size{Type: sizing.ManualSize, Size: v}, true
-	} else if err != nil {
-		return sizing.Size{}, false
 	}
 	return sizing.Size{}, false
 }

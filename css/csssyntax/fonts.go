@@ -3,7 +3,6 @@ package csssyntax
 import (
 	"github.com/inseo-oh/yw/css"
 	"github.com/inseo-oh/yw/css/fonts"
-	"github.com/inseo-oh/yw/util"
 )
 
 // https://www.w3.org/TR/css-fonts-3/#propdef-font-family
@@ -179,7 +178,7 @@ func (ts *tokenStream) parseFontSize() (fonts.Size, bool) {
 	if sz, ok := ts.parseRelativeSize(); ok {
 		return sz, true
 	}
-	if l, _ := ts.parseLengthOrPercentage(true); !util.IsNil(l) {
+	if l, err := ts.parseLengthOrPercentage(true); err == nil {
 		return fonts.LengthFontSize{LengthResolvable: l}, true
 	}
 	return nil, false

@@ -1,6 +1,7 @@
 package csssyntax
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/inseo-oh/yw/css"
@@ -90,5 +91,5 @@ func (ts *tokenStream) parseLengthOrPercentage(allowZeroShorthand bool) (values.
 	if per, err := ts.parsePercentage(); err == nil {
 		return per, nil
 	}
-	return nil, nil
+	return nil, errors.New("expected length or percentage")
 }
