@@ -1016,11 +1016,11 @@ func (ts *tokenStream) consumeAstFuncWith(name string) (astFuncToken, error) {
 }
 
 // Returns nil if not found
-func (ts *tokenStream) consumePreservedToken() token {
+func (ts *tokenStream) consumePreservedToken() (token, error) {
 	oldCursor := ts.cursor
 	tk, err := ts.consumeToken()
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	switch tk.tokenType() {
 	case tokenTypeFuncKeyword,
@@ -1028,9 +1028,9 @@ func (ts *tokenStream) consumePreservedToken() token {
 		tokenTypeLeftSquareBracket,
 		tokenTypeLeftParen:
 		ts.cursor = oldCursor
-		return nil
+		return nil, errors.New("non-preserved token found")
 	}
-	return tk
+	return tk, nil
 }
 
 // Returns nil if not found
@@ -1128,7 +1128,7 @@ func (ts *tokenStream) consumeComponentValue() token {
 	if res := ts.consumeFunc(); res != nil {
 		return *res
 	}
-	if res := ts.consumePreservedToken(); res != nil {
+	if res, err := ts.consumePreservedToken(); err == nil {
 		return res
 	}
 	return nil
