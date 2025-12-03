@@ -65,9 +65,9 @@ var (
 	lastStylesheetSetName      *string = nil // https://www.w3.org/TR/2021/WD-cssom-1-20210826/#last-css-style-sheet-set-name
 )
 
-// StylesheetSet is set of [CSS stylesheet sets].
+// StylesheetSet represents [CSS stylesheet set].
 //
-// [CSS stylesheet sets]: https://www.w3.org/TR/2021/WD-cssom-1-20210826/#css-style-sheet-set
+// [CSS stylesheet set]: https://www.w3.org/TR/2021/WD-cssom-1-20210826/#css-style-sheet-set
 type StylesheetSet []*Stylesheet
 
 // https://www.w3.org/TR/2021/WD-cssom-1-20210826/#css-style-sheet-set-name
