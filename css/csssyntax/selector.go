@@ -69,9 +69,9 @@ func (ts *tokenStream) parseIdSelector() *selector.IdSelector {
 }
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-class-selector
-func (ts *tokenStream) parseClassSelector() (*selector.ClassSelector, error) {
+func (ts *tokenStream) parseClassSelector() (res *selector.ClassSelector, err error) {
 	oldCursor := ts.cursor
-	if util.IsNil(ts.consumeDelimTokenWith('.')) {
+	if err := ts.consumeDelimTokenWith('.'); err != nil {
 		ts.cursor = oldCursor
 		return nil, nil
 	}
@@ -111,21 +111,21 @@ func (ts *tokenStream) parseAttrSelector() (*selector.AttrSelector, error) {
 		// [  attr  <=>  value  modifier  ] ------------------------------------
 		var matcher selector.Matcher
 		// https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-attr-matcher
-		if !util.IsNil(bodyStream.consumeDelimTokenWith('~')) {
+		if err := bodyStream.consumeDelimTokenWith('~'); err == nil {
 			matcher = selector.TildeMatcher
-		} else if !util.IsNil(bodyStream.consumeDelimTokenWith('|')) {
+		} else if err := bodyStream.consumeDelimTokenWith('|'); err == nil {
 			matcher = selector.BarMatcher
-		} else if !util.IsNil(bodyStream.consumeDelimTokenWith('^')) {
+		} else if err := bodyStream.consumeDelimTokenWith('^'); err == nil {
 			matcher = selector.CaretMatcher
-		} else if !util.IsNil(bodyStream.consumeDelimTokenWith('$')) {
+		} else if err := bodyStream.consumeDelimTokenWith('$'); err == nil {
 			matcher = selector.DollarMatcher
-		} else if !util.IsNil(bodyStream.consumeDelimTokenWith('*')) {
+		} else if err := bodyStream.consumeDelimTokenWith('*'); err == nil {
 			matcher = selector.AsteriskMatcher
 		} else {
 			matcher = selector.NormalMatcher
 		}
-		if util.IsNil(bodyStream.consumeDelimTokenWith('=')) {
-			return nil, errors.New("expected operator after the attribute name")
+		if err := bodyStream.consumeDelimTokenWith('='); err != nil {
+			return nil, err
 		}
 		// [  attr  =<  >value  modifier  ] ------------------------------------
 		bodyStream.skipWhitespaces()
@@ -314,14 +314,14 @@ func (ts *tokenStream) parseComplexSelector() (res *selector.ComplexSelector, er
 	rest := []selector.ComplexSelectorRest{}
 	for {
 		comb := selector.ChildCombinator
-		if !util.IsNil(ts.consumeDelimTokenWith('>')) {
+		if err := ts.consumeDelimTokenWith('>'); err == nil {
 			comb = selector.DirectChildCombinator
-		} else if !util.IsNil(ts.consumeDelimTokenWith('+')) {
+		} else if err := ts.consumeDelimTokenWith('+'); err == nil {
 			comb = selector.PlusCombinator
-		} else if !util.IsNil(ts.consumeDelimTokenWith('~')) {
+		} else if err := ts.consumeDelimTokenWith('~'); err == nil {
 			comb = selector.TildeCombinator
-		} else if !util.IsNil(ts.consumeDelimTokenWith('|')) {
-			if !util.IsNil(ts.consumeDelimTokenWith('|')) {
+		} else if err := ts.consumeDelimTokenWith('|'); err == nil {
+			if err := ts.consumeDelimTokenWith('|'); err == nil {
 				comb = selector.TwoBarsCombinator
 			} else {
 				ts.cursor -= 2

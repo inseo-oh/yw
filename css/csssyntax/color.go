@@ -190,7 +190,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, bool) {
 		}
 		// rgb(  r  g  b  </>  a  ) --------------------------------------------
 		a = css.NumFromInt(255)
-		if tk := ts.consumeDelimTokenWith('/'); tk != nil {
+		if err := ts.consumeDelimTokenWith('/'); err == nil {
 			// rgb(  r  g  b  /<  >a  ) --------------------------------------------
 			ts.skipWhitespaces()
 			// rgb(  r  g  b  /  <a>  ) --------------------------------------------

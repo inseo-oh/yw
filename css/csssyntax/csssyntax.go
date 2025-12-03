@@ -970,15 +970,14 @@ func (ts *tokenStream) skipWhitespaces() {
 	}
 }
 
-func (ts *tokenStream) consumeDelimTokenWith(d rune) *delimToken {
+func (ts *tokenStream) consumeDelimTokenWith(d rune) error {
 	oldCursor := ts.cursor
 	tk, err := ts.consumeTokenWith(tokenTypeDelim)
 	if err != nil || tk.(delimToken).value != d {
 		ts.cursor = oldCursor
-		return nil
+		return fmt.Errorf("expected %c", d)
 	}
-	v := tk.(delimToken)
-	return &v
+	return nil
 }
 func (ts *tokenStream) consumeIdentTokenWith(i string) bool {
 	oldCursor := ts.cursor
