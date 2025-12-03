@@ -1149,28 +1149,28 @@ func (ts *tokenStream) consumeQualifiedRule() (qualifiedRuleToken, error) {
 }
 
 // Returns nil if not found
-func (ts *tokenStream) consumeAtRule() *atRuleToken {
+func (ts *tokenStream) consumeAtRule() (atRuleToken, error) {
 	oldCursor := ts.cursor
 	prelude := []token{}
 	var kwdToken atKeywordToken
 	if temp, err := ts.consumeTokenWith(tokenTypeAtKeyword); err == nil {
 		kwdToken = temp.(atKeywordToken)
 	} else {
-		ts.cursor = oldCursor
-		return nil
+		return atRuleToken{}, err
 	}
 
 	for {
 		block, err := ts.consumeCurlyBlock()
 		if err == nil {
-			return &atRuleToken{
+			return atRuleToken{
 				tokenCommon{block.cursorFrom, block.cursorTo},
 				kwdToken.name,
 				prelude,
 				block.body,
-			}
+			}, nil
 		} else if ts.isEnd() {
-			return nil
+			ts.cursor = oldCursor
+			return atRuleToken{}, errors.New("expected at-rule body")
 		}
 		comp, err := ts.consumeComponentValue()
 		if err != nil {
@@ -1245,9 +1245,9 @@ func (ts *tokenStream) consumeDeclarationList() []token {
 			continue
 		} else if token.tokenType() == tokenTypeAtKeyword {
 			ts.cursor--
-			rule := ts.consumeAtRule()
-			if rule == nil {
-				panic("unreachable")
+			rule, err := ts.consumeAtRule()
+			if err != nil {
+				log.Fatal(err)
 			}
 			decls = append(decls, rule)
 		} else if token.tokenType() == tokenTypeIdent {
@@ -1297,9 +1297,9 @@ func (ts *tokenStream) consumeStyleBlockContents() []token {
 			continue
 		} else if token.tokenType() == tokenTypeAtKeyword {
 			ts.cursor--
-			rule := ts.consumeAtRule()
-			if rule == nil {
-				panic("unreachable")
+			rule, err := ts.consumeAtRule()
+			if err != nil {
+				log.Fatal(err)
 			}
 			decls = append(decls, rule)
 		} else if token.tokenType() == tokenTypeIdent {
@@ -1363,11 +1363,11 @@ func (ts *tokenStream) consumeListOfRules(topLevelFlag bool) []token {
 			}
 		} else if token.tokenType() == tokenTypeAtKeyword {
 			ts.cursor--
-			rule := ts.consumeAtRule()
-			if rule == nil {
-				panic("unreachable")
+			rule, err := ts.consumeAtRule()
+			if err != nil {
+				log.Fatal(err)
 			}
-			rules = append(rules, *rule)
+			rules = append(rules, rule)
 		} else {
 			ts.cursor--
 			if rule, err := ts.consumeQualifiedRule(); err == nil {
@@ -1453,16 +1453,11 @@ func parseRule(tokens []token) token {
 	ts := tokenStream{tokens: tokens}
 	ts.skipWhitespaces()
 	var res token
-	res = ts.consumeAtRule()
-	if util.IsNil(res) {
-		var err error
+	res, err := ts.consumeAtRule()
+	if err != nil {
 		res, err = ts.consumeQualifiedRule()
-		// TODO: Remove this once we replace above util.IsNil(res) with err == nil
-		if err != nil {
-			res = nil
-		}
 	}
-	if util.IsNil(res) {
+	if err != nil {
 		panic("TODO: syntax error: expected at-rule or qualified-rule")
 	}
 	if ts.isEnd() {
