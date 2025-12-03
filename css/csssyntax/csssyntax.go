@@ -1052,8 +1052,8 @@ func (ts *tokenStream) consumeSimpleBlock(openTokenType, closeTokenType tokenTyp
 	}
 	var closeToken token
 	for {
-		tempTk := ts.consumeComponentValue()
-		if util.IsNil(tempTk) || tempTk.tokenType() == closeTokenType {
+		tempTk, err := ts.consumeComponentValue()
+		if err != nil || tempTk.tokenType() == closeTokenType {
 			closeToken = tempTk
 			break
 		}
@@ -1090,8 +1090,8 @@ func (ts *tokenStream) consumeFunc() (astFuncToken, error) {
 	}
 	var closeToken token
 	for {
-		tempTk := ts.consumeComponentValue()
-		if util.IsNil(tempTk) || tempTk.tokenType() == tokenTypeRightParen {
+		tempTk, err := ts.consumeComponentValue()
+		if err != nil || tempTk.tokenType() == tokenTypeRightParen {
 			closeToken = tempTk
 			break
 		}
@@ -1105,26 +1105,25 @@ func (ts *tokenStream) consumeFunc() (astFuncToken, error) {
 }
 
 // Returns nil if not found
-func (ts *tokenStream) consumeComponentValue() token {
+func (ts *tokenStream) consumeComponentValue() (token, error) {
 	if res, err := ts.consumeCurlyBlock(); err == nil {
-		return res
+		return res, nil
 	}
 	if res, err := ts.consumeSquareBlock(); err == nil {
-		return res
+		return res, nil
 	}
 	if res, err := ts.consumeParenBlock(); err == nil {
-		return res
+		return res, nil
 	}
 	if res, err := ts.consumeFunc(); err == nil {
-		return res
+		return res, nil
 	}
 	if res, err := ts.consumePreservedToken(); err == nil {
-		return res
+		return res, nil
 	}
-	return nil
+	return nil, errors.New("expected component value")
 }
 
-// Returns nil if not found
 func (ts *tokenStream) consumeQualifiedRule() *qualifiedRuleToken {
 	prelude := []token{}
 
@@ -1139,7 +1138,11 @@ func (ts *tokenStream) consumeQualifiedRule() *qualifiedRuleToken {
 		} else if ts.isEnd() {
 			return nil
 		}
-		prelude = append(prelude, ts.consumeComponentValue())
+		comp, err := ts.consumeComponentValue()
+		if err != nil {
+			panic("TODO: Handle error")
+		}
+		prelude = append(prelude, comp)
 	}
 }
 
@@ -1167,7 +1170,11 @@ func (ts *tokenStream) consumeAtRule() *atRuleToken {
 		} else if ts.isEnd() {
 			return nil
 		}
-		prelude = append(prelude, ts.consumeComponentValue())
+		comp, err := ts.consumeComponentValue()
+		if err != nil {
+			panic("TODO: Handle error")
+		}
+		prelude = append(prelude, comp)
 	}
 }
 
@@ -1198,8 +1205,8 @@ func (ts *tokenStream) consumeDeclaration() *declarationToken {
 
 	// name  :  <contents  !important> -----------------------------------------
 	for {
-		tempTk := ts.consumeComponentValue()
-		if util.IsNil(tempTk) {
+		tempTk, err := ts.consumeComponentValue()
+		if err != nil {
 			break
 		}
 		declValue = append(declValue, tempTk)
@@ -1375,8 +1382,8 @@ func parseCommaSeparatedListOfComponentValues(tokens []token) [][]token {
 
 	stream := tokenStream{tokens: tokens}
 	for {
-		value := stream.consumeComponentValue()
-		if util.IsNil(value) || value.tokenType() == tokenTypeComma {
+		value, err := stream.consumeComponentValue()
+		if err != nil || value.tokenType() == tokenTypeComma {
 			valueLists = append(valueLists, tempList)
 			tempList = tempList[:0]
 			if value.tokenType() != tokenTypeComma {
@@ -1393,8 +1400,8 @@ func parseListOfComponentValues(tokens []token) []token {
 
 	stream := tokenStream{tokens: tokens}
 	for {
-		value := stream.consumeComponentValue()
-		if util.IsNil(value) || value.tokenType() == tokenTypeComma {
+		value, err := stream.consumeComponentValue()
+		if err != nil || value.tokenType() == tokenTypeComma {
 			break
 		}
 		tempList = append(tempList, value)
@@ -1408,7 +1415,10 @@ func parseComponentValue(tokens []token) token {
 	if !ts.isEnd() {
 		panic("TODO: syntax error: expected component value")
 	}
-	value := ts.consumeComponentValue()
+	value, err := ts.consumeComponentValue()
+	if err != nil {
+		panic("TODO: Handle error")
+	}
 	ts.skipWhitespaces()
 	if ts.isEnd() {
 		panic("TODO: syntax error: expected eof")
