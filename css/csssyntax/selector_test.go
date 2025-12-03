@@ -1,7 +1,6 @@
 package csssyntax
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/inseo-oh/yw/css"
@@ -23,7 +22,6 @@ func selectorTestHelper(t *testing.T, css string, expected selector.Selector, pa
 			return
 		}
 		t.Logf("Parsed: %v", got)
-		t.Logf("RUN: %v(%v)", reflect.TypeOf(got), reflect.TypeOf(expected))
 		if util.IsNil(got) || !got.Equals(expected) {
 			t.Errorf("expected %v, got %v", expected, got)
 
