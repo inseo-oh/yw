@@ -57,10 +57,9 @@ func (fnt ftFont) DrawText(text string, dest *image.RGBA, offsetX, offsetY float
 		bitmap := gslot.bitmap
 		bitmapLeft := int(gslot.bitmap_left)
 		bitmapTop := int(gslot.bitmap_top)
-		rect.Left = float64(bitmapLeft)
-		rect.Top = -float64(bitmapTop)
 		bytes := C.GoBytes(unsafe.Pointer(bitmap.buffer), C.int(bitmap.rows*bitmap.width))
 		srcLineIdx := 0
+		rect.Top = min(rect.Top, penY-float64(bitmapTop))
 		destX := int(penX) + bitmapLeft
 		destY := int(penY) - bitmapTop
 		destLeft := destX
