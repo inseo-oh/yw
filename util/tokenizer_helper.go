@@ -200,6 +200,8 @@ func (t *TokenizerHelper) CursorToLineAndCol(cursor int) (line, col int) {
 		case '\n':
 			cursorCounter = 1
 			lineCounter++
+		default:
+			cursorCounter++
 		}
 	}
 	return cursorCounter, lineCounter
