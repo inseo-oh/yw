@@ -8,91 +8,93 @@ import (
 	"fmt"
 
 	"github.com/inseo-oh/yw/css/selector"
-	"github.com/inseo-oh/yw/util"
 )
 
 // Returns nil if not found
-func (ts *tokenStream) parseSelectorNsPrefix() *selector.NsPrefix {
+func (ts *tokenStream) parseSelectorNsPrefix() (res selector.NsPrefix, err error) {
 	// STUB
-	return nil
+	return res, fmt.Errorf("%s: expected namespace prefix", ts.errorHeader())
 }
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-wq-name
 //
 // Returns nil if not found
-func (ts *tokenStream) parseSelectorWqName() *selector.WqName {
+func (ts *tokenStream) parseSelectorWqName() (res selector.WqName, err error) {
 	oldCursor := ts.cursor
 
-	nsPrefix := ts.parseSelectorNsPrefix()
+	var nsPrefix *selector.NsPrefix
+	if v, err := ts.parseSelectorNsPrefix(); err == nil {
+		nsPrefix = &v
+	}
 	var identTk identToken
 	if temp, err := ts.consumeTokenWith(tokenTypeIdent); err == nil {
 		identTk = temp.(identToken)
 	} else {
 		ts.cursor = oldCursor
-		return nil
+		return res, fmt.Errorf("%s: expected namespace prefix or identifier", ts.errorHeader())
 	}
-	return &selector.WqName{NsPrefix: nsPrefix, Ident: identTk.value}
+	return selector.WqName{NsPrefix: nsPrefix, Ident: identTk.value}, nil
 }
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#ref-for-typedef-type-selector
 //
 // Returns nil if not found
-func (ts *tokenStream) parseTypeSelector() selector.Selector {
+func (ts *tokenStream) parseTypeSelector() (res selector.Selector, err error) {
 	oldCursor := ts.cursor
-	if typeName := ts.parseSelectorWqName(); typeName != nil {
+	if typeName, err := ts.parseSelectorWqName(); err == nil {
 		// <wq-name>
-		return selector.TypeSelector{TypeName: *typeName}
+		return selector.TypeSelector{TypeName: typeName}, nil
 	} else {
 		// <ns-prefix?> *
-		nsPrefix := ts.parseSelectorNsPrefix()
+		var nsPrefix *selector.NsPrefix
+		if v, err := ts.parseSelectorNsPrefix(); err == nil {
+			nsPrefix = &v
+		}
 		if tk, err := ts.consumeTokenWith(tokenTypeDelim); err == nil {
 			if tk.(delimToken).value != '*' {
 				ts.cursor = oldCursor
-				return nil
+				return res, fmt.Errorf("%s: expected *", ts.errorHeader())
 			}
-			return selector.UniversalSelector{NsPrefix: nsPrefix}
+			return selector.UniversalSelector{NsPrefix: nsPrefix}, nil
 		} else {
-			ts.cursor = oldCursor
-			return nil
+			return res, err
 		}
 	}
 }
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-id-selector
-func (ts *tokenStream) parseIdSelector() *selector.IdSelector {
-	oldCursor := ts.cursor
+func (ts *tokenStream) parseIdSelector() (res selector.IdSelector, err error) {
 	var hashTk hashToken
 	if temp, err := ts.consumeTokenWith(tokenTypeHash); err == nil {
 		hashTk = temp.(hashToken)
 	} else {
-		ts.cursor = oldCursor
-		return nil
+		return res, err
 	}
-	return &selector.IdSelector{Id: hashTk.value}
+	return selector.IdSelector{Id: hashTk.value}, nil
 }
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-class-selector
-func (ts *tokenStream) parseClassSelector() (res *selector.ClassSelector, err error) {
+func (ts *tokenStream) parseClassSelector() (res selector.ClassSelector, err error) {
 	oldCursor := ts.cursor
 	if err := ts.consumeDelimTokenWith('.'); err != nil {
 		ts.cursor = oldCursor
-		return nil, err
+		return res, err
 	}
 	var identTk identToken
 	if temp, err := ts.consumeTokenWith(tokenTypeIdent); err == nil {
 		identTk = temp.(identToken)
 	} else {
-		return nil, err
+		return res, err
 	}
-	return &selector.ClassSelector{Class: identTk.value}, nil
+	return selector.ClassSelector{Class: identTk.value}, nil
 }
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-attribute-selector
-func (ts *tokenStream) parseAttrSelector() (*selector.AttrSelector, error) {
+func (ts *tokenStream) parseAttrSelector() (res selector.AttrSelector, err error) {
 	oldCursor := ts.cursor
 	blk, err := ts.consumeSimpleBlockWith(simpleBlockTypeSquare)
 	if err != nil {
-		return nil, err
+		return res, err
 	}
 
 	bodyStream := tokenStream{tokens: blk.body, tokenizerHelper: ts.tokenizerHelper}
@@ -101,9 +103,9 @@ func (ts *tokenStream) parseAttrSelector() (*selector.AttrSelector, error) {
 	bodyStream.skipWhitespaces()
 	// [  <attr>  ] ------------------------------------------------------------
 	// [  <attr>  =  value  modifier  ] ----------------------------------------
-	wqName := bodyStream.parseSelectorWqName()
-	if wqName == nil {
-		return nil, fmt.Errorf("%s: expected name after '['", ts.errorHeader())
+	wqName, err := bodyStream.parseSelectorWqName()
+	if err != nil {
+		return res, err
 	}
 	// [  attr<  >] ------------------------------------------------------------
 	// [  attr<  >=  value  modifier  ] ----------------------------------------
@@ -126,7 +128,7 @@ func (ts *tokenStream) parseAttrSelector() (*selector.AttrSelector, error) {
 			matcher = selector.NormalMatcher
 		}
 		if err := bodyStream.consumeDelimTokenWith('='); err != nil {
-			return nil, err
+			return res, err
 		}
 		// [  attr  =<  >value  modifier  ] ------------------------------------
 		bodyStream.skipWhitespaces()
@@ -138,7 +140,7 @@ func (ts *tokenStream) parseAttrSelector() (*selector.AttrSelector, error) {
 			attrValue = n.(stringToken).value
 		} else {
 			ts.cursor = oldCursor
-			return nil, fmt.Errorf("%s: expected attribute value after the operator", ts.errorHeader())
+			return res, fmt.Errorf("%s: expected attribute value after the operator", ts.errorHeader())
 		}
 		// [  attr  =  value<  >modifier  ] ------------------------------------
 		bodyStream.skipWhitespaces()
@@ -152,25 +154,25 @@ func (ts *tokenStream) parseAttrSelector() (*selector.AttrSelector, error) {
 		// [  attr  =  value  modifier<  >] ------------------------------------
 		bodyStream.skipWhitespaces()
 		if !bodyStream.isEnd() {
-			return nil, fmt.Errorf("%s: found junk after contents of the attribute selector", ts.errorHeader())
+			return res, fmt.Errorf("%s: found junk after contents of the attribute selector", ts.errorHeader())
 		}
-		return &selector.AttrSelector{AttrName: *wqName, Matcher: matcher, AttrValue: attrValue, IsCaseSensitive: isCaseSensitive}, nil
+		return selector.AttrSelector{AttrName: wqName, Matcher: matcher, AttrValue: attrValue, IsCaseSensitive: isCaseSensitive}, nil
 	}
-	return &selector.AttrSelector{AttrName: *wqName, Matcher: selector.NoMatcher, AttrValue: "", IsCaseSensitive: false}, nil
+	return selector.AttrSelector{AttrName: wqName, Matcher: selector.NoMatcher, AttrValue: "", IsCaseSensitive: false}, nil
 }
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-pseudo-class-selector
-func (ts *tokenStream) parsePseudoClassSelector() (*selector.PseudoClassSelector, error) {
+func (ts *tokenStream) parsePseudoClassSelector() (res selector.PseudoClassSelector, err error) {
 	oldCursor := ts.cursor
 
 	// <:>name ----------------------------------------------------------------
 	// <:>func(value) ----------------------------------------------------------
 	if _, err := ts.consumeTokenWith(tokenTypeColon); err != nil {
-		return nil, err
+		return res, err
 	} else if identTk, err := ts.consumeTokenWith(tokenTypeIdent); err == nil {
 		// :<name> ------------------------------------------------------------
 		name := identTk.(identToken).value
-		return &selector.PseudoClassSelector{Name: name, Args: nil}, nil
+		return selector.PseudoClassSelector{Name: name, Args: nil}, nil
 	}
 	if funcNode, err := ts.consumeTokenWith(tokenTypeAstFunc); err == nil {
 		// :<func(value)> ------------------------------------------------------
@@ -179,59 +181,54 @@ func (ts *tokenStream) parsePseudoClassSelector() (*selector.PseudoClassSelector
 		args := subStream.consumeAnyValue()
 		if args == nil {
 			ts.cursor = oldCursor
-			return nil, fmt.Errorf("%s: expected value after '('", ts.errorHeader())
+			return res, fmt.Errorf("%s: expected value after '('", ts.errorHeader())
 		}
 		if !subStream.isEnd() {
-			return nil, fmt.Errorf("%s: unexpected junk after arguments", ts.errorHeader())
+			return res, fmt.Errorf("%s: unexpected junk after arguments", ts.errorHeader())
 		}
 		argsNew := []any{}
 		for _, arg := range args {
 			argsNew = append(argsNew, arg)
 		}
-		return &selector.PseudoClassSelector{Name: name, Args: argsNew}, nil
+		return selector.PseudoClassSelector{Name: name, Args: argsNew}, nil
 	} else {
 		ts.cursor = oldCursor
-		return nil, err
+		return res, err
 	}
 }
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-pseudo-element-selector
-func (ts *tokenStream) parsePseudoElementSelector() (*selector.PseudoClassSelector, error) {
+func (ts *tokenStream) parsePseudoElementSelector() (res selector.PseudoClassSelector, err error) {
 	oldCursor := ts.cursor
 	if _, err := ts.consumeTokenWith(tokenTypeColon); err != nil {
 		ts.cursor = oldCursor
-		return nil, err
+		return res, err
 	}
-	if temp, err := ts.parsePseudoClassSelector(); temp != nil {
-		return temp, nil
-	} else if err != nil {
-		return nil, err
+	temp, err := ts.parsePseudoClassSelector()
+	if err != nil {
+		return res, err
 	}
-	return nil, fmt.Errorf("%s: expected a pseudo element selector", ts.errorHeader())
+	return temp, nil
 }
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-subclass-selector
 //
 // Returns nil if not found
 func (ts *tokenStream) parseSubclassSelector() (selector.Selector, error) {
-	if sel := ts.parseIdSelector(); sel != nil {
-		return *sel, nil
+	if sel, err := ts.parseIdSelector(); err == nil {
+		return sel, nil
 	}
 
-	if sel, err := ts.parseClassSelector(); sel != nil {
-		return *sel, nil
-	} else if err != nil {
-		return nil, err
+	if sel, err := ts.parseClassSelector(); err == nil {
+		return sel, nil
 	}
 
 	if sel, err := ts.parseAttrSelector(); err == nil {
-		return *sel, nil
+		return sel, nil
 	}
 
-	if sel, err := ts.parsePseudoClassSelector(); sel != nil {
-		return *sel, nil
-	} else if err != nil {
-		return nil, err
+	if sel, err := ts.parsePseudoClassSelector(); err == nil {
+		return sel, nil
 	}
 
 	return nil, fmt.Errorf("%s: expected a subclass selector", ts.errorHeader())
@@ -240,17 +237,20 @@ func (ts *tokenStream) parseSubclassSelector() (selector.Selector, error) {
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-compound-selector
 //
 // Returns nil if not found
-func (ts *tokenStream) parseCompoundSelector() (*selector.CompoundSelector, error) {
+func (ts *tokenStream) parseCompoundSelector() (selector.CompoundSelector, error) {
 	oldCursor := ts.cursor
-	typeSel := ts.parseTypeSelector()
+
+	var typeSel selector.Selector
+	gotTypeSel := false
+	if v, err := ts.parseTypeSelector(); err == nil {
+		typeSel = v
+		gotTypeSel = true
+	}
 	subclassSels := []selector.Selector{}
 	pseudoItems := []selector.CompundSelectorPseudoItem{}
 	for {
 		subclassSel, err := ts.parseSubclassSelector()
-		if util.IsNil(subclassSel) {
-			if err != nil {
-				return nil, err
-			}
+		if err != nil {
 			break
 		}
 		subclassSels = append(subclassSels, subclassSel)
@@ -258,47 +258,40 @@ func (ts *tokenStream) parseCompoundSelector() (*selector.CompoundSelector, erro
 
 	for {
 		elemSel, err := ts.parsePseudoElementSelector()
-		if elemSel == nil {
-			if err != nil {
-				return nil, err
-			}
+		if err != nil {
 			break
 		}
 		classSels := []selector.PseudoClassSelector{}
 		for {
 			classSel, err := ts.parsePseudoClassSelector()
-			if util.IsNil(classSel) {
-				if err != nil {
-					ts.cursor = oldCursor
-					return nil, err
-				}
+			if err != nil {
 				break
 			}
-			classSels = append(classSels, *classSel)
+			classSels = append(classSels, classSel)
 		}
-		pseudoItems = append(pseudoItems, selector.CompundSelectorPseudoItem{ElementSelector: *elemSel, ClassSelector: classSels})
+		pseudoItems = append(pseudoItems, selector.CompundSelectorPseudoItem{ElementSelector: elemSel, ClassSelector: classSels})
 
 	}
 
-	if typeSel == nil && len(subclassSels) == 0 && len(pseudoItems) == 0 {
+	if !gotTypeSel && len(subclassSels) == 0 && len(pseudoItems) == 0 {
 		ts.cursor = oldCursor
-		return nil, fmt.Errorf("%s: expected a compound selector", ts.errorHeader())
+		return selector.CompoundSelector{}, fmt.Errorf("%s: expected a compound selector", ts.errorHeader())
 	}
-	return &selector.CompoundSelector{TypeSelector: typeSel, SubclassSelector: subclassSels, PseudoItems: pseudoItems}, nil
+	return selector.CompoundSelector{TypeSelector: typeSel, SubclassSelector: subclassSels, PseudoItems: pseudoItems}, nil
 }
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-compound-selector-list
 //
 // Returns nil if not found
-func (ts *tokenStream) parseCompoundSelectorList() ([]*selector.CompoundSelector, error) {
-	return parseCommaSeparatedRepeation(ts, 0, "compound selector", func(ts *tokenStream) (*selector.CompoundSelector, error) {
+func (ts *tokenStream) parseCompoundSelectorList() ([]selector.CompoundSelector, error) {
+	return parseCommaSeparatedRepeation(ts, 0, "compound selector", func(ts *tokenStream) (selector.CompoundSelector, error) {
 		return ts.parseCompoundSelector()
 	})
 }
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-complex-selector
 
-func (ts *tokenStream) parseComplexSelector() (res *selector.ComplexSelector, err error) {
+func (ts *tokenStream) parseComplexSelector() (res selector.ComplexSelector, err error) {
 	oldCursor := ts.cursor
 	defer func() {
 		if err != nil {
@@ -307,8 +300,8 @@ func (ts *tokenStream) parseComplexSelector() (res *selector.ComplexSelector, er
 	}()
 
 	base, err := ts.parseCompoundSelector()
-	if base == nil {
-		return nil, err
+	if err != nil {
+		return selector.ComplexSelector{}, err
 	}
 	rest := []selector.ComplexSelectorRest{}
 	for {
@@ -330,33 +323,27 @@ func (ts *tokenStream) parseComplexSelector() (res *selector.ComplexSelector, er
 			comb = selector.ChildCombinator
 		}
 		anotherUnit, err := ts.parseCompoundSelector()
-		if util.IsNil(anotherUnit) {
-			if err != nil {
-				return nil, err
-			}
+		if err != nil {
 			break
 		}
-		rest = append(rest, selector.ComplexSelectorRest{Combinator: comb, Selector: *anotherUnit})
+		rest = append(rest, selector.ComplexSelectorRest{Combinator: comb, Selector: anotherUnit})
 	}
-	if base == nil && len(rest) == 0 {
-		return nil, fmt.Errorf("%s: expected a complex selector", ts.errorHeader())
-	}
-	return &selector.ComplexSelector{Base: *base, Rest: rest}, nil
+	return selector.ComplexSelector{Base: base, Rest: rest}, nil
 }
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-complex-selector-list
 //
 // Returns nil if not found
 func (ts *tokenStream) parseComplexSelectorList() ([]selector.Selector, error) {
-	selList, err := parseCommaSeparatedRepeation(ts, 0, "complex selector", func(ts *tokenStream) (*selector.ComplexSelector, error) {
+	selList, err := parseCommaSeparatedRepeation(ts, 0, "complex selector", func(ts *tokenStream) (selector.ComplexSelector, error) {
 		return ts.parseComplexSelector()
 	})
-	if selList == nil {
+	if err != nil {
 		return nil, err
 	}
 	out := []selector.Selector{}
 	for _, s := range selList {
-		out = append(out, *s)
+		out = append(out, s)
 	}
 	return out, nil
 }

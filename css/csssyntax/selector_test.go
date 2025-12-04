@@ -41,7 +41,7 @@ func TestCssTypeSelector(t *testing.T) {
 	}
 	for _, cs := range cases {
 		selectorTestHelper(t, cs.css, cs.expected, func(ts *tokenStream) (selector.Selector, error) {
-			return ts.parseTypeSelector(), nil
+			return ts.parseTypeSelector()
 		})
 	}
 }
