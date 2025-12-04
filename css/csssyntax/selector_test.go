@@ -18,7 +18,7 @@ func selectorTestHelper(t *testing.T, css string, expected selector.Selector, pa
 			t.Errorf("failed to tokenize: %v", err)
 			return
 		}
-		t.Logf("Tokens: %v", ts)
+		t.Logf("Tokens: %v", ts.tokens)
 		got, err := parse(&ts, parser)
 		if err != nil {
 			t.Errorf("failed to parse: %v", err)
