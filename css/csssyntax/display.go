@@ -132,7 +132,7 @@ func (ts *tokenStream) parseDisplay() (display.Display, error) {
 		return display.Display{Mode: display.DisplayNone}, nil
 	}
 
-	return display.Display{}, fmt.Errorf("%s: invalid display value")
+	return display.Display{}, fmt.Errorf("%s: invalid display value", ts.errorHeader())
 }
 
 func (ts *tokenStream) parseVisibility() (display.Visibility, error) {
@@ -145,5 +145,5 @@ func (ts *tokenStream) parseVisibility() (display.Visibility, error) {
 	} else if err := ts.consumeIdentTokenWith("collapse"); err == nil {
 		return display.Collapse, nil
 	}
-	return 0, fmt.Errorf("%s: invalid visibility value")
+	return 0, fmt.Errorf("%s: invalid visibility value", ts.errorHeader())
 }
