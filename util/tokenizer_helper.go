@@ -5,6 +5,7 @@
 package util
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -12,8 +13,9 @@ import (
 // TokenizerHelper is helper type that provides useful functions and state for
 // tokenizers.
 type TokenizerHelper struct {
-	Str    []rune // List of characters
-	Cursor int    // Next position of character that will be read from
+	SourceName string
+	Str        []rune // List of characters
+	Cursor     int    // Next position of character that will be read from
 }
 
 // RemainingChars returns remaining characters.
@@ -179,4 +181,32 @@ func (t *TokenizerHelper) Lookahead(cb func()) {
 	oldCursor := t.Cursor
 	cb()
 	t.Cursor = oldCursor
+}
+
+// CursorToLineAndCol returns line and column position for given cursor.
+func (t *TokenizerHelper) CursorToLineAndCol(cursor int) (line, col int) {
+	// FIXME: Find better way to calculate this
+
+	lineCounter := 1
+	cursorCounter := 1
+	for n, c := range t.Str {
+		if n == cursor {
+			return lineCounter, cursorCounter
+		}
+		switch c {
+		case '\r':
+			// Ignore CR
+			continue
+		case '\n':
+			cursorCounter = 1
+			lineCounter++
+		}
+	}
+	return cursorCounter, lineCounter
+}
+
+// ErrorHeader creates a new error for given cursor position.
+func (t *TokenizerHelper) ErrorHeader(cursor int) string {
+	l, c := t.CursorToLineAndCol(cursor)
+	return fmt.Sprintf("%s:%d:%d", t.SourceName, l, c)
 }
