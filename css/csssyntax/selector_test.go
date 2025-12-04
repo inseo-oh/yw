@@ -13,13 +13,13 @@ import (
 
 func selectorTestHelper(t *testing.T, css string, expected selector.Selector, parser func(ts *tokenStream) (selector.Selector, error)) {
 	t.Run(css, func(t *testing.T) {
-		tokens, err := tokenize([]byte(css))
-		if tokens == nil && err != nil {
+		ts, err := tokenize([]byte(css), "<test>")
+		if err != nil {
 			t.Errorf("failed to tokenize: %v", err)
 			return
 		}
-		t.Logf("Tokens: %v", tokens)
-		got, err := parse(tokens, parser)
+		t.Logf("Tokens: %v", ts)
+		got, err := parse(&ts, parser)
 		if err != nil {
 			t.Errorf("failed to parse: %v", err)
 			return

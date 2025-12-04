@@ -5,7 +5,6 @@
 package csssyntax
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -81,7 +80,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 		fn, err = ts.consumeAstFuncWith("rgba")
 	}
 	if err == nil {
-		ts := tokenStream{tokens: fn.value}
+		ts := tokenStream{tokens: fn.value, tokenizerHelper: ts.tokenizerHelper}
 
 		parseAlpha := func() (css.Num, error) {
 			var v css.Num
@@ -91,7 +90,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 				aPer := num.Value.Clamp(css.NumFromInt(0), css.NumFromInt(100)).ToFloat()
 				v = css.NumFromFloat((aPer / 100) * 255)
 			} else {
-				return v, errors.New("expected number or percentage")
+				return v, fmt.Errorf("%s: expected number or percentage", ts.errorHeader())
 			}
 			return v, nil
 		}
@@ -128,7 +127,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 			num, err := parseCommaSeparatedRepeation(&ts, 3, func(ts *tokenStream) (*css.Num, error) {
 				n := ts.parseNumber()
 				if n == nil {
-					return nil, errors.New("expected number")
+					return nil, fmt.Errorf("%s: expected number", ts.errorHeader())
 				}
 				return ts.parseNumber(), nil
 			})
@@ -162,7 +161,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 			ts.cursor = oldCursor
 		}
 		if !ts.isEnd() {
-			return csscolor.Color{}, errors.New("expected end")
+			return csscolor.Color{}, fmt.Errorf("%s: expected end", ts.errorHeader())
 		}
 		return csscolor.Color{Type: csscolor.Rgb, Components: [4]css.Num{r, g, b, a}}, nil
 	modernSyntax:
@@ -191,7 +190,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 			} else if err := ts.consumeIdentTokenWith("none"); err == nil {
 				panic("TODO")
 			} else {
-				return csscolor.Color{}, errors.New("expected number or percentage")
+				return csscolor.Color{}, fmt.Errorf("%s: expected number or percentage", ts.errorHeader())
 			}
 			components = append(components, v)
 			// rgb(  r<  >g<  >b<  >) ------------------------------------------
@@ -213,7 +212,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 			ts.skipWhitespaces()
 		}
 		if !ts.isEnd() {
-			return csscolor.Color{}, errors.New("expected end")
+			return csscolor.Color{}, fmt.Errorf("%s: expected end", ts.errorHeader())
 		}
 		return csscolor.Color{Type: csscolor.Rgb, Components: [4]css.Num{components[0], components[1], components[2], a}}, nil
 	}

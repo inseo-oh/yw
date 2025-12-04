@@ -4,7 +4,7 @@
 package csssyntax
 
 import (
-	"errors"
+	"fmt"
 	"github.com/inseo-oh/yw/css/backgrounds"
 	"github.com/inseo-oh/yw/css/box"
 	"github.com/inseo-oh/yw/css/csscolor"
@@ -167,7 +167,7 @@ func (ts *tokenStream) parseBorderTopShorthand() (props.BorderTopShorthand, erro
 		gotAny = true
 	}
 	if !gotAny {
-		return out, errors.New("expected a value")
+		return out, fmt.Errorf("%s: expected a value", ts.errorHeader())
 	}
 	return out, nil
 }
@@ -211,7 +211,7 @@ func (ts *tokenStream) parseBorderRightShorthand() (props.BorderRightShorthand, 
 		gotAny = true
 	}
 	if !gotAny {
-		return out, errors.New("expected a value")
+		return out, fmt.Errorf("%s: expected a value", ts.errorHeader())
 	}
 	return out, nil
 }
@@ -255,7 +255,7 @@ func (ts *tokenStream) parseBorderBottomShorthand() (props.BorderBottomShorthand
 		gotAny = true
 	}
 	if !gotAny {
-		return out, errors.New("expected a value")
+		return out, fmt.Errorf("%s: expected a value", ts.errorHeader())
 	}
 	return out, nil
 }
@@ -299,7 +299,7 @@ func (ts *tokenStream) parseBorderLeftShorthand() (props.BorderLeftShorthand, er
 		gotAny = true
 	}
 	if !gotAny {
-		return out, errors.New("expected a value")
+		return out, fmt.Errorf("%s: expected a value", ts.errorHeader())
 	}
 	return out, nil
 }
@@ -352,7 +352,7 @@ func (ts *tokenStream) parseBorderShorthand() (props.BorderShorthand, error) {
 		gotAny = true
 	}
 	if !gotAny {
-		return out, errors.New("expected a value")
+		return out, fmt.Errorf("%s: expected a value", ts.errorHeader())
 	}
 	return out, nil
 }
@@ -490,7 +490,7 @@ func (ts *tokenStream) parseFontShorthand() (props.FontShorthand, error) {
 		gotAny = true
 	}
 	if !gotAny {
-		return out, errors.New("expected a value")
+		return out, fmt.Errorf("%s: expected a value", ts.errorHeader())
 	}
 	return out, nil
 }
@@ -534,7 +534,7 @@ func (ts *tokenStream) parseTextDecorationShorthand() (props.TextDecorationShort
 		gotAny = true
 	}
 	if !gotAny {
-		return out, errors.New("expected a value")
+		return out, fmt.Errorf("%s: expected a value", ts.errorHeader())
 	}
 	return out, nil
 }

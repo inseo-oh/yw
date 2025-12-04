@@ -5,7 +5,7 @@
 package csssyntax
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/inseo-oh/yw/css/textdecor"
 )
@@ -40,7 +40,7 @@ func (ts *tokenStream) parseTextDecorationLine() (textdecor.LineFlags, error) {
 		gotAny = true
 	}
 	if !gotAny {
-		return 0, errors.New("invalid text-decoration-line value")
+		return 0, fmt.Errorf("%s: invalid text-decoration-line value", ts.errorHeader())
 	}
 	return out, nil
 }
@@ -58,7 +58,7 @@ func (ts *tokenStream) parseTextDecorationStyle() (textdecor.Style, error) {
 	} else if err := ts.consumeIdentTokenWith("wavy"); err == nil {
 		return textdecor.Wavy, nil
 	}
-	return 0, errors.New("invalid text-decoration-style value")
+	return 0, fmt.Errorf("%s: invalid text-decoration-style value", ts.errorHeader())
 }
 
 // https://www.w3.org/TR/css-text-decor-3/#propdef-text-underline-position
@@ -107,7 +107,7 @@ func (ts *tokenStream) parseTextDecorationPosition() (textdecor.PositionFlags, e
 		gotAny = true
 	}
 	if !gotAny {
-		return out, errors.New("invalid text-underline-position value")
+		return out, fmt.Errorf("%s: invalid text-underline-position value", ts.errorHeader())
 	}
 	return out, nil
 }

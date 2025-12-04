@@ -43,7 +43,7 @@ func (b *Browser) Run(urlStr string, plat platform.Platform, viewportImg *image.
 	// Also, should <html> own the default stylesheet?
 	initDefaultCss := func(htm elements.HTMLElement) cssom.Stylesheet {
 		log.Println("Parsing default CSS")
-		stylesheet, err := csssyntax.ParseStylesheet(sheetBytes, nil)
+		stylesheet, err := csssyntax.ParseStylesheet(sheetBytes, nil, "<UA stylesheet>")
 		if err != nil {
 			log.Panicf("failed to parse UA stylesheet: %v", err)
 		}

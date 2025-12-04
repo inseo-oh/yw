@@ -5,7 +5,7 @@
 package csssyntax
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/inseo-oh/yw/css/text"
 )
@@ -61,7 +61,7 @@ func (ts *tokenStream) parseTextTransform() (text.Transform, error) {
 		gotAny = true
 	}
 	if !gotAny {
-		return out, errors.New("invalid text-transform value")
+		return out, fmt.Errorf("%s: invalid text-transform value", ts.errorHeader())
 	}
 	return out, nil
 }

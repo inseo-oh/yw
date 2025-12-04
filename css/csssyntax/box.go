@@ -5,7 +5,7 @@
 package csssyntax
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/inseo-oh/yw/css/box"
 	"github.com/inseo-oh/yw/css/values"
@@ -18,15 +18,15 @@ func (ts *tokenStream) parseMargin() (box.Margin, error) {
 	if err := ts.consumeIdentTokenWith("auto"); err == nil {
 		return box.Margin{Value: nil}, nil
 	}
-	return box.Margin{}, errors.New("expected margin")
+	return box.Margin{}, fmt.Errorf("%s: expected margin", ts.errorHeader())
 }
 func (ts *tokenStream) parsePadding() (values.LengthResolvable, error) {
 	v, err := ts.parseLengthOrPercentage(true)
 	if err != nil {
-		return nil, errors.New("expected length or percentage")
+		return nil, fmt.Errorf("%s: expected length or percentage", ts.errorHeader())
 	}
 	if len, ok := v.(values.Length); ok && len.Value.ToInt() < 0 {
-		return nil, errors.New("length is out of range")
+		return nil, fmt.Errorf("%s: length is out of range", ts.errorHeader())
 	}
 	return v, nil
 }

@@ -5,7 +5,7 @@
 package csssyntax
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/inseo-oh/yw/css"
 	"github.com/inseo-oh/yw/css/fonts"
@@ -49,7 +49,7 @@ func (ts *tokenStream) parseGenericFamily() (fonts.FamilyType, error) {
 	if err := ts.consumeIdentTokenWith("monospace"); err == nil {
 		return fonts.Monospace, nil
 	}
-	return 0, errors.New("invalid generic family")
+	return 0, fmt.Errorf("%s: invalid generic family", ts.errorHeader())
 }
 
 // https://www.w3.org/TR/css-fonts-3/#font-family-prop
@@ -61,7 +61,7 @@ func (ts *tokenStream) parseFontFamily() (fonts.FamilyList, error) {
 		if name, err := ts.parseFamilyName(); err == nil {
 			return &fonts.Family{Type: fonts.NonGeneric, Name: name}, nil
 		}
-		return nil, errors.New("expected generic family or family name")
+		return nil, fmt.Errorf("%s: expected generic family or family name", ts.errorHeader())
 	})
 	if err != nil {
 		return fonts.FamilyList{}, err
@@ -83,15 +83,15 @@ func (ts *tokenStream) parseFontWeight() (fonts.Weight, error) {
 	}
 	if n := ts.parseNumber(); n != nil {
 		if n.Type == css.NumTypeFloat {
-			return 0, errors.New("floating point isn't accepted by font-weight")
+			return 0, fmt.Errorf("%s: floating point isn't accepted by font-weight", ts.errorHeader())
 		}
 		intVal := n.ToInt()
 		if intVal < 0 || 1000 < intVal {
-			return 0, errors.New("font-weight value is out of range")
+			return 0, fmt.Errorf("%s: font-weight value is out of range", ts.errorHeader())
 		}
 		return fonts.Weight(n.ToInt()), nil
 	}
-	return 0, errors.New("invalid font-weight value")
+	return 0, fmt.Errorf("%s: invalid font-weight value", ts.errorHeader())
 }
 
 // https://www.w3.org/TR/css-fonts-3/#propdef-font-stretch
@@ -123,7 +123,7 @@ func (ts *tokenStream) parseFontStretch() (fonts.Stretch, error) {
 	if err := ts.consumeIdentTokenWith("ultra-expanded"); err == nil {
 		return fonts.UltraExpanded, nil
 	}
-	return 0, errors.New("invalid font-stretch value")
+	return 0, fmt.Errorf("%s: invalid font-stretch value", ts.errorHeader())
 }
 
 // https://www.w3.org/TR/css-fonts-3/#propdef-font-style
@@ -137,7 +137,7 @@ func (ts *tokenStream) parseFontStyle() (fonts.Style, error) {
 	if err := ts.consumeIdentTokenWith("oblique"); err == nil {
 		return fonts.Oblique, nil
 	}
-	return 0, errors.New("invalid font-style value")
+	return 0, fmt.Errorf("%s: invalid font-style value", ts.errorHeader())
 }
 
 // https://www.w3.org/TR/css-fonts-3/#absolute-size-value
@@ -163,7 +163,7 @@ func (ts *tokenStream) parseAbsoluteSize() (fonts.AbsoluteSize, error) {
 	if err := ts.consumeIdentTokenWith("xx-large"); err == nil {
 		return fonts.XXLarge, nil
 	}
-	return 0, errors.New("invalid absolute-size value")
+	return 0, fmt.Errorf("%s: invalid absolute-size value", ts.errorHeader())
 }
 
 // https://www.w3.org/TR/css-fonts-3/#relative-size-value
@@ -173,7 +173,7 @@ func (ts *tokenStream) parseRelativeSize() (fonts.RelativeSize, error) {
 	} else if err := ts.consumeIdentTokenWith("smaller"); err == nil {
 		return fonts.Smaller, nil
 	}
-	return 0, errors.New("invalid relative-size value")
+	return 0, fmt.Errorf("%s: invalid relative-size value", ts.errorHeader())
 }
 
 // https://www.w3.org/TR/css-fonts-3/#propdef-font-size
@@ -187,5 +187,5 @@ func (ts *tokenStream) parseFontSize() (fonts.Size, error) {
 	if l, err := ts.parseLengthOrPercentage(true); err == nil {
 		return fonts.LengthFontSize{LengthResolvable: l}, nil
 	}
-	return nil, errors.New("invalid font-size value")
+	return nil, fmt.Errorf("%s: invalid font-size value", ts.errorHeader())
 }

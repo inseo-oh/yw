@@ -5,7 +5,7 @@
 package csssyntax
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/inseo-oh/yw/css/sizing"
 	"github.com/inseo-oh/yw/css/values"
@@ -29,20 +29,20 @@ func (ts *tokenStream) parseSizeValueImpl(acceptAuto, acceptNone bool) (sizing.S
 		return sizing.Size{Type: sizing.MaxContent}, nil
 	}
 	if tk, err := ts.consumeAstFuncWith("fit-content"); err == nil {
-		ts := tokenStream{tokens: tk.value}
+		ts := tokenStream{tokens: tk.value, tokenizerHelper: ts.tokenizerHelper}
 		var size values.LengthResolvable
 		if v, err := ts.parseLengthOrPercentage(true); err == nil {
 			size = v
 		}
 		if !ts.isEnd() {
-			return sizing.Size{}, errors.New("expected end")
+			return sizing.Size{}, fmt.Errorf("%s: expected end", ts.errorHeader())
 		}
 		return sizing.Size{Type: sizing.FitContent, Size: size}, nil
 	}
 	if v, err := ts.parseLengthOrPercentage(true); err == nil {
 		return sizing.Size{Type: sizing.ManualSize, Size: v}, nil
 	}
-	return sizing.Size{}, errors.New("expected size value")
+	return sizing.Size{}, fmt.Errorf("%s: expected size value", ts.errorHeader())
 }
 func (ts *tokenStream) parseSizeOrAuto() (sizing.Size, error) {
 	return ts.parseSizeValueImpl(true, false)

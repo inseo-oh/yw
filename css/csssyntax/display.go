@@ -5,7 +5,7 @@
 package csssyntax
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/inseo-oh/yw/css/display"
 )
@@ -19,7 +19,7 @@ func (ts *tokenStream) parseDisplayOutside() (display.OuterMode, error) {
 	} else if err := ts.consumeIdentTokenWith("run-in"); err == nil {
 		return display.RunIn, nil
 	}
-	return 0, errors.New("invalid display-outside value")
+	return 0, fmt.Errorf("%s: invalid display-outside value", ts.errorHeader())
 }
 
 // https://www.w3.org/TR/css-display-3/#typedef-display-inside
@@ -37,7 +37,7 @@ func (ts *tokenStream) parseDisplayInside() (display.InnerMode, error) {
 	} else if err := ts.consumeIdentTokenWith("ruby"); err == nil {
 		return display.Ruby, nil
 	}
-	return 0, errors.New("invalid display-inside value")
+	return 0, fmt.Errorf("%s: invalid display-inside value", ts.errorHeader())
 }
 
 // https://www.w3.org/TR/css-display-3/#propdef-display
@@ -132,7 +132,7 @@ func (ts *tokenStream) parseDisplay() (display.Display, error) {
 		return display.Display{Mode: display.DisplayNone}, nil
 	}
 
-	return display.Display{}, errors.New("invalid display value")
+	return display.Display{}, fmt.Errorf("%s: invalid display value")
 }
 
 func (ts *tokenStream) parseVisibility() (display.Visibility, error) {
@@ -145,5 +145,5 @@ func (ts *tokenStream) parseVisibility() (display.Visibility, error) {
 	} else if err := ts.consumeIdentTokenWith("collapse"); err == nil {
 		return display.Collapse, nil
 	}
-	return 0, errors.New("invalid visibility value")
+	return 0, fmt.Errorf("%s: invalid visibility value")
 }

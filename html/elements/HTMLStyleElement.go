@@ -65,7 +65,7 @@ func (elem *htmlStyleElementImpl) updateStyleBlock() {
 	if !ok {
 		text = ""
 	}
-	stylesheet, err := csssyntax.ParseStylesheet([]byte(text), nil)
+	stylesheet, err := csssyntax.ParseStylesheet([]byte(text), nil, "<inline stylesheet>")
 	if err != nil {
 		log.Printf("<style>: failed to tokenize stylesheet: %v", err)
 		return

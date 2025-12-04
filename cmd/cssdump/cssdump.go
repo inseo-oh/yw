@@ -27,7 +27,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	stylesheet, err := csssyntax.ParseStylesheet(bytes, nil)
+	stylesheet, err := csssyntax.ParseStylesheet(bytes, nil, *filename)
 	if err != nil {
 		log.Fatal(err)
 	}

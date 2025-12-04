@@ -17,7 +17,7 @@ import (
 )
 
 var requiredImports = []string{
-	"errors",
+	"fmt",
 	"github.com/inseo-oh/yw/css/props",
 	"github.com/inseo-oh/yw/css/csscolor",
 	"github.com/inseo-oh/yw/css/box",
@@ -125,7 +125,7 @@ func main() {
 			sbInner.WriteString( /*      */ "\t\tgotAny = true\n")
 			sbInner.WriteString( /*      */ "\t}\n")
 			sbInner.WriteString( /*      */ "\tif !gotAny {\n")
-			sbInner.WriteString( /*      */ "\t\treturn out, errors.New(\"expected a value\")\n")
+			sbInner.WriteString( /*      */ "\t\treturn out, fmt.Errorf(\"%s: expected a value\", ts.errorHeader())\n")
 			sbInner.WriteString( /*      */ "\t}\n")
 			sbInner.WriteString( /*      */ "\treturn out, nil\n")
 			sbInner.WriteString( /*      */ "}\n\n")

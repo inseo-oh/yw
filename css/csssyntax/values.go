@@ -5,7 +5,6 @@
 package csssyntax
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/inseo-oh/yw/css"
@@ -38,7 +37,7 @@ func (ts *tokenStream) parseLength(allowZeroShorthand bool) (values.Length, erro
 				return values.Length{Value: css.NumFromInt(0), Unit: values.Px}, nil
 			}
 		}
-		return values.Length{}, fmt.Errorf("expected length")
+		return values.Length{}, fmt.Errorf("%s: expected length", ts.errorHeader())
 	}
 	dim := dimTk.(dimensionToken)
 	var unit values.LengthUnit
@@ -95,5 +94,5 @@ func (ts *tokenStream) parseLengthOrPercentage(allowZeroShorthand bool) (values.
 	if per, err := ts.parsePercentage(); err == nil {
 		return per, nil
 	}
-	return nil, errors.New("expected length or percentage")
+	return nil, fmt.Errorf("%s: expected length or percentage", ts.errorHeader())
 }

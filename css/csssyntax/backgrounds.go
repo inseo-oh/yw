@@ -5,7 +5,7 @@
 package csssyntax
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/inseo-oh/yw/css/backgrounds"
 	"github.com/inseo-oh/yw/css/values"
@@ -34,7 +34,7 @@ func (ts *tokenStream) parseLineStyle() (backgrounds.LineStyle, error) {
 	} else if err := ts.consumeIdentTokenWith("outset"); err == nil {
 		return backgrounds.OutsetLine, nil
 	}
-	return 0, errors.New("expected line-style")
+	return 0, fmt.Errorf("%s: expected line-style", ts.errorHeader())
 }
 
 // https://www.w3.org/TR/css-backgrounds-3/#typedef-line-width
@@ -51,5 +51,5 @@ func (ts *tokenStream) parseLineWidth() (values.Length, error) {
 	if len, err := ts.parseLength(true); err == nil {
 		return len, nil
 	}
-	return values.Length{}, errors.New("expected line-width")
+	return values.Length{}, fmt.Errorf("%s: expected line-width", ts.errorHeader())
 }
