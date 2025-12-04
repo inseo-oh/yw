@@ -5,6 +5,9 @@
 package cssom
 
 import (
+	"image/color"
+
+	"github.com/inseo-oh/yw/css/csscolor"
 	"github.com/inseo-oh/yw/css/props"
 	"github.com/inseo-oh/yw/dom"
 	"github.com/inseo-oh/yw/util"
@@ -54,6 +57,17 @@ func (src ComputedStyleSetSource) ParentSource() props.ComputedStyleSetSource {
 		return ComputedStyleSetSourceOf(parentElem)
 	}
 	return nil
+}
+func (src ComputedStyleSetSource) CurrentColor() color.RGBA {
+	colorVal := src.ComputedStyleSet().Color()
+	if colorVal.Type == csscolor.CurrentColor {
+		parentSrc := src.ParentSource()
+		if util.IsNil(parentSrc) {
+			return props.DescriptorsMap["color"].Initial.(csscolor.Color).ToRgba(color.RGBA{})
+		}
+		return parentSrc.CurrentColor()
+	}
+	return colorVal.ToRgba(color.RGBA{})
 }
 
 // ComputedStyleSetSourceOf creates new ComputedStyleSetSource for given elem.

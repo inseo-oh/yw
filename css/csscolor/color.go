@@ -208,8 +208,8 @@ func NewRgba(r, g, b, a uint8) Color {
 
 // Returns RGBA color for the color.
 //
-// TODO(ois): Currently only RGBA type is supported. Support more color types.
-func (c Color) ToRgba() color.RGBA {
+// TODO(ois): Currently only RGBA and currentColor type is supported. Support more color types.
+func (c Color) ToRgba(currentColor color.RGBA) color.RGBA {
 	switch c.Type {
 	case Rgb:
 		return color.RGBA{
@@ -219,7 +219,7 @@ func (c Color) ToRgba() color.RGBA {
 			uint8(c.Components[3].ToInt()),
 		}
 	case CurrentColor:
-		panic("TODO")
+		return currentColor
 	case Hsl:
 		panic("TODO")
 	case Hwb:

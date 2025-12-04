@@ -5,6 +5,8 @@
 package layout
 
 import (
+	"image/color"
+
 	"github.com/inseo-oh/yw/css/csscolor"
 	"github.com/inseo-oh/yw/css/cssom"
 	"github.com/inseo-oh/yw/dom"
@@ -95,13 +97,16 @@ func (bx *boxCommon) incrementIfNeeded(minWidth, minHeight float64) {
 }
 func (bx boxCommon) MakePaintNode() paint.Node {
 	paintNodes := []paint.Node{}
-
-	var color = csscolor.Transparent
-	if bx.elem != nil {
-		color = cssom.ElementDataOf(bx.elem).ComputedStyleSet.BackgroundColor()
+	rgbaColor := color.RGBA{}
+	if !util.IsNil(bx.elem) {
+		var color = csscolor.Transparent
+		styleSetSource := cssom.ComputedStyleSetSourceOf(bx.elem)
+		styleSet := styleSetSource.ComputedStyleSet()
+		if bx.elem != nil {
+			color = styleSet.BackgroundColor()
+		}
+		rgbaColor = color.ToRgba(styleSetSource.CurrentColor())
 	}
-	rgbaColor := color.ToRgba()
-
 	for _, child := range bx.ChildBoxes() {
 		paintNodes = append(paintNodes, child.MakePaintNode())
 	}

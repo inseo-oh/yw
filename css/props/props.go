@@ -6,6 +6,8 @@
 // containing computed values for properties.
 package props
 
+import "image/color"
+
 //go:generate go run ./gen
 
 // Source of [ComputedStyleSet]. [ComputedStyleSet] is stored inside DOM element,
@@ -13,6 +15,7 @@ package props
 type ComputedStyleSetSource interface {
 	ComputedStyleSet() *ComputedStyleSet
 	ParentSource() ComputedStyleSetSource
+	CurrentColor() color.RGBA
 }
 
 // PropertyValue represents an property value.

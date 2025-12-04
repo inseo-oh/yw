@@ -193,7 +193,8 @@ func (tb treeBuilder) makeLayoutForNode(
 		return nil
 	}
 	if txt, ok := domNode.(dom.CharacterData); ok && txt.CharacterDataType() == dom.TextCharacterData {
-		parentStyleSet := cssom.ElementDataOf(parentElem).ComputedStyleSet
+		parentStyleSetSrc := cssom.ComputedStyleSetSourceOf(parentElem)
+		parentStyleSet := parentStyleSetSrc.ComputedStyleSet()
 
 		//======================================================================
 		// Layout for Text nodes
@@ -268,7 +269,7 @@ func (tb treeBuilder) makeLayoutForNode(
 			fragmentRemaining = fragmentRemaining[strLen:]
 
 			// Make text node
-			color := parentStyleSet.Color().ToRgba()
+			color := parentStyleSet.Color().ToRgba(parentStyleSetSrc.CurrentColor())
 			textNode = tb.newText(parentNode, fragment, rect, color, fontSize, textDecors)
 
 			if parentNode.isWidthAuto() {
@@ -293,7 +294,8 @@ func (tb treeBuilder) makeLayoutForNode(
 		//======================================================================
 		// Layout for Element nodes
 		//======================================================================
-		styleSet := cssom.ElementDataOf(elem).ComputedStyleSet
+		styleSetSrc := cssom.ComputedStyleSetSourceOf(elem)
+		styleSet := styleSetSrc.ComputedStyleSet()
 
 		// Calculate text-decoration values ------------------------------------
 
@@ -308,7 +310,7 @@ func (tb treeBuilder) makeLayoutForNode(
 			if len(textDecors) != 0 {
 				decorColor = textDecors[0].Color
 			} else {
-				decorColor = color.Black // TODO: Use CSS currentColor
+				decorColor = styleSetSrc.CurrentColor()
 			}
 			var decorStyle gfx.TextDecorStyle
 			if len(textDecors) != 0 {
@@ -330,7 +332,7 @@ func (tb treeBuilder) makeLayoutForNode(
 			}
 		}
 		if styleSet.TextDecorationColorValue != nil {
-			decorColor := styleSet.TextDecorationColor().ToRgba()
+			decorColor := styleSet.TextDecorationColor().ToRgba(styleSetSrc.CurrentColor())
 			for i := range len(textDecors) {
 				textDecors[i].Color = decorColor
 			}
