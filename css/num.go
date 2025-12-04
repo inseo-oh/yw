@@ -4,7 +4,11 @@
 
 package css
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/inseo-oh/yw/util"
+)
 
 // CSS numeric value storing either integer or float.
 type Num struct {
@@ -22,6 +26,9 @@ const (
 
 // Converts to integer value
 func (n Num) ToInt() int64 {
+	if util.IsNil(n.Value) {
+		return 0
+	}
 	if n.Type == NumTypeFloat {
 		return int64(n.ToFloat())
 	} else {
@@ -31,6 +38,9 @@ func (n Num) ToInt() int64 {
 
 // Converts to float value
 func (n Num) ToFloat() float64 {
+	if util.IsNil(n.Value) {
+		return 0
+	}
 	if n.Type == NumTypeInt {
 		return float64(n.ToInt())
 	} else {
@@ -41,6 +51,9 @@ func (n Num) ToFloat() float64 {
 // Compares two numeric value. If both values are integers, integer comparison is used.
 // Otherwise, both values are converted to float before comparing them.
 func (n Num) Equals(other Num) bool {
+	if util.IsNil(n.Value) {
+		return NumFromInt(0).Equals(other)
+	}
 	isFloat := (n.Type == NumTypeFloat) || (other.Type == NumTypeFloat)
 	if isFloat {
 		return n.ToFloat() == other.ToFloat()
@@ -50,6 +63,9 @@ func (n Num) Equals(other Num) bool {
 }
 
 func (n Num) Clamp(min, max Num) Num {
+	if util.IsNil(n.Value) {
+		return NumFromInt(0).Clamp(min, max)
+	}
 	// Using float all the time is probably fine, but let's avoid it if we can.
 	isFloat := (n.Type == NumTypeFloat) || (min.Type == NumTypeFloat) || (max.Type == NumTypeFloat)
 	if isFloat {
@@ -70,6 +86,9 @@ func (n Num) Clamp(min, max Num) Num {
 
 // Num represents the number in CSS form
 func (n Num) String() string {
+	if util.IsNil(n.Value) {
+		return NumFromInt(0).String()
+	}
 	if n.Type == NumTypeFloat {
 		return fmt.Sprintf("%f", n.ToFloat())
 	}
