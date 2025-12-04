@@ -284,5 +284,5 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 	}
 	ts.cursor = oldCursor
 	// TODO: Try system colors
-	return csscolor.Color{}, nil
+	return csscolor.Color{}, fmt.Errorf("%s expected color", ts.errorHeader())
 }
