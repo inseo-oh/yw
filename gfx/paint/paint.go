@@ -13,10 +13,19 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	"math"
 	"strings"
 
 	"github.com/inseo-oh/yw/gfx"
 )
+
+func fillRect(dest *image.RGBA, r image.Rectangle, color color.Color) {
+	for y := r.Min.Y; y <= r.Max.Y; y++ {
+		for x := r.Min.X; x <= r.Max.X; x++ {
+			dest.Set(x, y, color)
+		}
+	}
+}
 
 // Node represents a node in the paint tree.
 type Node interface {
@@ -27,6 +36,10 @@ type Node interface {
 	String() string
 }
 
+var (
+	DashWidth = 10 // Width of dash
+)
+
 // Text is Node that paints a text.
 type TextPaint struct {
 	Left, Top float64
@@ -34,6 +47,7 @@ type TextPaint struct {
 	Font      gfx.Font
 	Size      float64
 	Color     color.RGBA
+	Decors    []gfx.TextDecorOptions
 }
 
 func (t TextPaint) Paint(dest *image.RGBA) {
@@ -42,7 +56,49 @@ func (t TextPaint) Paint(dest *image.RGBA) {
 	x := t.Left
 	baselineY := t.Top + metrics.Ascender
 	text := t.Text
-	t.Font.DrawText(text, dest, x, baselineY, t.Color)
+	textRect := t.Font.DrawText(text, dest, x, baselineY, t.Color)
+
+	for _, decor := range t.Decors {
+		yPos := 0.0
+		thickness := metrics.UnderlineThickness
+		switch decor.Type {
+		case gfx.Underline:
+			yPos = baselineY - metrics.UnderlinePosition - thickness/2
+		case gfx.Overline:
+			yPos = t.Top
+		case gfx.ThroughText:
+			yPos = textRect.Top
+		}
+		decorRect := image.Rect(int(textRect.Left), int(yPos), int(textRect.Left+textRect.Width)-1, int(yPos+thickness))
+		switch decor.Style {
+		case gfx.SolidLine:
+			fillRect(dest, decorRect, decor.Color)
+		case gfx.DoubleLine:
+			fillRect(dest, decorRect, decor.Color)
+			nextLineRect := decorRect.Add(image.Pt(0, int(thickness*2)))
+			fillRect(dest, nextLineRect, decor.Color)
+		case gfx.DottedLine, gfx.DashedLine:
+			var width int
+			if decor.Style == gfx.DashedLine {
+				width = DashWidth
+			} else {
+				width = decorRect.Dy()
+			}
+			for x := decorRect.Min.X; x < decorRect.Max.X; x += width * 2 {
+				dotRect := image.Rect(x, decorRect.Min.Y, x+width-1, decorRect.Max.Y)
+				fillRect(dest, dotRect, decor.Color)
+			}
+		case gfx.WavyLine:
+			sinInput := 0.0
+			currYOff := 0.0
+			for x := decorRect.Min.X; x < decorRect.Max.X; x++ {
+				dotRect := image.Rect(x, int(float64(decorRect.Min.Y)+currYOff), x, int(float64(decorRect.Max.Y)+currYOff))
+				fillRect(dest, dotRect, decor.Color)
+				currYOff += math.Sin(sinInput)
+				sinInput += 0.5
+			}
+		}
+	}
 }
 func (t TextPaint) String() string {
 	return fmt.Sprintf("text-paint(%s) %v %g", t.Text, t.Color, t.Size)

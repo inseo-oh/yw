@@ -9,7 +9,7 @@ import (
 	"image/color"
 )
 
-// FontMetrics provides various font metrics. Here's what each field means:
+// FontMetrics provides various font metrics. Here's what some of fields means:
 //
 //	|             __                     __
 //	| Ascender -> | @    @  LineHeight -> |
@@ -21,9 +21,11 @@ import (
 //	|                                     |
 //	|                                    _|
 type FontMetrics struct {
-	Ascender   float64 // Ascender (Distance from top of text to baseline)
-	Descender  float64 // Descender (Distance from bottom of text to baseline)
-	LineHeight float64 // Line height of the text
+	Ascender           float64 // Ascender (Distance from top of text to baseline)
+	Descender          float64 // Descender (Distance from bottom of text to baseline)
+	LineHeight         float64 // Line height of the text
+	UnderlinePosition  float64 // Position of underline relative to baseline
+	UnderlineThickness float64 // Thickness of underline
 }
 
 // Font is an abstract interface that is used to access font information and

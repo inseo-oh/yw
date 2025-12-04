@@ -29,9 +29,13 @@ func (fnt ftFont) SetTextSize(size int) {
 func (fnt ftFont) Metrics() gfx.FontMetrics {
 	rawMetrics := fnt.face.size.metrics
 	return gfx.FontMetrics{
+		// Below appear to be 26.6 fixed point values.
 		Ascender:   float64(rawMetrics.ascender) / 64.0,
 		Descender:  float64(rawMetrics.descender) / 64.0,
 		LineHeight: float64(rawMetrics.height) / 64.0,
+		// Below appear to be 12.4 fixed point values? Idk, these seem to work fine for now.
+		UnderlinePosition:  float64(fnt.face.underline_position) / 16.0,
+		UnderlineThickness: float64(fnt.face.underline_thickness) / 16.0,
 	}
 }
 func (fnt ftFont) DrawText(text string, dest *image.RGBA, offsetX, offsetY float64, textColor color.RGBA) gfx.Rect {

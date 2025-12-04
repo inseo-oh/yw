@@ -33,16 +33,12 @@ func (bx inlineBox) boxMarginRect() gfx.Rect { return bx.marginRect }
 func (bx inlineBox) isBlockLevel() bool      { return false }
 
 // NOTE: This should *only* be called once after making layout node.
-func (bx *inlineBox) initChildren(
-	tb treeBuilder,
-	children []dom.Node,
-	writeMode writeMode,
-) {
+func (bx *inlineBox) initChildren(tb treeBuilder, children []dom.Node, writeMode writeMode, textDecors []gfx.TextDecorOptions) {
 	if len(bx.childBoxes) != 0 || len(bx.childTexts) != 0 {
 		panic("this method should be called only once")
 	}
 	for _, childNode := range children {
-		nodes := tb.makeLayoutForNode(bx.parentBcon.ifc, bx.parentBcon.bfc, bx.parentBcon.ifc, writeMode, bx, childNode, false)
+		nodes := tb.makeLayoutForNode(bx.parentBcon.ifc, bx.parentBcon.bfc, bx.parentBcon.ifc, writeMode, textDecors, bx, childNode, false)
 		if len(nodes) == 0 {
 			continue
 		}

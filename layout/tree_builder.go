@@ -14,6 +14,7 @@ import (
 	"github.com/inseo-oh/yw/css/display"
 	"github.com/inseo-oh/yw/css/fonts"
 	"github.com/inseo-oh/yw/css/sizing"
+	"github.com/inseo-oh/yw/css/textdecor"
 	"github.com/inseo-oh/yw/dom"
 	"github.com/inseo-oh/yw/gfx"
 	"github.com/inseo-oh/yw/util"
@@ -29,6 +30,7 @@ func (tb treeBuilder) newText(
 	rect gfx.Rect,
 	color color.RGBA,
 	fontSize float64,
+	textDecors []gfx.TextDecorOptions,
 ) *text {
 	t := text{}
 	t.parent = parent
@@ -37,6 +39,7 @@ func (tb treeBuilder) newText(
 	t.font = tb.font
 	t.color = color
 	t.fontSize = fontSize
+	t.decors = textDecors
 	return &t
 }
 func (tb treeBuilder) newInlineBox(
@@ -131,6 +134,7 @@ func (tb treeBuilder) makeLayoutForNode(
 	bfc *blockFormattingContext,
 	ifc *inlineFormattingContext,
 	writeMode writeMode,
+	textDecors []gfx.TextDecorOptions,
 	parentNode box,
 	domNode dom.Node,
 	dryRun bool,
@@ -265,7 +269,7 @@ func (tb treeBuilder) makeLayoutForNode(
 
 			// Make text node
 			color := parentStyleSet.Color().ToRgba()
-			textNode = tb.newText(parentNode, fragment, rect, color, fontSize)
+			textNode = tb.newText(parentNode, fragment, rect, color, fontSize, textDecors)
 
 			if parentNode.isWidthAuto() {
 				parentNode.incrementSize(rect.Width, 0)
@@ -290,6 +294,66 @@ func (tb treeBuilder) makeLayoutForNode(
 		// Layout for Element nodes
 		//======================================================================
 		styleSet := cssom.ElementDataOf(elem).ComputedStyleSet
+
+		// Calculate text-decoration values ------------------------------------
+
+		// text decoration in CSS is a bit unusual, because it performs box-level
+		// inherit, not normal inheritance.
+		// This means, for example, if box A's decoration color is currentColor
+		// (value of color property), its children B's decoration color will inherit
+		// A's currentColor, not B's one.
+
+		if styleSet.TextDecorationLineValue != nil {
+			var decorColor color.Color
+			if len(textDecors) != 0 {
+				decorColor = textDecors[0].Color
+			} else {
+				decorColor = color.Black // TODO: Use CSS currentColor
+			}
+			var decorStyle gfx.TextDecorStyle
+			if len(textDecors) != 0 {
+				decorStyle = textDecors[0].Style
+			} else {
+				decorStyle = gfx.SolidLine
+			}
+
+			textDecors = []gfx.TextDecorOptions{}
+			decorLine := styleSet.TextDecorationLine()
+			if (decorLine & textdecor.Overline) != 0 {
+				textDecors = append(textDecors, gfx.TextDecorOptions{Type: gfx.Overline, Color: decorColor, Style: decorStyle})
+			}
+			if (decorLine & textdecor.Underline) != 0 {
+				textDecors = append(textDecors, gfx.TextDecorOptions{Type: gfx.Underline, Color: decorColor, Style: decorStyle})
+			}
+			if (decorLine & textdecor.LineThrough) != 0 {
+				textDecors = append(textDecors, gfx.TextDecorOptions{Type: gfx.ThroughText, Color: decorColor, Style: decorStyle})
+			}
+		}
+		if styleSet.TextDecorationColorValue != nil {
+			decorColor := styleSet.TextDecorationColor().ToRgba()
+			for i := range len(textDecors) {
+				textDecors[i].Color = decorColor
+			}
+		}
+		if styleSet.TextDecorationStyleValue != nil {
+			var decorStyle gfx.TextDecorStyle
+			switch styleSet.TextDecorationStyle() {
+			case textdecor.Solid:
+				decorStyle = gfx.SolidLine
+			case textdecor.Double:
+				decorStyle = gfx.DoubleLine
+			case textdecor.Dotted:
+				decorStyle = gfx.DottedLine
+			case textdecor.Dashed:
+				decorStyle = gfx.DashedLine
+			case textdecor.Wavy:
+				decorStyle = gfx.WavyLine
+			}
+			for i := range len(textDecors) {
+				textDecors[i].Style = decorStyle
+			}
+		}
+
 		if styleSet.MarginTop().IsAuto() || styleSet.MarginBottom().IsAuto() {
 			panic("TODO: Support auto margin")
 		}
@@ -305,7 +369,6 @@ func (tb treeBuilder) makeLayoutForNode(
 			Bottom: styleSet.MarginBottom().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(fontSize)),
 			Left:   styleSet.MarginLeft().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(fontSize)),
 		}
-
 		computeBoxRect := func(isInline bool) (boxRect gfx.Rect, widthAuto, heightAuto bool) {
 			// Calculate left/top position
 			boxLeft, boxTop := calcNextPosition(bfc, ifc, writeMode, isInline)
@@ -415,13 +478,13 @@ func (tb treeBuilder) makeLayoutForNode(
 					}
 					ibox := tb.newInlineBox(parentBcon.(*blockContainer), elem, boxRect, margin, widthAuto, heightAuto)
 					if !dryRun {
-						ibox.initChildren(tb, elem.Children(), writeMode)
+						ibox.initChildren(tb, elem.Children(), writeMode, textDecors)
 					}
 					bx = ibox
 				} else {
 					bcon := tb.newBlockContainer(parentFctx, ifc, parentNode, elem, boxRect, margin, widthAuto, heightAuto)
 					if !dryRun {
-						bcon.initChildren(tb, elem.Children(), writeMode)
+						bcon.initChildren(tb, elem.Children(), writeMode, textDecors)
 					}
 					bx = bcon
 				}
@@ -448,7 +511,7 @@ func (tb treeBuilder) makeLayoutForNode(
 				// https://www.w3.org/TR/css-display-3/#valdef-display-flow-root
 				bcon := tb.newBlockContainer(parentFctx, ifc, parentNode, elem, boxRect, margin, widthAuto, heightAuto)
 				if !dryRun {
-					bcon.initChildren(tb, elem.Children(), writeMode)
+					bcon.initChildren(tb, elem.Children(), writeMode, textDecors)
 				}
 
 				// Increment natural position

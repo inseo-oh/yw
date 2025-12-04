@@ -43,7 +43,7 @@ func (bcon blockContainer) nodeType() nodeType { return nodeTypeBlockContainer }
 func (bcon blockContainer) isBlockLevel() bool { return true }
 
 // NOTE: This should *only* be called once after making layout node.
-func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, writeMode writeMode) {
+func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, writeMode writeMode, textDecors []gfx.TextDecorOptions) {
 	if len(bcon.childBoxes) != 0 || len(bcon.childTexts) != 0 {
 		panic("this method should be called only once")
 	}
@@ -52,7 +52,7 @@ func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, wr
 	hasInline, hasBlock := false, false
 	isInline := make([]bool, len(children))
 	for i, childNode := range children {
-		nodes := tb.makeLayoutForNode(bcon.parentFctx, bcon.bfc, bcon.ifc, writeMode, bcon, childNode, true)
+		nodes := tb.makeLayoutForNode(bcon.parentFctx, bcon.bfc, bcon.ifc, writeMode, textDecors, bcon, childNode, true)
 		isInline[i] = false
 		if len(nodes) == 0 {
 			continue
@@ -92,14 +92,14 @@ func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, wr
 				boxRect := gfx.Rect{Left: boxLeft, Top: boxTop, Width: bcon.marginRect.Width, Height: bcon.marginRect.Height}
 				anonBcon := tb.newBlockContainer(bcon.parentFctx, bcon.ifc, bcon, nil, boxRect, gfx.Edges{}, true, true)
 				anonBcon.isAnonymous = true
-				anonBcon.initChildren(tb, anonChildren, writeMode)
+				anonBcon.initChildren(tb, anonChildren, writeMode, textDecors)
 				anonChildren = []dom.Node{} // Clear children list
 				nodes = []Node{anonBcon}
 			}
 
 		} else {
 			// Create layout node normally
-			nodes = tb.makeLayoutForNode(bcon.parentFctx, bcon.bfc, bcon.ifc, writeMode, bcon, childNode, false)
+			nodes = tb.makeLayoutForNode(bcon.parentFctx, bcon.bfc, bcon.ifc, writeMode, textDecors, bcon, childNode, false)
 		}
 		if len(nodes) == 0 {
 			continue
