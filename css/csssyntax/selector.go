@@ -291,7 +291,7 @@ func (ts *tokenStream) parseCompoundSelector() (*selector.CompoundSelector, erro
 //
 // Returns nil if not found
 func (ts *tokenStream) parseCompoundSelectorList() ([]*selector.CompoundSelector, error) {
-	return parseCommaSeparatedRepeation(ts, 0, func(ts *tokenStream) (*selector.CompoundSelector, error) {
+	return parseCommaSeparatedRepeation(ts, 0, "compound selector", func(ts *tokenStream) (*selector.CompoundSelector, error) {
 		return ts.parseCompoundSelector()
 	})
 }
@@ -348,7 +348,7 @@ func (ts *tokenStream) parseComplexSelector() (res *selector.ComplexSelector, er
 //
 // Returns nil if not found
 func (ts *tokenStream) parseComplexSelectorList() ([]selector.Selector, error) {
-	selList, err := parseCommaSeparatedRepeation(ts, 0, func(ts *tokenStream) (*selector.ComplexSelector, error) {
+	selList, err := parseCommaSeparatedRepeation(ts, 0, "complex selector", func(ts *tokenStream) (*selector.ComplexSelector, error) {
 		return ts.parseComplexSelector()
 	})
 	if selList == nil {

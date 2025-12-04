@@ -54,7 +54,7 @@ func main() {
 		case propsdef.ShorthandSidesProp:
 			sbInner.WriteString( /*      */ "\n")
 			sbInner.WriteString(fmt.Sprintf("func (ts *tokenStream) %s() (%s, error) {\n", sh.ParseMethodName(), sh.TypeName(true)))
-			sbInner.WriteString(fmt.Sprintf("\titems, err := parseRepeation(ts, 4, func(ts *tokenStream) (*%s, error) {\n", sh.PropRight.PropType(false).TypeName))
+			sbInner.WriteString(fmt.Sprintf("\titems, err := parseRepeation(ts, 4, %s, func(ts *tokenStream) (*%s, error) {\n", strconv.Quote(prop.PropName()), sh.PropRight.PropType(false).TypeName))
 			sbInner.WriteString(fmt.Sprintf("\t\tvar res %s\n", sh.PropRight.PropType(false).TypeName))
 			sbInner.WriteString(fmt.Sprintf("\t\tres, err := ts.%s()\n", sh.PropTop.PropType(false).ParseMethodName))
 			sbInner.WriteString( /*      */ "\t\tif err != nil {\n")
@@ -125,7 +125,7 @@ func main() {
 			sbInner.WriteString( /*      */ "\t\tgotAny = true\n")
 			sbInner.WriteString( /*      */ "\t}\n")
 			sbInner.WriteString( /*      */ "\tif !gotAny {\n")
-			sbInner.WriteString( /*      */ "\t\treturn out, fmt.Errorf(\"%s: expected a value\", ts.errorHeader())\n")
+			sbInner.WriteString(fmt.Sprintf("\t\treturn out, fmt.Errorf(\"%%s: expected %s value\", ts.errorHeader())\n", prop.PropName()))
 			sbInner.WriteString( /*      */ "\t}\n")
 			sbInner.WriteString( /*      */ "\treturn out, nil\n")
 			sbInner.WriteString( /*      */ "}\n\n")

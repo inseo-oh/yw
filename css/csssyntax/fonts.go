@@ -20,7 +20,7 @@ func (ts *tokenStream) parseFamilyName() (string, error) {
 		ts.cursor = oldCursor
 	}
 	out := ""
-	identTks, err := parseRepeation(ts, 0, func(ts *tokenStream) (token, error) {
+	identTks, err := parseRepeation(ts, 0, "identifier", func(ts *tokenStream) (token, error) {
 		return ts.consumeTokenWith(tokenTypeIdent)
 	})
 	if err != nil {
@@ -54,7 +54,7 @@ func (ts *tokenStream) parseGenericFamily() (fonts.FamilyType, error) {
 
 // https://www.w3.org/TR/css-fonts-3/#font-family-prop
 func (ts *tokenStream) parseFontFamily() (fonts.FamilyList, error) {
-	familyPtrs, err := parseCommaSeparatedRepeation(ts, 0, func(ts *tokenStream) (*fonts.Family, error) {
+	familyPtrs, err := parseCommaSeparatedRepeation(ts, 0, "generic family or family name", func(ts *tokenStream) (*fonts.Family, error) {
 		if tp, err := ts.parseGenericFamily(); err == nil {
 			return &fonts.Family{Type: tp}, nil
 		}

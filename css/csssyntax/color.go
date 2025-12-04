@@ -110,7 +110,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 		ts.skipWhitespaces()
 		// rgb(  <r  ,  g  ,  b>  ) --------------------------------------------
 		// rgb(  <r  ,  g  ,  b>  ,  a  ) --------------------------------------
-		per, err := parseCommaSeparatedRepeation(&ts, 3, func(ts *tokenStream) (values.Percentage, error) {
+		per, err := parseCommaSeparatedRepeation(&ts, 3, "percentage", func(ts *tokenStream) (values.Percentage, error) {
 			return ts.parsePercentage()
 		})
 		if err != nil {
@@ -124,7 +124,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 			g = css.NumFromFloat((gPer / 100) * 255)
 			b = css.NumFromFloat((bBer / 100) * 255)
 		} else {
-			num, err := parseCommaSeparatedRepeation(&ts, 3, func(ts *tokenStream) (*css.Num, error) {
+			num, err := parseCommaSeparatedRepeation(&ts, 3, "number", func(ts *tokenStream) (*css.Num, error) {
 				n := ts.parseNumber()
 				if n == nil {
 					return nil, fmt.Errorf("%s: expected number", ts.errorHeader())

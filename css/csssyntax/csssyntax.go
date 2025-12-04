@@ -1534,7 +1534,7 @@ func (ts *tokenStream) consumeAnyValue() []token {
 // If maxRepeats is 0, repeat count is unlimited.
 //
 // https://www.w3.org/TR/css-values-4/#mult-comma
-func parseCommaSeparatedRepeation[T any](ts *tokenStream, maxRepeats int, parser func(ts *tokenStream) (T, error)) ([]T, error) {
+func parseCommaSeparatedRepeation[T any](ts *tokenStream, maxRepeats int, description string, parser func(ts *tokenStream) (T, error)) ([]T, error) {
 	res := []T{}
 	for {
 		oldCursor := ts.cursor
@@ -1563,7 +1563,7 @@ func parseCommaSeparatedRepeation[T any](ts *tokenStream, maxRepeats int, parser
 		ts.skipWhitespaces()
 	}
 	if len(res) == 0 {
-		return nil, fmt.Errorf("%s: expected a value", ts.errorHeader())
+		return nil, fmt.Errorf("%s: expected %s value", ts.errorHeader(), description)
 	}
 	return res, nil
 }
@@ -1572,7 +1572,7 @@ func parseCommaSeparatedRepeation[T any](ts *tokenStream, maxRepeats int, parser
 // If maxRepeats is 0, repeat count is unlimited.
 //
 // https://www.w3.org/TR/css-values-4/#mult-num-range
-func parseRepeation[T any](ts *tokenStream, maxRepeats int, parser func(ts *tokenStream) (T, error)) ([]T, error) {
+func parseRepeation[T any](ts *tokenStream, maxRepeats int, description string, parser func(ts *tokenStream) (T, error)) ([]T, error) {
 	res := []T{}
 	for {
 		oldCursor := ts.cursor
@@ -1596,7 +1596,7 @@ func parseRepeation[T any](ts *tokenStream, maxRepeats int, parser func(ts *toke
 		ts.skipWhitespaces()
 	}
 	if len(res) == 0 {
-		return nil, fmt.Errorf("%s: expected a value", ts.errorHeader())
+		return nil, fmt.Errorf("%s: expected %s value", ts.errorHeader(), description)
 	}
 	return res, nil
 }

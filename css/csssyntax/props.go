@@ -15,7 +15,7 @@ import (
 )
 
 func (ts *tokenStream) parseBorderColorShorthand() (props.BorderColorShorthand, error) {
-	items, err := parseRepeation(ts, 4, func(ts *tokenStream) (*csscolor.Color, error) {
+	items, err := parseRepeation(ts, 4, "border-color", func(ts *tokenStream) (*csscolor.Color, error) {
 		var res csscolor.Color
 		res, err := ts.parseColor()
 		if err != nil {
@@ -53,7 +53,7 @@ func (ts *tokenStream) parseBorderColorShorthand() (props.BorderColorShorthand, 
 }
 
 func (ts *tokenStream) parseBorderStyleShorthand() (props.BorderStyleShorthand, error) {
-	items, err := parseRepeation(ts, 4, func(ts *tokenStream) (*backgrounds.LineStyle, error) {
+	items, err := parseRepeation(ts, 4, "border-style", func(ts *tokenStream) (*backgrounds.LineStyle, error) {
 		var res backgrounds.LineStyle
 		res, err := ts.parseLineStyle()
 		if err != nil {
@@ -91,7 +91,7 @@ func (ts *tokenStream) parseBorderStyleShorthand() (props.BorderStyleShorthand, 
 }
 
 func (ts *tokenStream) parseBorderWidthShorthand() (props.BorderWidthShorthand, error) {
-	items, err := parseRepeation(ts, 4, func(ts *tokenStream) (*values.Length, error) {
+	items, err := parseRepeation(ts, 4, "border-width", func(ts *tokenStream) (*values.Length, error) {
 		var res values.Length
 		res, err := ts.parseLineWidth()
 		if err != nil {
@@ -167,7 +167,7 @@ func (ts *tokenStream) parseBorderTopShorthand() (props.BorderTopShorthand, erro
 		gotAny = true
 	}
 	if !gotAny {
-		return out, fmt.Errorf("%s: expected a value", ts.errorHeader())
+		return out, fmt.Errorf("%s: expected border-top value", ts.errorHeader())
 	}
 	return out, nil
 }
@@ -211,7 +211,7 @@ func (ts *tokenStream) parseBorderRightShorthand() (props.BorderRightShorthand, 
 		gotAny = true
 	}
 	if !gotAny {
-		return out, fmt.Errorf("%s: expected a value", ts.errorHeader())
+		return out, fmt.Errorf("%s: expected border-right value", ts.errorHeader())
 	}
 	return out, nil
 }
@@ -255,7 +255,7 @@ func (ts *tokenStream) parseBorderBottomShorthand() (props.BorderBottomShorthand
 		gotAny = true
 	}
 	if !gotAny {
-		return out, fmt.Errorf("%s: expected a value", ts.errorHeader())
+		return out, fmt.Errorf("%s: expected border-bottom value", ts.errorHeader())
 	}
 	return out, nil
 }
@@ -299,7 +299,7 @@ func (ts *tokenStream) parseBorderLeftShorthand() (props.BorderLeftShorthand, er
 		gotAny = true
 	}
 	if !gotAny {
-		return out, fmt.Errorf("%s: expected a value", ts.errorHeader())
+		return out, fmt.Errorf("%s: expected border-left value", ts.errorHeader())
 	}
 	return out, nil
 }
@@ -352,13 +352,13 @@ func (ts *tokenStream) parseBorderShorthand() (props.BorderShorthand, error) {
 		gotAny = true
 	}
 	if !gotAny {
-		return out, fmt.Errorf("%s: expected a value", ts.errorHeader())
+		return out, fmt.Errorf("%s: expected border value", ts.errorHeader())
 	}
 	return out, nil
 }
 
 func (ts *tokenStream) parseMarginShorthand() (props.MarginShorthand, error) {
-	items, err := parseRepeation(ts, 4, func(ts *tokenStream) (*box.Margin, error) {
+	items, err := parseRepeation(ts, 4, "margin", func(ts *tokenStream) (*box.Margin, error) {
 		var res box.Margin
 		res, err := ts.parseMargin()
 		if err != nil {
@@ -396,7 +396,7 @@ func (ts *tokenStream) parseMarginShorthand() (props.MarginShorthand, error) {
 }
 
 func (ts *tokenStream) parsePaddingShorthand() (props.PaddingShorthand, error) {
-	items, err := parseRepeation(ts, 4, func(ts *tokenStream) (*values.LengthResolvable, error) {
+	items, err := parseRepeation(ts, 4, "padding", func(ts *tokenStream) (*values.LengthResolvable, error) {
 		var res values.LengthResolvable
 		res, err := ts.parsePadding()
 		if err != nil {
@@ -490,7 +490,7 @@ func (ts *tokenStream) parseFontShorthand() (props.FontShorthand, error) {
 		gotAny = true
 	}
 	if !gotAny {
-		return out, fmt.Errorf("%s: expected a value", ts.errorHeader())
+		return out, fmt.Errorf("%s: expected font value", ts.errorHeader())
 	}
 	return out, nil
 }
@@ -534,7 +534,7 @@ func (ts *tokenStream) parseTextDecorationShorthand() (props.TextDecorationShort
 		gotAny = true
 	}
 	if !gotAny {
-		return out, fmt.Errorf("%s: expected a value", ts.errorHeader())
+		return out, fmt.Errorf("%s: expected text-decoration value", ts.errorHeader())
 	}
 	return out, nil
 }
