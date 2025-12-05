@@ -11,7 +11,6 @@ import (
 	"github.com/inseo-oh/yw/css/csscolor"
 	"github.com/inseo-oh/yw/css/cssom"
 	"github.com/inseo-oh/yw/dom"
-	"github.com/inseo-oh/yw/gfx"
 	"github.com/inseo-oh/yw/gfx/paint"
 	"github.com/inseo-oh/yw/util"
 )
@@ -19,9 +18,9 @@ import (
 type box interface {
 	Node
 	boxElement() dom.Element
-	boxMarginRect() gfx.Rect
-	boxContentRect() gfx.Rect
-	boxMargin() gfx.Edges
+	boxMarginRect() BoxRect
+	boxContentRect() BoxRect
+	boxMargin() BoxEdges
 	logicalWidth(writeMode writeMode) float64
 	logicalHeight(writeMode writeMode) float64
 	ChildBoxes() []box
@@ -34,18 +33,18 @@ type box interface {
 type boxCommon struct {
 	nodeCommon
 	elem       dom.Element
-	marginRect gfx.Rect
-	margin     gfx.Edges
+	marginRect BoxRect
+	margin     BoxEdges
 	widthAuto  bool
 	heightAuto bool
 	childBoxes []box
 	childTexts []*text
 }
 
-func (bx boxCommon) boxElement() dom.Element  { return bx.elem }
-func (bx boxCommon) boxMarginRect() gfx.Rect  { return bx.marginRect }                       // Rect containing margin area
-func (bx boxCommon) boxContentRect() gfx.Rect { return bx.marginRect.AddPadding(bx.margin) } // Rect containing content area
-func (bx boxCommon) boxMargin() gfx.Edges     { return bx.margin }
+func (bx boxCommon) boxElement() dom.Element { return bx.elem }
+func (bx boxCommon) boxMarginRect() BoxRect  { return bx.marginRect }                       // Rect containing margin area
+func (bx boxCommon) boxContentRect() BoxRect { return bx.marginRect.AddPadding(bx.margin) } // Rect containing content area
+func (bx boxCommon) boxMargin() BoxEdges     { return bx.margin }
 
 // https://www.w3.org/TR/css-writing-modes-4/#logical-width
 func (bx boxCommon) logicalWidth(writeMode writeMode) float64 {

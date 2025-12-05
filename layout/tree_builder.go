@@ -27,7 +27,7 @@ type treeBuilder struct {
 func (tb treeBuilder) newText(
 	parent box,
 	txt string,
-	rect gfx.Rect,
+	rect BoxRect,
 	color color.Color,
 	fontSize float64,
 	textDecors []gfx.TextDecorOptions,
@@ -45,8 +45,8 @@ func (tb treeBuilder) newText(
 func (tb treeBuilder) newInlineBox(
 	parentBcon *blockContainer,
 	elem dom.Element,
-	marginRect gfx.Rect,
-	margin gfx.Edges,
+	marginRect BoxRect,
+	margin BoxEdges,
 	widthAuto, heightAuto bool,
 ) *inlineBox {
 	ibox := &inlineBox{}
@@ -66,8 +66,8 @@ func (tb treeBuilder) newBlockContainer(
 	ifc *inlineFormattingContext,
 	parent Node,
 	elem dom.Element,
-	marginRect gfx.Rect,
-	margin gfx.Edges,
+	marginRect BoxRect,
+	margin BoxEdges,
 	widthAuto, heightAuto bool,
 ) *blockContainer {
 	bcon := &blockContainer{}
@@ -233,7 +233,7 @@ func (tb treeBuilder) makeLayoutForNode(
 		for 0 < len(fragmentRemaining) {
 			lineBox := ifc.currentLineBox()
 
-			var rect gfx.Rect
+			var rect BoxRect
 			var inlineAxisSize float64
 			strLen := len(fragmentRemaining)
 
@@ -251,7 +251,7 @@ func (tb treeBuilder) makeLayoutForNode(
 				// Calculate width/height using dimensions of the text
 				width, _ := gfx.MeasureText(tb.font, fragmentRemaining[:strLen])
 
-				rect = gfx.Rect{Left: left, Top: top, Width: float64(width), Height: metrics.LineHeight}
+				rect = BoxRect{Left: left, Top: top, Width: float64(width), Height: metrics.LineHeight}
 
 				// Check if parent's size is auto and we have to grow its size.
 				inlineAxisSize = rect.Width
@@ -365,13 +365,13 @@ func (tb treeBuilder) makeLayoutForNode(
 		marginParentSize := parentNode.logicalWidth(writeMode)
 		parentFontSize := css.NumFromFloat(fonts.PreferredFontSize) // STUB
 		fontSize := styleSet.FontSize().CalculateRealFontSize(parentFontSize).ToPx(parentFontSize)
-		margin := gfx.Edges{
+		margin := BoxEdges{
 			Top:    styleSet.MarginTop().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(fontSize)),
 			Right:  styleSet.MarginRight().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(fontSize)),
 			Bottom: styleSet.MarginBottom().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(fontSize)),
 			Left:   styleSet.MarginLeft().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(fontSize)),
 		}
-		computeBoxRect := func(isInline bool) (boxRect gfx.Rect, widthAuto, heightAuto bool) {
+		computeBoxRect := func(isInline bool) (boxRect BoxRect, widthAuto, heightAuto bool) {
 			// Calculate left/top position
 			boxLeft, boxTop := calcNextPosition(bfc, ifc, writeMode, isInline)
 			boxLeft += parentNode.boxMargin().Top
@@ -399,7 +399,7 @@ func (tb treeBuilder) makeLayoutForNode(
 			}
 			boxHeightPx += margin.Top + margin.Bottom
 
-			return gfx.Rect{Left: boxLeft, Top: boxTop, Width: boxWidthPx, Height: boxHeightPx},
+			return BoxRect{Left: boxLeft, Top: boxTop, Width: boxWidthPx, Height: boxHeightPx},
 				widthAuto, heightAuto
 		}
 

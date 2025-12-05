@@ -89,8 +89,8 @@ func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, wr
 			if i == len(children)-1 || isInline[i+1] {
 				// Create anonymous block container
 				boxLeft, boxTop := calcNextPosition(bcon.bfc, bcon.ifc, writeMode, false)
-				boxRect := gfx.Rect{Left: boxLeft, Top: boxTop, Width: bcon.marginRect.Width, Height: bcon.marginRect.Height}
-				anonBcon := tb.newBlockContainer(bcon.parentFctx, bcon.ifc, bcon, nil, boxRect, gfx.Edges{}, true, true)
+				boxRect := BoxRect{Left: boxLeft, Top: boxTop, Width: bcon.marginRect.Width, Height: bcon.marginRect.Height}
+				anonBcon := tb.newBlockContainer(bcon.parentFctx, bcon.ifc, bcon, nil, boxRect, BoxEdges{}, true, true)
 				anonBcon.isAnonymous = true
 				anonBcon.initChildren(tb, anonChildren, writeMode, textDecors)
 				anonChildren = []dom.Node{} // Clear children list
