@@ -7,7 +7,6 @@ package layout
 import (
 	"image/color"
 	"log"
-	"strings"
 
 	"github.com/inseo-oh/yw/css"
 	"github.com/inseo-oh/yw/css/cssom"
@@ -200,22 +199,98 @@ func (tb treeBuilder) makeLayoutForNode(
 		// Layout for Text nodes
 		//======================================================================
 		var textNode *text
-		str := txt.Text()
+		origStr := txt.Text()
+
+		// https://www.w3.org/TR/css-text-3/#segment-break
+		isSegmentBreak := func(c rune) bool { return c == '\n' }
+		// https://www.w3.org/TR/css-text-3/#white-space
+		isWhitespace := func(c rune) bool { return c == ' ' || c == '\t' || isSegmentBreak(c) }
+
+		// Apply collapsing ----------------------------------------------------
+		// TODO: Add support for white-space: pre, white-space:pre-wrap, or white-space: break-spaces
+
+		// https://www.w3.org/TR/css-text-3/#white-space-phase-1
+		chars := []rune(origStr)
+		tempChars := []rune{}
+		srcIdx := 0
+
+		// S1.
+		for srcIdx < len(chars) {
+			srcChr := chars[srcIdx]
+			switch {
+			case srcChr == ' ' || srcChr == '\t':
+				// Ignore collapsible spaces immediately preceding segment break
+				i := srcIdx + 1
+				for ; i < len(chars); i++ {
+					if isWhitespace(chars[srcIdx]) {
+						continue
+					} else if isSegmentBreak(chars[srcIdx]) {
+						srcIdx = i
+						break
+					} else {
+						break
+					}
+				}
+			case isSegmentBreak(srcChr):
+				// Ignore collapsible spaces immediately following segment break
+				tempChars = append(tempChars, srcChr)
+				i := srcIdx + 1
+				for ; i < len(chars); i++ {
+					if isWhitespace(chars[srcIdx]) {
+						continue
+					} else {
+						srcIdx = i
+						break
+					}
+				}
+			default:
+				tempChars = append(tempChars, srcChr)
+			}
+
+		}
+		chars = tempChars
+		tempChars = []rune{}
+
+		// S2.
+
+		{
+			// https://www.w3.org/TR/css-text-3/#line-break-transform
+
+			// S1.
+			for srcIdx < len(chars) {
+				srcChr := chars[srcIdx]
+				if isSegmentBreak(srcChr) {
+					tempChars = append(tempChars, srcChr)
+					i := srcIdx + 1
+					for ; i < len(chars); i++ {
+						if !isSegmentBreak(chars[srcIdx]) {
+							srcIdx = i
+							break
+						}
+					}
+				}
+			}
+			// S2.
+			for srcIdx < len(chars) {
+				srcChr := chars[srcIdx]
+				if isSegmentBreak(srcChr) {
+					// FIXME: CSS says to either transform to ' ' or remove,
+					//        depending on context before or after break, but it
+					//        also says this operation is UA-defined.
+					//        So we are transforming to space for now... but is this
+					//        right thing to do?
+					tempChars = append(tempChars, ' ')
+				}
+			}
+			chars = tempChars
+		}
+
+		str := string(chars)
 
 		// Apply text-transform
 		if v := parentStyleSet.TextTransform(); !util.IsNil(v) {
 			str = v.Apply(str)
 		}
-
-		if str == "" {
-			// Nothing to display
-			return nil
-		}
-		str = strings.TrimSpace(str)
-		if str == "" {
-			str = " "
-		}
-
 		// Create line box if needed
 		if len(ifc.lineBoxes) == 0 {
 			ifc.addLineBox(bfc)
