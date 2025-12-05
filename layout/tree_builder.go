@@ -251,7 +251,7 @@ func (tb treeBuilder) makeLayoutForNode(
 				// Calculate width/height using dimensions of the text
 				width, _ := gfx.MeasureText(tb.font, fragmentRemaining[:strLen])
 
-				rect = gfx.Rect{Left: left, Top: top, Width: width, Height: metrics.LineHeight}
+				rect = gfx.Rect{Left: left, Top: top, Width: float64(width), Height: metrics.LineHeight}
 
 				// Check if parent's size is auto and we have to grow its size.
 				inlineAxisSize = rect.Width

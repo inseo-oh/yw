@@ -43,7 +43,7 @@ var (
 
 // Text is Node that paints a text.
 type TextPaint struct {
-	Left, Top float64
+	Left, Top int
 	Text      string
 	Font      gfx.Font
 	Size      float64
@@ -55,22 +55,22 @@ func (t TextPaint) Paint(dest *image.RGBA) {
 	t.Font.SetTextSize(int(t.Size))
 	metrics := t.Font.Metrics()
 	x := t.Left
-	baselineY := t.Top + metrics.Ascender
+	baselineY := int(float64(t.Top) + metrics.Ascender)
 	text := t.Text
 	textRect := t.Font.DrawText(text, dest, x, baselineY, t.Color)
 
 	for _, decor := range t.Decors {
-		yPos := 0.0
+		yPos := 0
 		thickness := metrics.UnderlineThickness
 		switch decor.Type {
 		case gfx.Underline:
-			yPos = baselineY - metrics.UnderlinePosition - thickness/2
+			yPos = int(float64(baselineY) - metrics.UnderlinePosition - thickness/2)
 		case gfx.Overline:
 			yPos = t.Top
 		case gfx.ThroughText:
-			yPos = textRect.Top
+			yPos = textRect.Min.Y
 		}
-		decorRect := image.Rect(int(textRect.Left), int(yPos), int(textRect.Left+textRect.Width)-1, int(yPos+thickness))
+		decorRect := image.Rect(int(textRect.Min.X), int(yPos), int(textRect.Min.X+textRect.Dx())-1, int(float64(yPos)+thickness))
 		switch decor.Style {
 		case gfx.SolidLine:
 			fillRect(dest, decorRect, decor.Color)
@@ -108,19 +108,19 @@ func (t TextPaint) String() string {
 // Text is Node that paints a box.
 type BoxPaint struct {
 	Items []Node
-	Rect  gfx.Rect
+	Rect  image.Rectangle
 	Color color.Color
 }
 
 func (g BoxPaint) Paint(dest *image.RGBA) {
 	if !util.IsNil(g.Color) {
-		colorImg := image.NewRGBA(image.Rect(0, 0, int(g.Rect.Width)-1, int(g.Rect.Height)-1))
-		for yOff := range int(g.Rect.Height) {
-			for xOff := range int(g.Rect.Width) {
+		colorImg := image.NewRGBA(image.Rect(0, 0, int(g.Rect.Dx())-1, int(g.Rect.Dy())-1))
+		for yOff := range int(g.Rect.Dy()) {
+			for xOff := range int(g.Rect.Dx()) {
 				colorImg.Set(xOff, yOff, g.Color)
 			}
 		}
-		draw.Draw(dest, image.Rect(int(g.Rect.Left), int(g.Rect.Top), int(g.Rect.Left+g.Rect.Width)-1, int(g.Rect.Top+g.Rect.Height)-1), colorImg, image.Point{0, 0}, draw.Over)
+		draw.Draw(dest, g.Rect, colorImg, image.Point{0, 0}, draw.Over)
 	}
 	for _, item := range g.Items {
 		item.Paint(dest)

@@ -38,7 +38,7 @@ func (fnt ftFont) Metrics() gfx.FontMetrics {
 		UnderlineThickness: float64(fnt.face.underline_thickness) / 16.0,
 	}
 }
-func (fnt ftFont) DrawText(text string, dest *image.RGBA, offsetX, offsetY float64, textColor color.Color) gfx.Rect {
+func (fnt ftFont) DrawText(text string, dest *image.RGBA, offsetX, offsetY int, textColor color.Color) image.Rectangle {
 	// 26.6 Fixed Point -> float64
 	ft26p6PosToFloat := func(p C.FT_Pos) float64 {
 		return float64(p) / 64.0
@@ -47,7 +47,7 @@ func (fnt ftFont) DrawText(text string, dest *image.RGBA, offsetX, offsetY float
 	textColorR, textColorG, textColorB, _ := textColor.RGBA()
 	penX, penY := offsetX, offsetY
 	lineHeight := 0
-	rect := gfx.Rect{Left: penX, Top: penY, Width: 0, Height: 0}
+	rect := image.Rect(penX, penY, penX, penY)
 	for _, char := range text {
 		glyphIndex := C.FT_Get_Char_Index(fnt.face, C.FT_ULong(char))
 		if res := C.FT_Load_Glyph(fnt.face, glyphIndex, C.FT_LOAD_DEFAULT); res != C.FT_Err_Ok {
@@ -64,7 +64,7 @@ func (fnt ftFont) DrawText(text string, dest *image.RGBA, offsetX, offsetY float
 		bitmapTop := int(gslot.bitmap_top)
 		bytes := C.GoBytes(unsafe.Pointer(bitmap.buffer), C.int(bitmap.rows*bitmap.width))
 		srcLineIdx := 0
-		rect.Top = min(rect.Top, penY-float64(bitmapTop))
+		rect.Min.Y = min(rect.Min.Y, penY-bitmapTop)
 		destX := int(penX) + bitmapLeft
 		destY := int(penY) - bitmapTop
 		destLeft := destX
@@ -89,12 +89,12 @@ func (fnt ftFont) DrawText(text string, dest *image.RGBA, offsetX, offsetY float
 				destX = destLeft
 			}
 		}
-		penX += ft26p6PosToFloat(gslot.advance.x)
-		penY += ft26p6PosToFloat(gslot.advance.y)
+		penX += int(ft26p6PosToFloat(gslot.advance.x))
+		penY += int(ft26p6PosToFloat(gslot.advance.y))
 
-		rect.Width += ft26p6PosToFloat(gslot.advance.x)
+		rect.Max.X += int(ft26p6PosToFloat(gslot.advance.x))
 		lineHeight = max(lineHeight, int(bitmap.rows))
 	}
-	rect.Height = float64(lineHeight)
+	rect.Max.Y = rect.Min.Y + lineHeight
 	return rect
 }

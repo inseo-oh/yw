@@ -31,8 +31,8 @@ func (txt text) nodeType() nodeType {
 }
 func (txt text) MakePaintNode() paint.Node {
 	return paint.TextPaint{
-		Left:   txt.rect.Left,
-		Top:    txt.rect.Top,
+		Left:   int(txt.rect.Left),
+		Top:    int(txt.rect.Top),
 		Text:   txt.text,
 		Font:   txt.font,
 		Size:   txt.fontSize,

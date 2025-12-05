@@ -5,6 +5,7 @@
 package layout
 
 import (
+	"image"
 	"image/color"
 
 	"github.com/inseo-oh/yw/css/csscolor"
@@ -113,5 +114,11 @@ func (bx boxCommon) MakePaintNode() paint.Node {
 	for _, child := range bx.ChildTexts() {
 		paintNodes = append(paintNodes, child.MakePaintNode())
 	}
-	return paint.BoxPaint{Items: paintNodes, Color: col, Rect: bx.boxContentRect()}
+	contentRect := image.Rect(
+		int(bx.boxContentRect().Left),
+		int(bx.boxContentRect().Top),
+		int(bx.boxContentRect().Right()),
+		int(bx.boxContentRect().Bottom()),
+	)
+	return paint.BoxPaint{Items: paintNodes, Color: col, Rect: contentRect}
 }

@@ -45,11 +45,11 @@ type Font interface {
 	//
 	// DrawText can also perform dry-run. To do so, pass nil to dest.
 	// Dry-runs can be used to measure dimensions of text.
-	DrawText(text string, dest *image.RGBA, offsetX, offsetY float64, textColor color.Color) Rect
+	DrawText(text string, dest *image.RGBA, offsetX, offsetY int, textColor color.Color) image.Rectangle
 }
 
 // MeasureText performs dry-run text drawing, and returns dimensions of the text.
-func MeasureText(font Font, text string) (width, height float64) {
+func MeasureText(font Font, text string) (width, height int) {
 	rect := font.DrawText(text, nil, 0, 0, color.RGBA{})
-	return rect.Width, rect.Height
+	return rect.Dy(), rect.Dx()
 }
