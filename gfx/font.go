@@ -45,7 +45,7 @@ type Font interface {
 	//
 	// DrawText can also perform dry-run. To do so, pass nil to dest.
 	// Dry-runs can be used to measure dimensions of text.
-	DrawText(text string, dest *image.RGBA, offsetX, offsetY float64, textColor color.RGBA) Rect
+	DrawText(text string, dest *image.RGBA, offsetX, offsetY float64, textColor color.Color) Rect
 }
 
 // MeasureText performs dry-run text drawing, and returns dimensions of the text.

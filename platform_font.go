@@ -38,12 +38,13 @@ func (fnt ftFont) Metrics() gfx.FontMetrics {
 		UnderlineThickness: float64(fnt.face.underline_thickness) / 16.0,
 	}
 }
-func (fnt ftFont) DrawText(text string, dest *image.RGBA, offsetX, offsetY float64, textColor color.RGBA) gfx.Rect {
+func (fnt ftFont) DrawText(text string, dest *image.RGBA, offsetX, offsetY float64, textColor color.Color) gfx.Rect {
 	// 26.6 Fixed Point -> float64
 	ft26p6PosToFloat := func(p C.FT_Pos) float64 {
 		return float64(p) / 64.0
 	}
 
+	textColorR, textColorG, textColorB, _ := textColor.RGBA()
 	penX, penY := offsetX, offsetY
 	lineHeight := 0
 	rect := gfx.Rect{Left: penX, Top: penY, Width: 0, Height: 0}
@@ -71,16 +72,15 @@ func (fnt ftFont) DrawText(text string, dest *image.RGBA, offsetX, offsetY float
 			for range bitmap.rows {
 				srcIdx := srcLineIdx
 				for range bitmap.width {
-					val := bytes[srcIdx]
-					rgba := dest.RGBAAt(destX, destY)
-					calcChannel := func(old, new, alpha uint8) uint8 {
-						return uint8((int(old)*(255-int(alpha)))/255) + uint8((int(new)*int(alpha))/255)
+					val := (uint32(bytes[srcIdx]) * 65535) / 255
+					r, g, b, _ := dest.At(destX, destY).RGBA()
+					calcChannel := func(old, new, alpha uint32) uint32 {
+						return (uint32(old)*(65535-uint32(alpha))/65535 + (uint32(new)*uint32(alpha))/65535)
 					}
-					rgba.R = calcChannel(rgba.R, textColor.R, val)
-					rgba.G = calcChannel(rgba.G, textColor.G, val)
-					rgba.B = calcChannel(rgba.B, textColor.B, val)
-					rgba.A = 255 // Just make sure it's fully opaque
-					dest.SetRGBA(destX, destY, rgba)
+					r = calcChannel(r, textColorR, val)
+					g = calcChannel(g, textColorG, val)
+					b = calcChannel(b, textColorB, val)
+					dest.Set(destX, destY, color.RGBA{uint8(r >> 8), uint8(g >> 8), uint8(b >> 8), 255})
 					srcIdx++
 					destX++
 				}

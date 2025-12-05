@@ -28,7 +28,7 @@ func (tb treeBuilder) newText(
 	parent box,
 	txt string,
 	rect gfx.Rect,
-	color color.RGBA,
+	color color.Color,
 	fontSize float64,
 	textDecors []gfx.TextDecorOptions,
 ) *text {
@@ -269,7 +269,7 @@ func (tb treeBuilder) makeLayoutForNode(
 			fragmentRemaining = fragmentRemaining[strLen:]
 
 			// Make text node
-			color := parentStyleSet.Color().ToRgba(parentStyleSetSrc.CurrentColor())
+			color := parentStyleSet.Color().ToStdColor(parentStyleSetSrc.CurrentColor())
 			textNode = tb.newText(parentNode, fragment, rect, color, fontSize, textDecors)
 
 			if parentNode.isWidthAuto() {
@@ -332,7 +332,7 @@ func (tb treeBuilder) makeLayoutForNode(
 			}
 		}
 		if styleSet.TextDecorationColorValue != nil {
-			decorColor := styleSet.TextDecorationColor().ToRgba(styleSetSrc.CurrentColor())
+			decorColor := styleSet.TextDecorationColor().ToStdColor(styleSetSrc.CurrentColor())
 			for i := range len(textDecors) {
 				textDecors[i].Color = decorColor
 			}

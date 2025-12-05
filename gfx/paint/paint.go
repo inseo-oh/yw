@@ -17,6 +17,7 @@ import (
 	"strings"
 
 	"github.com/inseo-oh/yw/gfx"
+	"github.com/inseo-oh/yw/util"
 )
 
 func fillRect(dest *image.RGBA, r image.Rectangle, color color.Color) {
@@ -46,7 +47,7 @@ type TextPaint struct {
 	Text      string
 	Font      gfx.Font
 	Size      float64
-	Color     color.RGBA
+	Color     color.Color
 	Decors    []gfx.TextDecorOptions
 }
 
@@ -108,17 +109,19 @@ func (t TextPaint) String() string {
 type BoxPaint struct {
 	Items []Node
 	Rect  gfx.Rect
-	Color color.RGBA
+	Color color.Color
 }
 
 func (g BoxPaint) Paint(dest *image.RGBA) {
-	colorImg := image.NewRGBA(image.Rect(0, 0, int(g.Rect.Width)-1, int(g.Rect.Height)-1))
-	for yOff := range int(g.Rect.Height) {
-		for xOff := range int(g.Rect.Width) {
-			colorImg.Set(xOff, yOff, g.Color)
+	if !util.IsNil(g.Color) {
+		colorImg := image.NewRGBA(image.Rect(0, 0, int(g.Rect.Width)-1, int(g.Rect.Height)-1))
+		for yOff := range int(g.Rect.Height) {
+			for xOff := range int(g.Rect.Width) {
+				colorImg.Set(xOff, yOff, g.Color)
+			}
 		}
+		draw.Draw(dest, image.Rect(int(g.Rect.Left), int(g.Rect.Top), int(g.Rect.Left+g.Rect.Width)-1, int(g.Rect.Top+g.Rect.Height)-1), colorImg, image.Point{0, 0}, draw.Over)
 	}
-	draw.Draw(dest, image.Rect(int(g.Rect.Left), int(g.Rect.Top), int(g.Rect.Left+g.Rect.Width)-1, int(g.Rect.Top+g.Rect.Height)-1), colorImg, image.Point{0, 0}, draw.Over)
 	for _, item := range g.Items {
 		item.Paint(dest)
 	}

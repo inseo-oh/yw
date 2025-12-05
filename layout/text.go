@@ -19,7 +19,7 @@ type text struct {
 	text     string
 	font     gfx.Font
 	fontSize float64
-	color    color.RGBA
+	color    color.Color
 	decors   []gfx.TextDecorOptions
 }
 

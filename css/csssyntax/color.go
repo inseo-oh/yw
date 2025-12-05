@@ -6,6 +6,7 @@ package csssyntax
 
 import (
 	"fmt"
+	"image/color"
 	"strconv"
 	"strings"
 
@@ -64,12 +65,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 		if err != nil {
 			return csscolor.Color{}, err
 		}
-		return csscolor.Color{Type: csscolor.Rgb, Components: [4]css.Num{
-			css.NumFromInt(int64(r)),
-			css.NumFromInt(int64(g)),
-			css.NumFromInt(int64(b)),
-			css.NumFromInt(int64(a)),
-		}}, nil
+		return csscolor.FromStdColor(color.RGBA{uint8(r), uint8(g), uint8(b), uint8(a)}), nil
 	} else {
 		ts.cursor = oldCursor
 	}
@@ -82,22 +78,21 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 	if err == nil {
 		ts := tokenStream{tokens: fn.value, tokenizerHelper: ts.tokenizerHelper}
 
-		parseAlpha := func() (css.Num, error) {
-			var v css.Num
+		parseAlpha := func() (res uint8, err error) {
 			if num := ts.parseNumber(); num != nil {
-				v = css.NumFromFloat(num.Clamp(css.NumFromInt(0), css.NumFromInt(1)).ToFloat() * 255)
+				res = uint8(num.Clamp(css.NumFromInt(0), css.NumFromInt(1)).ToFloat() * 255)
 			} else if num, err := ts.parsePercentage(); err == nil {
 				aPer := num.Value.Clamp(css.NumFromInt(0), css.NumFromInt(100)).ToFloat()
-				v = css.NumFromFloat((aPer / 100) * 255)
+				res = uint8((aPer / 100) * 255)
 			} else {
-				return v, fmt.Errorf("%s: expected number or percentage", ts.errorHeader())
+				return res, fmt.Errorf("%s: expected number or percentage", ts.errorHeader())
 			}
-			return v, nil
+			return res, nil
 		}
 
 		// https://www.w3.org/TR/css-color-4/#funcdef-rgb
-		var r, g, b, a css.Num
-		a = css.NumFromInt(255)
+		var r, g, b, a uint8
+		a = 255
 		oldCursor := ts.cursor
 
 		//======================================================================
@@ -120,9 +115,9 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 			rPer := per[0].Value.Clamp(css.NumFromInt(0), css.NumFromInt(100)).ToFloat()
 			gPer := per[1].Value.Clamp(css.NumFromInt(0), css.NumFromInt(100)).ToFloat()
 			bBer := per[2].Value.Clamp(css.NumFromInt(0), css.NumFromInt(100)).ToFloat()
-			r = css.NumFromFloat((rPer / 100) * 255)
-			g = css.NumFromFloat((gPer / 100) * 255)
-			b = css.NumFromFloat((bBer / 100) * 255)
+			r = uint8((rPer / 100) * 255)
+			g = uint8((gPer / 100) * 255)
+			b = uint8((bBer / 100) * 255)
 		} else {
 			num, err := parseCommaSeparatedRepeation(&ts, 3, "number", func(ts *tokenStream) (*css.Num, error) {
 				n := ts.parseNumber()
@@ -135,9 +130,9 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 				return csscolor.Color{}, err
 			} else if len(num) == 3 {
 				// Number value
-				r = num[0].Clamp(css.NumFromInt(0), css.NumFromInt(255))
-				g = num[1].Clamp(css.NumFromInt(0), css.NumFromInt(255))
-				b = num[2].Clamp(css.NumFromInt(0), css.NumFromInt(255))
+				r = uint8(num[0].Clamp(css.NumFromInt(0), css.NumFromInt(255)).ToInt())
+				g = uint8(num[1].Clamp(css.NumFromInt(0), css.NumFromInt(255)).ToInt())
+				b = uint8(num[2].Clamp(css.NumFromInt(0), css.NumFromInt(255)).ToInt())
 			} else {
 				goto modernSyntax
 			}
@@ -163,7 +158,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 		if !ts.isEnd() {
 			return csscolor.Color{}, fmt.Errorf("%s: expected end", ts.errorHeader())
 		}
-		return csscolor.Color{Type: csscolor.Rgb, Components: [4]css.Num{r, g, b, a}}, nil
+		return csscolor.FromStdColor(color.RGBA{r, g, b, a}), nil
 	modernSyntax:
 		ts.cursor = oldCursor
 
@@ -177,16 +172,16 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 		ts.skipWhitespaces()
 		// rgb(  <r  g  b  >) --------------------------------------------------
 		// rgb(  <r  g  b  >/  a  ) --------------------------------------------
-		components := []css.Num{}
+		components := []uint8{}
 		for range 3 {
 			// rgb(  <r>  <g>  <b>  ) ------------------------------------------
 			// rgb(  <r>  <g>  <b>  /  a  ) ------------------------------------
-			var v css.Num
+			var v uint8
 			if num := ts.parseNumber(); num != nil {
-				v = num.Clamp(css.NumFromInt(0), css.NumFromInt(255))
+				v = uint8(num.Clamp(css.NumFromInt(0), css.NumFromInt(255)).ToInt())
 			} else if num, err := ts.parsePercentage(); err == nil {
 				per := num.Value.Clamp(css.NumFromInt(0), css.NumFromInt(100)).ToFloat()
-				v = css.NumFromFloat((per / 100) * 255)
+				v = uint8((per / 100) * 255)
 			} else if err := ts.consumeIdentTokenWith("none"); err == nil {
 				panic("TODO")
 			} else {
@@ -198,7 +193,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 			ts.skipWhitespaces()
 		}
 		// rgb(  r  g  b  </>  a  ) --------------------------------------------
-		a = css.NumFromInt(255)
+		a = 255
 		if err := ts.consumeDelimTokenWith('/'); err == nil {
 			// rgb(  r  g  b  /<  >a  ) --------------------------------------------
 			ts.skipWhitespaces()
@@ -214,7 +209,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 		if !ts.isEnd() {
 			return csscolor.Color{}, fmt.Errorf("%s: expected end", ts.errorHeader())
 		}
-		return csscolor.Color{Type: csscolor.Rgb, Components: [4]css.Num{components[0], components[1], components[2], a}}, nil
+		return csscolor.FromStdColor(color.RGBA{components[0], components[1], components[2], a}), nil
 	}
 	ts.cursor = oldCursor
 	// Try hsl()/hsla() function -----------------------------------------------
@@ -260,14 +255,9 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 	// Try named color ---------------------------------------------------------
 	ident, err := ts.consumeTokenWith(tokenTypeIdent)
 	if err == nil {
-		rgba, ok := csscolor.NamedColors[ident.(identToken).value]
+		col, ok := csscolor.NamedColors[ident.(identToken).value]
 		if ok {
-			return csscolor.Color{Type: csscolor.Rgb, Components: [4]css.Num{
-				css.NumFromInt(int64(rgba.R)),
-				css.NumFromInt(int64(rgba.G)),
-				css.NumFromInt(int64(rgba.B)),
-				css.NumFromInt(int64(rgba.A)),
-			}}, nil
+			return csscolor.FromStdColor(col), nil
 		}
 	} else {
 		ts.cursor = oldCursor

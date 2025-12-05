@@ -58,16 +58,16 @@ func (src ComputedStyleSetSource) ParentSource() props.ComputedStyleSetSource {
 	}
 	return nil
 }
-func (src ComputedStyleSetSource) CurrentColor() color.RGBA {
+func (src ComputedStyleSetSource) CurrentColor() color.Color {
 	colorVal := src.ComputedStyleSet().Color()
 	if colorVal.Type == csscolor.CurrentColor {
 		parentSrc := src.ParentSource()
 		if util.IsNil(parentSrc) {
-			return props.DescriptorsMap["color"].Initial.(csscolor.Color).ToRgba(color.RGBA{})
+			return props.DescriptorsMap["color"].Initial.(csscolor.Color).ToStdColor(nil)
 		}
 		return parentSrc.CurrentColor()
 	}
-	return colorVal.ToRgba(color.RGBA{})
+	return colorVal.ToStdColor(nil)
 }
 
 // ComputedStyleSetSourceOf creates new ComputedStyleSetSource for given elem.

@@ -15,7 +15,7 @@ import "image/color"
 type ComputedStyleSetSource interface {
 	ComputedStyleSet() *ComputedStyleSet
 	ParentSource() ComputedStyleSetSource
-	CurrentColor() color.RGBA
+	CurrentColor() color.Color
 }
 
 // PropertyValue represents an property value.

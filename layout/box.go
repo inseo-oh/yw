@@ -96,8 +96,8 @@ func (bx *boxCommon) incrementIfNeeded(minWidth, minHeight float64) {
 	bx.incrementSize(wDiff, hDiff)
 }
 func (bx boxCommon) MakePaintNode() paint.Node {
+	var col color.Color
 	paintNodes := []paint.Node{}
-	rgbaColor := color.RGBA{}
 	if !util.IsNil(bx.elem) {
 		var color = csscolor.Transparent
 		styleSetSource := cssom.ComputedStyleSetSourceOf(bx.elem)
@@ -105,7 +105,7 @@ func (bx boxCommon) MakePaintNode() paint.Node {
 		if bx.elem != nil {
 			color = styleSet.BackgroundColor()
 		}
-		rgbaColor = color.ToRgba(styleSetSource.CurrentColor())
+		col = color.ToStdColor(styleSetSource.CurrentColor())
 	}
 	for _, child := range bx.ChildBoxes() {
 		paintNodes = append(paintNodes, child.MakePaintNode())
@@ -113,5 +113,5 @@ func (bx boxCommon) MakePaintNode() paint.Node {
 	for _, child := range bx.ChildTexts() {
 		paintNodes = append(paintNodes, child.MakePaintNode())
 	}
-	return paint.BoxPaint{Items: paintNodes, Color: rgbaColor, Rect: bx.boxContentRect()}
+	return paint.BoxPaint{Items: paintNodes, Color: col, Rect: bx.boxContentRect()}
 }

@@ -103,7 +103,7 @@ func (b *Browser) Run(urlStr string, plat platform.Platform, viewportImg *image.
 	viewportSize := viewportImg.Rect.Size()
 	for y := range viewportSize.Y {
 		for x := range viewportSize.X {
-			viewportImg.SetRGBA(x, y, color.RGBA{255, 255, 255, 255})
+			viewportImg.Set(x, y, color.White)
 		}
 	}
 

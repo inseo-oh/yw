@@ -5,6 +5,7 @@
 package elements
 
 import (
+	"image/color"
 	"strconv"
 	"strings"
 
@@ -27,7 +28,7 @@ func parseLegacyColor(input string) (csscolor.Color, bool) {
 	}
 	if col, ok := csscolor.NamedColors[util.ToAsciiLowercase(input)]; ok {
 		// CSS named colors
-		return csscolor.NewRgba(col.R, col.G, col.B, col.A), true
+		return csscolor.FromStdColor(col), true
 	}
 	inputCps := []rune(input)
 	if len(inputCps) == 4 && inputCps[0] == '#' {
@@ -36,7 +37,7 @@ func parseLegacyColor(input string) (csscolor.Color, bool) {
 		green, err2 := strconv.ParseInt(string(inputCps[2]), 16, 8)
 		blue, err3 := strconv.ParseInt(string(inputCps[3]), 16, 8)
 		if err1 == nil && err2 == nil && err3 == nil {
-			return csscolor.NewRgba(uint8(red), uint8(green), uint8(blue), 255), true
+			return csscolor.FromStdColor(color.RGBA{uint8(red), uint8(green), uint8(blue), 255}), true
 		}
 	}
 	// Now we assume the format is #rrggbb -------------------------------------
@@ -99,7 +100,7 @@ func parseLegacyColor(input string) (csscolor.Color, bool) {
 	if err1 != nil || err2 != nil || err3 != nil {
 		panic("unreachable")
 	}
-	return csscolor.NewRgba(uint8(red), uint8(green), uint8(blue), 255), true
+	return csscolor.FromStdColor(color.RGBA{uint8(red), uint8(green), uint8(blue), 255}), true
 }
 
 // NewHTMLBodyElement constructs a new [HTMLElement] node for a [body] element.
