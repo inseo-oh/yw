@@ -126,7 +126,7 @@ func (elem htmlLinkElementImpl) processLink() {
 		return options
 	}
 	// https://html.spec.whatwg.org/multipage/semantics.html#create-a-link-request
-	createLinkRequest := func(options linkProcessingOptions) (*http.Request, error) {
+	createLinkRequest := func(options linkProcessingOptions) (res *http.Request, err error) {
 		// STUB
 		// NOTE: We don't use JoinPath() because the "path" part of URL may not be a real filesystem path.
 		req, err := http.NewRequest("GET", options.baseURL.String()+"/"+options.href, nil)

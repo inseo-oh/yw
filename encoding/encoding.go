@@ -334,7 +334,7 @@ var encodingLabelMap = map[string]Type{
 // GetEncodingFromLabel returns encoding corresponding to label.
 //
 // Spec: https://encoding.spec.whatwg.org/#concept-encoding-get
-func GetEncodingFromLabel(label string) (Type, error) {
+func GetEncodingFromLabel(label string) (res Type, err error) {
 	label = util.ToAsciiLowercase(strings.TrimFunc(label, func(r rune) bool { return r == ' ' }))
 	encoding, ok := encodingLabelMap[label]
 	if !ok {

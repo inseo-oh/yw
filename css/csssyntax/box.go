@@ -11,22 +11,22 @@ import (
 	"github.com/inseo-oh/yw/css/values"
 )
 
-func (ts *tokenStream) parseMargin() (box.Margin, error) {
+func (ts *tokenStream) parseMargin() (res box.Margin, err error) {
 	if v, err := ts.parseLengthOrPercentage(true); err == nil {
 		return box.Margin{Value: v}, nil
 	}
 	if err := ts.consumeIdentTokenWith("auto"); err == nil {
 		return box.Margin{Value: nil}, nil
 	}
-	return box.Margin{}, fmt.Errorf("%s: expected margin", ts.errorHeader())
+	return res, fmt.Errorf("%s: expected margin", ts.errorHeader())
 }
-func (ts *tokenStream) parsePadding() (values.LengthResolvable, error) {
-	v, err := ts.parseLengthOrPercentage(true)
+func (ts *tokenStream) parsePadding() (res values.LengthResolvable, err error) {
+	res, err = ts.parseLengthOrPercentage(true)
 	if err != nil {
 		return nil, fmt.Errorf("%s: expected length or percentage", ts.errorHeader())
 	}
-	if len, ok := v.(values.Length); ok && len.Value.ToInt() < 0 {
+	if len, ok := res.(values.Length); ok && len.Value.ToInt() < 0 {
 		return nil, fmt.Errorf("%s: length is out of range", ts.errorHeader())
 	}
-	return v, nil
+	return res, nil
 }

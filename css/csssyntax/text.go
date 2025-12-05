@@ -11,11 +11,11 @@ import (
 )
 
 // https://www.w3.org/TR/css-text-3/#propdef-text-transform
-func (ts *tokenStream) parseTextTransform() (text.Transform, error) {
+func (ts *tokenStream) parseTextTransform() (res text.Transform, err error) {
 	if err := ts.consumeIdentTokenWith("none"); err == nil {
 		return text.Transform{Type: text.NoTransform}, nil
 	}
-	out := text.Transform{Type: text.OriginalCaps}
+	res = text.Transform{Type: text.OriginalCaps}
 	gotType := false
 	gotIsFullWidth := false
 	gotIsFullKana := false
@@ -25,15 +25,15 @@ func (ts *tokenStream) parseTextTransform() (text.Transform, error) {
 		if !gotType {
 			ts.skipWhitespaces()
 			if err := ts.consumeIdentTokenWith("capitalize"); err == nil {
-				out.Type = text.Capitalize
+				res.Type = text.Capitalize
 				gotType = true
 				valid = true
 			} else if err := ts.consumeIdentTokenWith("uppercase"); err == nil {
-				out.Type = text.Uppercase
+				res.Type = text.Uppercase
 				gotType = true
 				valid = true
 			} else if err := ts.consumeIdentTokenWith("lowercase"); err == nil {
-				out.Type = text.Lowercase
+				res.Type = text.Lowercase
 				gotType = true
 				valid = true
 			}
@@ -41,7 +41,7 @@ func (ts *tokenStream) parseTextTransform() (text.Transform, error) {
 		if !gotIsFullWidth {
 			ts.skipWhitespaces()
 			if err := ts.consumeIdentTokenWith("full-width"); err == nil {
-				out.FullWidth = true
+				res.FullWidth = true
 				gotIsFullWidth = true
 				valid = true
 			}
@@ -49,7 +49,7 @@ func (ts *tokenStream) parseTextTransform() (text.Transform, error) {
 		if !gotIsFullKana {
 			ts.skipWhitespaces()
 			if err := ts.consumeIdentTokenWith("full-size-kana"); err == nil {
-				out.FullSizeKana = true
+				res.FullSizeKana = true
 				gotIsFullWidth = true
 				valid = true
 			}
@@ -61,7 +61,7 @@ func (ts *tokenStream) parseTextTransform() (text.Transform, error) {
 		gotAny = true
 	}
 	if !gotAny {
-		return out, fmt.Errorf("%s: invalid text-transform value", ts.errorHeader())
+		return res, fmt.Errorf("%s: invalid text-transform value", ts.errorHeader())
 	}
-	return out, nil
+	return res, nil
 }

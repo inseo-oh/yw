@@ -12,7 +12,7 @@ import (
 )
 
 // https://www.w3.org/TR/css-backgrounds-3/#typedef-line-style
-func (ts *tokenStream) parseLineStyle() (backgrounds.LineStyle, error) {
+func (ts *tokenStream) parseLineStyle() (res backgrounds.LineStyle, err error) {
 	if err := ts.consumeIdentTokenWith("none"); err == nil {
 		return backgrounds.NoLine, nil
 	} else if err := ts.consumeIdentTokenWith("hidden"); err == nil {
@@ -34,11 +34,11 @@ func (ts *tokenStream) parseLineStyle() (backgrounds.LineStyle, error) {
 	} else if err := ts.consumeIdentTokenWith("outset"); err == nil {
 		return backgrounds.OutsetLine, nil
 	}
-	return 0, fmt.Errorf("%s: expected line-style", ts.errorHeader())
+	return res, fmt.Errorf("%s: expected line-style", ts.errorHeader())
 }
 
 // https://www.w3.org/TR/css-backgrounds-3/#typedef-line-width
-func (ts *tokenStream) parseLineWidth() (values.Length, error) {
+func (ts *tokenStream) parseLineWidth() (res values.Length, err error) {
 	if err := ts.consumeIdentTokenWith("thin"); err == nil {
 		return backgrounds.LineWidthThin, nil
 	}
@@ -51,5 +51,5 @@ func (ts *tokenStream) parseLineWidth() (values.Length, error) {
 	if len, err := ts.parseLength(true); err == nil {
 		return len, nil
 	}
-	return values.Length{}, fmt.Errorf("%s: expected line-width", ts.errorHeader())
+	return res, fmt.Errorf("%s: expected line-width", ts.errorHeader())
 }

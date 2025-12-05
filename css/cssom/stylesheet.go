@@ -77,16 +77,16 @@ func (s StylesheetSet) name() string {
 
 // https://www.w3.org/TR/2021/WD-cssom-1-20210826/#persistent-css-style-sheet
 func persistentStylesheets(domRoot dom.Node) []*Stylesheet {
-	out := []*Stylesheet{}
+	res := []*Stylesheet{}
 	sheets := DocumentOrShadowRootDataOf(domRoot).Stylesheets
 	for i, sheet := range DocumentOrShadowRootDataOf(domRoot).Stylesheets {
 		title := sheet.Title
 		if title != "" || sheet.AlternateFlag {
 			continue
 		}
-		out = append(out, sheets[i])
+		res = append(res, sheets[i])
 	}
-	return out
+	return res
 }
 
 // https://www.w3.org/TR/2021/WD-cssom-1-20210826/#css-style-sheet-set

@@ -15,7 +15,7 @@ import (
 	"github.com/inseo-oh/yw/css/values"
 )
 
-func (ts *tokenStream) parseColor() (csscolor.Color, error) {
+func (ts *tokenStream) parseColor() (res csscolor.Color, err error) {
 	oldCursor := ts.cursor
 	// Try hex notation --------------------------------------------------------
 	if tk, err := ts.consumeTokenWith(tokenTypeHash); err == nil {
@@ -47,23 +47,23 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 			bStr = string(chrs[4:6])
 			aStr = string(chrs[6:8])
 		default:
-			return csscolor.Color{}, fmt.Errorf("invalid hex digit length: %s", tk.(hashToken).value)
+			return res, fmt.Errorf("invalid hex digit length: %s", tk.(hashToken).value)
 		}
 		r, err := strconv.ParseUint(rStr, 16, 8)
 		if err != nil {
-			return csscolor.Color{}, err
+			return res, err
 		}
 		g, err := strconv.ParseUint(gStr, 16, 8)
 		if err != nil {
-			return csscolor.Color{}, err
+			return res, err
 		}
 		b, err := strconv.ParseUint(bStr, 16, 8)
 		if err != nil {
-			return csscolor.Color{}, err
+			return res, err
 		}
 		a, err := strconv.ParseUint(aStr, 16, 8)
 		if err != nil {
-			return csscolor.Color{}, err
+			return res, err
 		}
 		return csscolor.FromStdColor(color.RGBA{uint8(r), uint8(g), uint8(b), uint8(a)}), nil
 	} else {
@@ -109,7 +109,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 			return ts.parsePercentage()
 		})
 		if err != nil {
-			return csscolor.Color{}, err
+			return res, err
 		} else if len(per) == 3 {
 			// Percentage value
 			rPer := per[0].Value.Clamp(css.NumFromInt(0), css.NumFromInt(100)).ToFloat()
@@ -127,7 +127,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 				return ts.parseNumber(), nil
 			})
 			if err != nil {
-				return csscolor.Color{}, err
+				return res, err
 			} else if len(num) == 3 {
 				// Number value
 				r = uint8(num[0].Clamp(css.NumFromInt(0), css.NumFromInt(255)).ToInt())
@@ -148,7 +148,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 			if v, err := parseAlpha(); err == nil {
 				a = v
 			} else {
-				return csscolor.Color{}, err
+				return res, err
 			}
 			// rgb(  r  ,  g  ,  b  ,  a<  >) ----------------------------------
 			ts.skipWhitespaces()
@@ -156,7 +156,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 			ts.cursor = oldCursor
 		}
 		if !ts.isEnd() {
-			return csscolor.Color{}, fmt.Errorf("%s: expected end", ts.errorHeader())
+			return res, fmt.Errorf("%s: expected end", ts.errorHeader())
 		}
 		return csscolor.FromStdColor(color.RGBA{r, g, b, a}), nil
 	modernSyntax:
@@ -185,7 +185,7 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 			} else if err := ts.consumeIdentTokenWith("none"); err == nil {
 				panic("TODO")
 			} else {
-				return csscolor.Color{}, fmt.Errorf("%s: expected number or percentage", ts.errorHeader())
+				return res, fmt.Errorf("%s: expected number or percentage", ts.errorHeader())
 			}
 			components = append(components, v)
 			// rgb(  r<  >g<  >b<  >) ------------------------------------------
@@ -201,13 +201,13 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 			if v, err := parseAlpha(); err == nil {
 				a = v
 			} else {
-				return csscolor.Color{}, err
+				return res, err
 			}
 			// rgb(  r  g  b  /  a<  >) --------------------------------------------
 			ts.skipWhitespaces()
 		}
 		if !ts.isEnd() {
-			return csscolor.Color{}, fmt.Errorf("%s: expected end", ts.errorHeader())
+			return res, fmt.Errorf("%s: expected end", ts.errorHeader())
 		}
 		return csscolor.FromStdColor(color.RGBA{components[0], components[1], components[2], a}), nil
 	}
@@ -274,5 +274,5 @@ func (ts *tokenStream) parseColor() (csscolor.Color, error) {
 	}
 	ts.cursor = oldCursor
 	// TODO: Try system colors
-	return csscolor.Color{}, fmt.Errorf("%s expected color", ts.errorHeader())
+	return res, fmt.Errorf("%s expected color", ts.errorHeader())
 }

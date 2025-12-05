@@ -11,7 +11,7 @@ import (
 )
 
 // https://www.w3.org/TR/css-text-decor-3/#propdef-text-decoration-line
-func (ts *tokenStream) parseTextDecorationLine() (textdecor.LineFlags, error) {
+func (ts *tokenStream) parseTextDecorationLine() (res textdecor.LineFlags, err error) {
 	if err := ts.consumeIdentTokenWith("none"); err == nil {
 		return textdecor.NoLine, nil
 	}
@@ -46,7 +46,7 @@ func (ts *tokenStream) parseTextDecorationLine() (textdecor.LineFlags, error) {
 }
 
 // https://www.w3.org/TR/css-text-decor-3/#propdef-text-decoration-style
-func (ts *tokenStream) parseTextDecorationStyle() (textdecor.Style, error) {
+func (ts *tokenStream) parseTextDecorationStyle() (res textdecor.Style, err error) {
 	if err := ts.consumeIdentTokenWith("solid"); err == nil {
 		return textdecor.Solid, nil
 	} else if err := ts.consumeIdentTokenWith("double"); err == nil {
@@ -62,7 +62,7 @@ func (ts *tokenStream) parseTextDecorationStyle() (textdecor.Style, error) {
 }
 
 // https://www.w3.org/TR/css-text-decor-3/#propdef-text-underline-position
-func (ts *tokenStream) parseTextDecorationPosition() (textdecor.PositionFlags, error) {
+func (ts *tokenStream) parseTextDecorationPosition() (res textdecor.PositionFlags, err error) {
 	if err := ts.consumeIdentTokenWith("auto"); err == nil {
 		return textdecor.PositionAuto, nil
 	}

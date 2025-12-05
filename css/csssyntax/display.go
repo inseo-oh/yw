@@ -11,7 +11,7 @@ import (
 )
 
 // https://www.w3.org/TR/css-display-3/#typedef-display-outside
-func (ts *tokenStream) parseDisplayOutside() (display.OuterMode, error) {
+func (ts *tokenStream) parseDisplayOutside() (res display.OuterMode, err error) {
 	if err := ts.consumeIdentTokenWith("block"); err == nil {
 		return display.Block, nil
 	} else if err := ts.consumeIdentTokenWith("inline"); err == nil {
@@ -19,11 +19,11 @@ func (ts *tokenStream) parseDisplayOutside() (display.OuterMode, error) {
 	} else if err := ts.consumeIdentTokenWith("run-in"); err == nil {
 		return display.RunIn, nil
 	}
-	return 0, fmt.Errorf("%s: invalid display-outside value", ts.errorHeader())
+	return res, fmt.Errorf("%s: invalid display-outside value", ts.errorHeader())
 }
 
 // https://www.w3.org/TR/css-display-3/#typedef-display-inside
-func (ts *tokenStream) parseDisplayInside() (display.InnerMode, error) {
+func (ts *tokenStream) parseDisplayInside() (res display.InnerMode, err error) {
 	if err := ts.consumeIdentTokenWith("flow"); err == nil {
 		return display.Flow, nil
 	} else if err := ts.consumeIdentTokenWith("flow-root"); err == nil {
@@ -37,11 +37,11 @@ func (ts *tokenStream) parseDisplayInside() (display.InnerMode, error) {
 	} else if err := ts.consumeIdentTokenWith("ruby"); err == nil {
 		return display.Ruby, nil
 	}
-	return 0, fmt.Errorf("%s: invalid display-inside value", ts.errorHeader())
+	return res, fmt.Errorf("%s: invalid display-inside value", ts.errorHeader())
 }
 
 // https://www.w3.org/TR/css-display-3/#propdef-display
-func (ts *tokenStream) parseDisplay() (display.Display, error) {
+func (ts *tokenStream) parseDisplay() (res display.Display, err error) {
 	// Try legacy keyword first --------------------------------------------
 	// https://www.w3.org/TR/css-display-3/#typedef-display-legacy
 	if err := ts.consumeIdentTokenWith("inline-block"); err == nil {
@@ -132,10 +132,10 @@ func (ts *tokenStream) parseDisplay() (display.Display, error) {
 		return display.Display{Mode: display.DisplayNone}, nil
 	}
 
-	return display.Display{}, fmt.Errorf("%s: invalid display value", ts.errorHeader())
+	return res, fmt.Errorf("%s: invalid display value", ts.errorHeader())
 }
 
-func (ts *tokenStream) parseVisibility() (display.Visibility, error) {
+func (ts *tokenStream) parseVisibility() (res display.Visibility, err error) {
 	// Try legacy keyword first --------------------------------------------
 	// https://www.w3.org/TR/css-display-3/#typedef-display-legacy
 	if err := ts.consumeIdentTokenWith("visible"); err == nil {
@@ -145,5 +145,5 @@ func (ts *tokenStream) parseVisibility() (display.Visibility, error) {
 	} else if err := ts.consumeIdentTokenWith("collapse"); err == nil {
 		return display.Collapse, nil
 	}
-	return 0, fmt.Errorf("%s: invalid visibility value", ts.errorHeader())
+	return res, fmt.Errorf("%s: invalid visibility value", ts.errorHeader())
 }

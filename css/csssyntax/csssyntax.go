@@ -285,7 +285,7 @@ func filterCodepoints(src string) string {
 	return src
 }
 
-func tokenize(bytes []byte, sourceName string) (tokenStream, error) {
+func tokenize(bytes []byte, sourceName string) (res tokenStream, err error) {
 	src := decodeBytes(bytes)
 	src = filterCodepoints(src)
 	tkh := util.TokenizerHelper{Str: []rune(src), SourceName: sourceName}
@@ -355,7 +355,7 @@ func tokenize(bytes []byte, sourceName string) (tokenStream, error) {
 		startCursor := tkh.Cursor
 		haveIntegerPart := false
 		haveFractionalPart := false
-		out := css.Num{}
+		res := css.Num{}
 
 		// Note that we don't parse the number directly - We only check if it's a valid CSS number.
 		// Rest of the job is handled by the standard library.
@@ -391,7 +391,7 @@ func tokenize(bytes []byte, sourceName string) (tokenStream, error) {
 				tkh.Cursor = oldCursor
 				return nil
 			}
-			out.Type = css.NumTypeFloat
+			res.Type = css.NumTypeFloat
 			haveFractionalPart = true
 		}
 
@@ -432,21 +432,21 @@ func tokenize(bytes []byte, sourceName string) (tokenStream, error) {
 			tempBuf.WriteRune(tkh.ConsumeChar())
 		}
 		// TODO: Check for range errors
-		if out.Type == css.NumTypeFloat {
+		if res.Type == css.NumTypeFloat {
 			v, err := strconv.ParseFloat(tempBuf.String(), 64)
 			if err != nil {
 				log.Panic(err)
 			}
-			out.Value = v
+			res.Value = v
 		} else {
 			v, err := strconv.ParseInt(tempBuf.String(), 10, 64)
 			if err != nil {
 				log.Panic(err)
 			}
-			out.Value = v
+			res.Value = v
 		}
 
-		return &out
+		return &res
 	}
 
 	// Returns nil if not found
@@ -524,7 +524,7 @@ func tokenize(bytes []byte, sourceName string) (tokenStream, error) {
 	}
 
 	// Returns nil if not found
-	consumeWhitespaceToken := func() (token, error) {
+	consumeWhitespaceToken := func() (res token, err error) {
 		cursorFrom := tkh.Cursor
 		found := false
 		for !tkh.IsEof() {
@@ -540,7 +540,7 @@ func tokenize(bytes []byte, sourceName string) (tokenStream, error) {
 	}
 
 	// Returns nil if not found
-	consumeSimpleToken := func() (token, error) {
+	consumeSimpleToken := func() (res token, err error) {
 		cursorFrom := tkh.Cursor
 		switch tkh.ConsumeCharIfMatchesOneOf("(),:;[]{}") {
 		case '(':
@@ -578,7 +578,7 @@ func tokenize(bytes []byte, sourceName string) (tokenStream, error) {
 	}
 
 	// Returns nil if not found
-	consumeStringToken := func() (token, error) {
+	consumeStringToken := func() (res token, err error) {
 		var endingChar rune
 		sb := strings.Builder{}
 
@@ -622,7 +622,7 @@ func tokenize(bytes []byte, sourceName string) (tokenStream, error) {
 	}
 
 	// Returns nil if not found
-	consumeHashToken := func() (token, error) {
+	consumeHashToken := func() (res token, err error) {
 		cursorFrom := tkh.Cursor
 		if tkh.ConsumeCharIfMatches('#') == -1 {
 			return nil, errors.New("expected '#'")
@@ -646,7 +646,7 @@ func tokenize(bytes []byte, sourceName string) (tokenStream, error) {
 	}
 
 	// Returns nil if not found
-	consumeAtToken := func() (token, error) {
+	consumeAtToken := func() (res token, err error) {
 		cursorFrom := tkh.Cursor
 		if tkh.ConsumeCharIfMatches('@') == -1 {
 			return nil, errors.New("expected '@'")
@@ -664,7 +664,7 @@ func tokenize(bytes []byte, sourceName string) (tokenStream, error) {
 	}
 
 	// Returns nil if not found
-	consumeNumericToken := func() (token, error) {
+	consumeNumericToken := func() (res token, err error) {
 		cursorFrom := tkh.Cursor
 		var num css.Num
 		if temp := consumeNumber(); temp != nil {
@@ -700,7 +700,7 @@ func tokenize(bytes []byte, sourceName string) (tokenStream, error) {
 	}
 
 	// Returns nil if not found
-	consumeIdentLikeToken := func() (token, error) {
+	consumeIdentLikeToken := func() (res token, err error) {
 		cursorFrom := tkh.Cursor
 		var ident string
 
@@ -761,7 +761,7 @@ func tokenize(bytes []byte, sourceName string) (tokenStream, error) {
 		}
 	}
 
-	consumeToken := func() (token, error) {
+	consumeToken := func() (res token, err error) {
 		cursorFrom := tkh.Cursor
 		handlers := []func() (token, error){
 			consumeWhitespaceToken,
@@ -788,20 +788,20 @@ func tokenize(bytes []byte, sourceName string) (tokenStream, error) {
 		}
 	}
 
-	out := []token{}
+	tokenList := []token{}
 	for {
 		tk, err := consumeToken()
 		if err != nil {
 			if tkh.IsEof() {
 				break
 			}
-			return tokenStream{}, err
+			return res, err
 		}
-		out = append(out, tk)
+		tokenList = append(tokenList, tk)
 
 	}
 
-	return tokenStream{tokens: out, tokenizerHelper: &tkh}, nil
+	return tokenStream{tokens: tokenList, tokenizerHelper: &tkh}, nil
 }
 
 type simpleBlockToken struct {
@@ -948,15 +948,14 @@ func (ts *tokenStream) errorHeader() string {
 func (ts *tokenStream) isEnd() bool {
 	return len(ts.tokens) <= ts.cursor
 }
-func (ts *tokenStream) consumeToken() (token, error) {
+func (ts *tokenStream) consumeToken() (res token, err error) {
 	if ts.isEnd() {
 		return nil, fmt.Errorf("%s: reached end of input", ts.errorHeader())
 	}
 	ts.cursor++
-	res := ts.tokens[ts.cursor-1]
-	return res, nil
+	return ts.tokens[ts.cursor-1], nil
 }
-func (ts *tokenStream) consumeTokenWith(tp tokenType) (token, error) {
+func (ts *tokenStream) consumeTokenWith(tp tokenType) (res token, err error) {
 	oldCursor := ts.cursor
 	tk, err := ts.consumeToken()
 	if err != nil {
@@ -998,34 +997,34 @@ func (ts *tokenStream) consumeIdentTokenWith(i string) error {
 	}
 	return nil
 }
-func (ts *tokenStream) consumeSimpleBlockWith(tp simpleBlockType) (simpleBlockToken, error) {
+func (ts *tokenStream) consumeSimpleBlockWith(tp simpleBlockType) (res simpleBlockToken, err error) {
 	oldCursor := ts.cursor
 	tk, err := ts.consumeTokenWith(tokenTypeSimpleBlock)
 	if err != nil {
-		return simpleBlockToken{}, err
+		return res, err
 	}
 	blk := tk.(simpleBlockToken)
 	if blk.tp != tp {
 		// TODO: Describe what token we want in more friendly way.
 		ts.cursor = oldCursor
-		return simpleBlockToken{}, fmt.Errorf("%s: expected simple block with type %v", ts.errorHeader(), tp)
+		return res, fmt.Errorf("%s: expected simple block with type %v", ts.errorHeader(), tp)
 	}
 	return blk, nil
 }
-func (ts *tokenStream) consumeAstFuncWith(name string) (astFuncToken, error) {
+func (ts *tokenStream) consumeAstFuncWith(name string) (res astFuncToken, err error) {
 	oldCursor := ts.cursor
 	tk, err := ts.consumeTokenWith(tokenTypeAstFunc)
 	if err != nil {
-		return astFuncToken{}, err
+		return res, err
 	}
 	if tk.(astFuncToken).name != name {
 		ts.cursor = oldCursor
-		return astFuncToken{}, fmt.Errorf("%s: expected function %s()", ts.errorHeader(), name)
+		return res, fmt.Errorf("%s: expected function %s()", ts.errorHeader(), name)
 	}
 	return tk.(astFuncToken), nil
 }
 
-func (ts *tokenStream) consumePreservedToken() (token, error) {
+func (ts *tokenStream) consumePreservedToken() (res token, err error) {
 	oldCursor := ts.cursor
 	tk, err := ts.consumeToken()
 	if err != nil {
@@ -1042,7 +1041,7 @@ func (ts *tokenStream) consumePreservedToken() (token, error) {
 	return tk, nil
 }
 
-func (ts *tokenStream) consumeSimpleBlock(openTokenType, closeTokenType tokenType) (simpleBlockToken, error) {
+func (ts *tokenStream) consumeSimpleBlock(openTokenType, closeTokenType tokenType) (res simpleBlockToken, err error) {
 	resNodes := []token{}
 	var blockType simpleBlockType
 	switch openTokenType {
@@ -1058,7 +1057,7 @@ func (ts *tokenStream) consumeSimpleBlock(openTokenType, closeTokenType tokenTyp
 
 	openToken, err := ts.consumeTokenWith(openTokenType)
 	if err != nil {
-		return simpleBlockToken{}, err
+		return res, err
 	}
 	var closeToken token
 	for {
@@ -1072,7 +1071,7 @@ func (ts *tokenStream) consumeSimpleBlock(openTokenType, closeTokenType tokenTyp
 		resNodes = append(resNodes, tempTk)
 	}
 	if util.IsNil(closeToken) {
-		return simpleBlockToken{}, fmt.Errorf("%s: expected closing character", ts.errorHeader())
+		return res, fmt.Errorf("%s: expected closing character", ts.errorHeader())
 	}
 	return simpleBlockToken{
 		tokenCommon{openToken.tokenCursorFrom(), closeToken.tokenCursorTo()},
@@ -1080,25 +1079,25 @@ func (ts *tokenStream) consumeSimpleBlock(openTokenType, closeTokenType tokenTyp
 	}, nil
 }
 
-func (ts *tokenStream) consumeCurlyBlock() (simpleBlockToken, error) {
+func (ts *tokenStream) consumeCurlyBlock() (res simpleBlockToken, err error) {
 	return ts.consumeSimpleBlock(tokenTypeLeftCurlyBracket, tokenTypeRightCurlyBracket)
 }
 
-func (ts *tokenStream) consumeSquareBlock() (simpleBlockToken, error) {
+func (ts *tokenStream) consumeSquareBlock() (res simpleBlockToken, err error) {
 	return ts.consumeSimpleBlock(tokenTypeLeftSquareBracket, tokenTypeRightSquareBracket)
 }
 
-func (ts *tokenStream) consumeParenBlock() (simpleBlockToken, error) {
+func (ts *tokenStream) consumeParenBlock() (res simpleBlockToken, err error) {
 	return ts.consumeSimpleBlock(tokenTypeLeftParen, tokenTypeRightParen)
 }
 
-func (ts *tokenStream) consumeFunc() (astFuncToken, error) {
+func (ts *tokenStream) consumeFunc() (res astFuncToken, err error) {
 	fnValueNodes := []token{}
 	var fnToken funcKeywordToken
 	if temp, err := ts.consumeTokenWith(tokenTypeFuncKeyword); err == nil {
 		fnToken = temp.(funcKeywordToken)
 	} else {
-		return astFuncToken{}, err
+		return res, err
 	}
 	var closeToken token
 	for {
@@ -1119,7 +1118,7 @@ func (ts *tokenStream) consumeFunc() (astFuncToken, error) {
 }
 
 // Returns nil if not found
-func (ts *tokenStream) consumeComponentValue() (token, error) {
+func (ts *tokenStream) consumeComponentValue() (res token, err error) {
 	if res, err := ts.consumeCurlyBlock(); err == nil {
 		return res, nil
 	}
@@ -1138,7 +1137,7 @@ func (ts *tokenStream) consumeComponentValue() (token, error) {
 	return nil, fmt.Errorf("%s: expected component value", ts.errorHeader())
 }
 
-func (ts *tokenStream) consumeQualifiedRule() (qualifiedRuleToken, error) {
+func (ts *tokenStream) consumeQualifiedRule() (res qualifiedRuleToken, err error) {
 	oldCursor := ts.cursor
 	prelude := []token{}
 
@@ -1152,26 +1151,26 @@ func (ts *tokenStream) consumeQualifiedRule() (qualifiedRuleToken, error) {
 			}, nil
 		} else if ts.isEnd() {
 			ts.cursor = oldCursor
-			return qualifiedRuleToken{}, fmt.Errorf("%s: expected qualified rule", ts.errorHeader())
+			return res, fmt.Errorf("%s: expected qualified rule", ts.errorHeader())
 		}
 		comp, err := ts.consumeComponentValue()
 		if err != nil {
 			ts.cursor = oldCursor
-			return qualifiedRuleToken{}, err
+			return res, err
 		}
 		prelude = append(prelude, comp)
 	}
 }
 
 // Returns nil if not found
-func (ts *tokenStream) consumeAtRule() (atRuleToken, error) {
+func (ts *tokenStream) consumeAtRule() (res atRuleToken, err error) {
 	oldCursor := ts.cursor
 	prelude := []token{}
 	var kwdToken atKeywordToken
 	if temp, err := ts.consumeTokenWith(tokenTypeAtKeyword); err == nil {
 		kwdToken = temp.(atKeywordToken)
 	} else {
-		return atRuleToken{}, err
+		return res, err
 	}
 
 	for {
@@ -1185,7 +1184,7 @@ func (ts *tokenStream) consumeAtRule() (atRuleToken, error) {
 			}, nil
 		} else if ts.isEnd() {
 			ts.cursor = oldCursor
-			return atRuleToken{}, fmt.Errorf("%s: expected at-rule body", ts.errorHeader())
+			return res, fmt.Errorf("%s: expected at-rule body", ts.errorHeader())
 		}
 		comp, err := ts.consumeComponentValue()
 		if err != nil {
@@ -1196,13 +1195,13 @@ func (ts *tokenStream) consumeAtRule() (atRuleToken, error) {
 }
 
 // Returns nil if not found
-func (ts *tokenStream) consumeDeclaration() (declarationToken, error) {
+func (ts *tokenStream) consumeDeclaration() (res declarationToken, err error) {
 	// <name>  :  contents  !important -----------------------------------------
 	var identTk identToken
 	if temp, err := ts.consumeTokenWith(tokenTypeIdent); err == nil {
 		identTk = temp.(identToken)
 	} else {
-		return declarationToken{}, err
+		return res, err
 	}
 	declName := identTk.value
 	declValue := []token{}
@@ -1212,7 +1211,7 @@ func (ts *tokenStream) consumeDeclaration() (declarationToken, error) {
 	// name  <:>  contents  !important -----------------------------------------
 	if _, err := ts.consumeTokenWith(tokenTypeColon); err != nil {
 		// Parse error
-		return declarationToken{}, err
+		return res, err
 	}
 	// name  :<  >contents  !important -----------------------------------------
 	ts.skipWhitespaces()
@@ -1478,7 +1477,7 @@ func parseListOfRules(ts *tokenStream) []token {
 
 // https://www.w3.org/TR/2021/CRD-css-syntax-3-20211224/#typedef-declaration-value
 func (ts *tokenStream) _consumeDeclarationValue(anyValue bool) []token {
-	out := []token{}
+	res := []token{}
 	openBlockTokens := []tokenType{}
 	for {
 		oldCursor := ts.cursor
@@ -1515,12 +1514,12 @@ func (ts *tokenStream) _consumeDeclarationValue(anyValue bool) []token {
 			ts.cursor = oldCursor
 			break
 		}
-		out = append(out, tk)
+		res = append(res, tk)
 	}
-	if len(out) == 0 {
+	if len(res) == 0 {
 		return nil
 	}
-	return out
+	return res
 }
 
 func (ts *tokenStream) consumeDeclarationValue() []token {
@@ -1659,11 +1658,11 @@ func determineFallbackEncoding(bytes []byte) encoding.Type {
 }
 
 // ParseStylesheet parses stylesheet from given input, with optional location.
-func ParseStylesheet(input []byte, location *string, sourceOfInput string) (cssom.Stylesheet, error) {
+func ParseStylesheet(input []byte, location *string, sourceOfInput string) (res cssom.Stylesheet, err error) {
 	// https://www.w3.org/TR/2021/CRD-css-syntax-3-20211224/#css-stylesheets
 	ts, err := tokenize(input, sourceOfInput)
 	if err != nil {
-		return cssom.Stylesheet{}, err
+		return res, err
 	}
 	stylesheet := cssom.Stylesheet{
 		Location: location,

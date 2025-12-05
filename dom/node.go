@@ -182,26 +182,26 @@ func (n nodeImpl) LastChild() Node {
 	return n.children[len(n.children)-1]
 }
 func (n nodeImpl) FilterChildren(filter func(n Node) bool) []Node {
-	out := []Node{}
+	res := []Node{}
 	for _, c := range n.children {
 		if filter(c) {
-			out = append(out, c)
+			res = append(res, c)
 		}
 	}
-	return out
+	return res
 }
 func (n nodeImpl) FilterElementChildren(filter func(e Element) bool) []Element {
-	res := n.FilterChildren(func(n Node) bool {
+	children := n.FilterChildren(func(n Node) bool {
 		if e, ok := n.(Element); ok {
 			return filter(e)
 		}
 		return false
 	})
-	out := []Element{}
-	for _, n := range res {
-		out = append(out, n.(Element))
+	res := []Element{}
+	for _, n := range children {
+		res = append(res, n.(Element))
 	}
-	return out
+	return res
 }
 func (n nodeImpl) FilterElementChildrenByLocalName(namePair NamePair) []Element {
 	return n.FilterElementChildren(func(e Element) bool {
@@ -298,7 +298,7 @@ func Index(node Node) int {
 // [inclusive descendant]: https://dom.spec.whatwg.org/#concept-tree-inclusive-descendant
 func InclusiveDescendants(rootNode Node) []Node {
 	// In a nutshell: It's just DFS search.
-	out := []Node{}
+	resNodes := []Node{}
 	var lastNode Node
 
 	for {
@@ -336,9 +336,9 @@ func InclusiveDescendants(rootNode Node) []Node {
 			break
 		}
 		lastNode = res
-		out = append(out, res)
+		resNodes = append(resNodes, res)
 	}
-	return out
+	return resNodes
 }
 
 // Descendants returns [descendant] nodes of rootNode.
@@ -352,13 +352,13 @@ func Descendants(rootNode Node) []Node {
 //
 // [inclusive ancestor]: https://dom.spec.whatwg.org/#concept-tree-inclusive-ancestor
 func InclusiveAncestors(node Node) []Node {
-	out := []Node{node}
+	res := []Node{node}
 	p := node
 	for !util.IsNil(p.Parent()) {
 		p = p.Parent()
-		out = append(out, p)
+		res = append(res, p)
 	}
-	return out
+	return res
 }
 
 // Ancestors returns [ancestor] nodes of rootNode.
@@ -384,15 +384,15 @@ func ShadowIncludingRoot(node Node) Node {
 // [shadow-including inclusive descendant]: https://dom.spec.whatwg.org/#concept-shadow-including-inclusive-descendant
 func ShadowIncludingInclusiveDescendants(rootNode Node) []Node {
 	descendants := InclusiveDescendants(rootNode)
-	out := []Node{}
+	res := []Node{}
 	for _, d := range descendants {
 		if sr, ok := d.(ShadowRoot); ok {
-			out = append(out, ShadowIncludingInclusiveDescendants(sr)...)
+			res = append(res, ShadowIncludingInclusiveDescendants(sr)...)
 		} else {
-			out = append(out, d)
+			res = append(res, d)
 		}
 	}
-	return out
+	return res
 }
 
 // ShadowIncludingDescendants returns [shadow-including descendant] nodes of rootNode.

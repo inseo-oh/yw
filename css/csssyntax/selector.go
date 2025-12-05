@@ -214,7 +214,7 @@ func (ts *tokenStream) parsePseudoElementSelector() (res selector.PseudoClassSel
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-subclass-selector
 //
 // Returns nil if not found
-func (ts *tokenStream) parseSubclassSelector() (selector.Selector, error) {
+func (ts *tokenStream) parseSubclassSelector() (res selector.Selector, err error) {
 	if sel, err := ts.parseIdSelector(); err == nil {
 		return sel, nil
 	}
@@ -237,7 +237,7 @@ func (ts *tokenStream) parseSubclassSelector() (selector.Selector, error) {
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-compound-selector
 //
 // Returns nil if not found
-func (ts *tokenStream) parseCompoundSelector() (selector.CompoundSelector, error) {
+func (ts *tokenStream) parseCompoundSelector() (res selector.CompoundSelector, err error) {
 	oldCursor := ts.cursor
 
 	var typeSel selector.Selector
@@ -283,7 +283,7 @@ func (ts *tokenStream) parseCompoundSelector() (selector.CompoundSelector, error
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-compound-selector-list
 //
 // Returns nil if not found
-func (ts *tokenStream) parseCompoundSelectorList() ([]selector.CompoundSelector, error) {
+func (ts *tokenStream) parseCompoundSelectorList() (res []selector.CompoundSelector, err error) {
 	return parseCommaSeparatedRepeation(ts, 0, "compound selector", func(ts *tokenStream) (selector.CompoundSelector, error) {
 		return ts.parseCompoundSelector()
 	})
@@ -334,27 +334,26 @@ func (ts *tokenStream) parseComplexSelector() (res selector.ComplexSelector, err
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-complex-selector-list
 //
 // Returns nil if not found
-func (ts *tokenStream) parseComplexSelectorList() ([]selector.Selector, error) {
+func (ts *tokenStream) parseComplexSelectorList() (res []selector.Selector, err error) {
 	selList, err := parseCommaSeparatedRepeation(ts, 0, "complex selector", func(ts *tokenStream) (selector.ComplexSelector, error) {
 		return ts.parseComplexSelector()
 	})
 	if err != nil {
 		return nil, err
 	}
-	out := []selector.Selector{}
 	for _, s := range selList {
-		out = append(out, s)
+		res = append(res, s)
 	}
-	return out, nil
+	return res, nil
 }
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#typedef-selector-list
-func (ts *tokenStream) parseSelectorList() ([]selector.Selector, error) {
+func (ts *tokenStream) parseSelectorList() (res []selector.Selector, err error) {
 	return ts.parseComplexSelectorList()
 }
 
 // https://www.w3.org/TR/2022/WD-selectors-4-20221111/#parse-a-selector
-func parseSelector(src string, sourceStr string) ([]selector.Selector, error) {
+func parseSelector(src string, sourceStr string) (res []selector.Selector, err error) {
 	ts, err := tokenize([]byte(src), sourceStr)
 	if err != nil {
 		return nil, err
