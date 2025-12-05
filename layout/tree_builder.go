@@ -177,7 +177,7 @@ func (tb treeBuilder) makeLayoutForNode(
 		parentNode = dummyBcon
 	}
 	if bfc == nil {
-		panic("FFC should not be nil at this point")
+		panic("BFC should not be nil at this point")
 	}
 	if ifc == nil {
 		panic("IFC should not be nil at this point")
