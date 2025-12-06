@@ -1574,14 +1574,8 @@ func parseCommaSeparatedRepeation[T any](ts *tokenStream, maxRepeats int, descri
 func parseRepeation[T any](ts *tokenStream, maxRepeats int, description string, parser func(ts *tokenStream) (T, error)) ([]T, error) {
 	res := []T{}
 	for {
-		oldCursor := ts.cursor
 		x, err := parser(ts)
 		if err != nil {
-			if len(res) != 0 {
-				// We encountered an error after ' '
-				return nil, err
-			}
-			ts.cursor = oldCursor
 			break
 		}
 		// FIXME: Remove this when we know it's safe to remove this check.
