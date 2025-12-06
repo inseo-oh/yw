@@ -28,7 +28,7 @@ type box interface {
 	isWidthAuto() bool
 	isHeightAuto() bool
 	incrementSize(width, height float64)
-	incrementIfNeeded(width, height float64)
+	incrementIfNeeded(width, height float64) (widthDiff, heightDiff float64) // TODO: Return inline and block size, not width and height.
 }
 type boxCommon struct {
 	nodeCommon
@@ -73,6 +73,9 @@ func (bx *boxCommon) incrementSize(width, height float64) {
 	if width == 0 && height == 0 {
 		return
 	}
+	if bx.marginRect.Width+width == 1355 {
+		panic("?")
+	}
 	bx.marginRect.Width += width
 	bx.marginRect.Height += height
 	parent := bx.parentNode()
@@ -90,10 +93,11 @@ func (bx *boxCommon) incrementSize(width, height float64) {
 		}
 	}
 }
-func (bx *boxCommon) incrementIfNeeded(minWidth, minHeight float64) {
+func (bx *boxCommon) incrementIfNeeded(minWidth, minHeight float64) (widthDiff, heightDiff float64) {
 	wDiff := max(minWidth-bx.boxContentRect().Width, 0)
 	hDiff := max(minHeight-bx.boxContentRect().Height, 0)
 	bx.incrementSize(wDiff, hDiff)
+	return wDiff, hDiff
 }
 func (bx boxCommon) MakePaintNode() paint.Node {
 	var col color.Color

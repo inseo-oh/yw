@@ -266,15 +266,14 @@ func (tb treeBuilder) makeLayoutForNode(
 		var textNode *text
 
 		str := applyWhitespaceCollapsing(txt.Text(), ifc)
+		if str == "" {
+			return nil
+		}
 		ifc.writtenText += str
 
 		// Apply text-transform
 		if v := parentStyleSet.TextTransform(); !util.IsNil(v) {
 			str = v.Apply(str)
-		}
-		// Create line box if needed
-		if len(ifc.lineBoxes) == 0 {
-			ifc.addLineBox(bfc)
 		}
 
 		// Calculate the font size
@@ -287,18 +286,28 @@ func (tb treeBuilder) makeLayoutForNode(
 		textNodes := []Node{}
 
 		for 0 < len(fragmentRemaining) {
+			// https://www.w3.org/TR/css-text-3/#white-space-phase-2
+			// S1.
+			fragmentRemaining = strings.TrimLeft(fragmentRemaining, " ")
+
+			if fragmentRemaining == "" {
+				break
+			}
+
+			// Create line box if needed
+			firstLineBoxCreated := false
+			if len(ifc.lineBoxes) == 0 {
+				ifc.addLineBox(bfc)
+				firstLineBoxCreated = true
+			}
 			lineBox := ifc.currentLineBox()
 
 			var rect BoxRect
 			var inlineAxisSize float64
 			strLen := len(fragmentRemaining)
 
-			// Calculate left/top position
-			left, top := calcNextPosition(bfc, ifc, writeMode, true)
-			left += parentNode.boxMargin().Left
-			top += parentNode.boxMargin().Top
-
-			// Figure out where we should end current fragment, so that we don't overflow the line box.
+			// Figure out where we should end current fragment, so that we don't
+			// overflow the line box.
 			// TODO: We should not do this if we are not doing text wrapping(e.g. whitespace: nowrap).
 			for {
 				// FIXME: This is very brute-force way of fragmenting text.
@@ -307,7 +316,7 @@ func (tb treeBuilder) makeLayoutForNode(
 				// Calculate width/height using dimensions of the text
 				width, _ := gfx.MeasureText(tb.font, fragmentRemaining[:strLen])
 
-				rect = BoxRect{Left: left, Top: top, Width: float64(width), Height: metrics.LineHeight}
+				rect = BoxRect{Left: 0, Top: 0, Width: float64(width), Height: metrics.LineHeight}
 
 				// Check if parent's size is auto and we have to grow its size.
 				inlineAxisSize = rect.Width
@@ -324,7 +333,29 @@ func (tb treeBuilder) makeLayoutForNode(
 			fragment := fragmentRemaining[:strLen]
 			fragmentRemaining = fragmentRemaining[strLen:]
 
-			// Make text node
+			lineBox.currentLineHeight = max(lineBox.currentLineHeight, rect.Height)
+
+			// If we just created a line box, we may have to increase the height.
+			if firstLineBoxCreated && parentNode.isHeightAuto() {
+				parentNode.incrementSize(0, lineBox.currentLineHeight)
+			}
+
+			// https://www.w3.org/TR/css-text-3/#white-space-phase-2
+			// S3.
+			fragment = strings.TrimRight(fragment, " ")
+
+			if fragment == "" {
+				continue
+			}
+
+			// Calculate left/top position -------------------------------------
+			left, top := calcNextPosition(bfc, ifc, writeMode, true)
+			left += parentNode.boxMargin().Left
+			top += parentNode.boxMargin().Top
+			rect.Left = left
+			rect.Top = top
+
+			// Make text node --------------------------------------------------
 			color := parentStyleSet.Color().ToStdColor(parentStyleSetSrc.CurrentColor())
 			textNode = tb.newText(parentNode, fragment, rect, color, fontSize, textDecors)
 
@@ -332,16 +363,14 @@ func (tb treeBuilder) makeLayoutForNode(
 				parentNode.incrementSize(rect.Width, 0)
 			}
 
-			lineBox.currentLineHeight = max(lineBox.currentLineHeight, rect.Height)
-			if parentNode.isHeightAuto() {
-				// Increment parent's height if needed.
-				parentNode.incrementIfNeeded(0, lineBox.currentLineHeight)
-			}
 			ifc.incrementNaturalPos(inlineAxisSize)
 			textNodes = append(textNodes, textNode)
 			if len(fragmentRemaining) != 0 {
-				// Make a new line
+				// Create next line --------------------------------------------
 				ifc.addLineBox(bfc)
+				if parentNode.isHeightAuto() {
+					parentNode.incrementSize(0, lineBox.currentLineHeight)
+				}
 			}
 		}
 
@@ -539,27 +568,24 @@ func (tb treeBuilder) makeLayoutForNode(
 					}
 					bx = ibox
 				} else {
+					oldBlockPos := bfc.currentNaturalPos
 					bcon := tb.newBlockContainer(parentFctx, ifc, parentNode, elem, boxRect, margin, widthAuto, heightAuto)
 					if !dryRun {
 						bcon.initChildren(tb, elem.Children(), writeMode, textDecors)
 					}
+					newBlockPos := bfc.currentNaturalPos
 					bx = bcon
-				}
 
-				// Increment natural position
-				inlineAxisSize := bx.boxMarginRect().Width
-				blockAxisSize := bx.boxMarginRect().Height
-				if writeMode == writeModeVertical {
-					inlineAxisSize, blockAxisSize = blockAxisSize, inlineAxisSize
-				}
-				switch styleDisplay.OuterMode {
-				case display.Inline:
+					// Increment natural position (but only the amount that hasn't been incremented)
+					inlineAxisSize := bx.boxMarginRect().Width
+					blockAxisSize := bx.boxMarginRect().Height
+					if writeMode == writeModeVertical {
+						inlineAxisSize, blockAxisSize = blockAxisSize, inlineAxisSize
+					}
 					_ = inlineAxisSize
-					// ifc.incrementNaturalPos(inlineAxisSize)
-				case display.Block:
-					bfc.incrementNaturalPos(blockAxisSize)
+					posDiff := newBlockPos - oldBlockPos
+					bfc.incrementNaturalPos(blockAxisSize - posDiff)
 				}
-
 				return []Node{bx}
 			case display.FlowRoot:
 				//==================================================================

@@ -30,7 +30,7 @@ func (ifc *inlineFormattingContext) addLineBox(bfc *blockFormattingContext) {
 		lastLb := ifc.currentLineBox()
 		lb.initialBlockPos = lastLb.initialBlockPos + lastLb.currentLineHeight
 	} else {
-		lb.initialBlockPos = bfc.naturalPos()
+		lb.initialBlockPos = ifc.bcon.boxContentRect().Top
 	}
 	lb.availableWidth = ifc.bcon.marginRect.Width
 	ifc.lineBoxes = append(ifc.lineBoxes, lb)

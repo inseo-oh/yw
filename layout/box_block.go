@@ -70,7 +70,7 @@ func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, wr
 	// If we have both inline and block-level, we need anonymous block container for inline nodes.
 	// (This is actually part of CSS spec)
 	needAnonymousBlockContainer := hasInline && hasBlock
-	if hasInline && !hasBlock && !bcon.isAnonymous {
+	if hasInline && !hasBlock {
 		bcon.ifc = &inlineFormattingContext{}
 		bcon.ifc.creatorBox = bcon
 		bcon.ifc.bcon = bcon
@@ -86,13 +86,14 @@ func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, wr
 		var nodes []Node
 		if isInline[i] && needAnonymousBlockContainer {
 			anonChildren = append(anonChildren, childNode)
-			if i == len(children)-1 || isInline[i+1] {
+			if i == len(children)-1 || !isInline[i+1] {
 				// Create anonymous block container
 				boxLeft, boxTop := calcNextPosition(bcon.bfc, bcon.ifc, writeMode, false)
-				boxRect := BoxRect{Left: boxLeft, Top: boxTop, Width: bcon.marginRect.Width, Height: bcon.marginRect.Height}
-				anonBcon := tb.newBlockContainer(bcon.parentFctx, bcon.ifc, bcon, nil, boxRect, BoxEdges{}, true, true)
+				boxRect := BoxRect{Left: boxLeft, Top: boxTop, Width: bcon.marginRect.Width, Height: 0}
+				anonBcon := tb.newBlockContainer(bcon.parentFctx, bcon.ifc, bcon, nil, boxRect, BoxEdges{}, false, true)
 				anonBcon.isAnonymous = true
 				anonBcon.initChildren(tb, anonChildren, writeMode, textDecors)
+				bcon.bfc.incrementNaturalPos(anonBcon.marginRect.Height)
 				anonChildren = []dom.Node{} // Clear children list
 				nodes = []Node{anonBcon}
 			}
