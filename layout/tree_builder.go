@@ -7,6 +7,8 @@ package layout
 import (
 	"image/color"
 	"log"
+	"regexp"
+	"strings"
 
 	"github.com/inseo-oh/yw/css"
 	"github.com/inseo-oh/yw/css/cssom"
@@ -119,6 +121,69 @@ func calcNextPosition(bfc *blockFormattingContext, ifc *inlineFormattingContext,
 
 }
 
+var (
+	spacesAndTabsAfterSegmentBreak  = regexp.MustCompile("\n +")
+	spacesAndTabsBeforeSegmentBreak = regexp.MustCompile(" +\n")
+	multipleSegmentBreaks           = regexp.MustCompile("\n+")
+	multipleSpaces                  = regexp.MustCompile(" +")
+)
+
+// https://www.w3.org/TR/css-text-3/#white-space-phase-1
+func applyWhitespaceCollapsing(str string, ifc *inlineFormattingContext) string {
+	// TODO: Add support for white-space: pre, white-space:pre-wrap, or white-space: break-spaces
+
+	//==========================================================================
+	// Ignore collapsible spaces and tabs immediately following/preceding segment break.
+	//==========================================================================
+	// "foo   \n   bar" --> "foo\nbar"
+	str = spacesAndTabsAfterSegmentBreak.ReplaceAllLiteralString(str, "\n")
+	str = spacesAndTabsBeforeSegmentBreak.ReplaceAllLiteralString(str, "\n")
+
+	//==========================================================================
+	// Transform segment breaks according to segment break transform rules.
+	// "foo\n\nbar" -> "foo\nbar"
+	//==========================================================================
+	str = applySegmentBreakTransform(str)
+
+	//==========================================================================
+	// Replace tabs with spaces.
+	// "foo\t\tbar" -> "foo  bar"
+	//==========================================================================
+	str = strings.ReplaceAll(str, "\t", " ")
+
+	//==========================================================================
+	// Ignore any space following the another, including the ones outside of
+	// current text, as long as it's part of the same IFC.
+	// "foo   bar" -> "foo bar"
+	//
+	// TODO: CSS says these extra sapces don't have zero-advance width, and thus invisible,
+	// but still retains its soft wrap opportunity, if any.
+	//==========================================================================
+	if strings.HasSuffix(ifc.writtenText, " ") {
+		str = strings.TrimLeft(str, " ")
+	}
+	str = multipleSpaces.ReplaceAllLiteralString(str, " ")
+
+	return str
+}
+
+// https://www.w3.org/TR/css-text-3/#line-break-transform
+func applySegmentBreakTransform(str string) string {
+	//==========================================================================
+	// Remove segment breaks immediately following another.
+	// "foo\n\nbar" -> "foo\nbar"
+	//==========================================================================
+	str = multipleSegmentBreaks.ReplaceAllLiteralString(str, "\n")
+
+	//==========================================================================
+	// Turn remaining segment breaks into spaces.
+	// "foo\nbar\njaz" -> "foo bar jaz"
+	//==========================================================================
+	str = strings.ReplaceAll(str, "\n", " ")
+
+	return str
+}
+
 // This function can be seen as heart of layout process.
 //
 // dryRun flag is intended for determine resulting box type. If dryRun is true:
@@ -199,93 +264,9 @@ func (tb treeBuilder) makeLayoutForNode(
 		// Layout for Text nodes
 		//======================================================================
 		var textNode *text
-		origStr := txt.Text()
 
-		// https://www.w3.org/TR/css-text-3/#segment-break
-		isSegmentBreak := func(c rune) bool { return c == '\n' }
-		// https://www.w3.org/TR/css-text-3/#white-space
-		isWhitespace := func(c rune) bool { return c == ' ' || c == '\t' || isSegmentBreak(c) }
-
-		// Apply collapsing ----------------------------------------------------
-		// TODO: Add support for white-space: pre, white-space:pre-wrap, or white-space: break-spaces
-
-		// https://www.w3.org/TR/css-text-3/#white-space-phase-1
-		chars := []rune(origStr)
-		tempChars := []rune{}
-		srcIdx := 0
-
-		// S1.
-		for srcIdx < len(chars) {
-			srcChr := chars[srcIdx]
-			switch {
-			case srcChr == ' ' || srcChr == '\t':
-				// Ignore collapsible spaces immediately preceding segment break
-				i := srcIdx + 1
-				for ; i < len(chars); i++ {
-					if isWhitespace(chars[srcIdx]) {
-						continue
-					} else if isSegmentBreak(chars[srcIdx]) {
-						srcIdx = i
-						break
-					} else {
-						break
-					}
-				}
-			case isSegmentBreak(srcChr):
-				// Ignore collapsible spaces immediately following segment break
-				tempChars = append(tempChars, srcChr)
-				i := srcIdx + 1
-				for ; i < len(chars); i++ {
-					if isWhitespace(chars[srcIdx]) {
-						continue
-					} else {
-						srcIdx = i
-						break
-					}
-				}
-			default:
-				tempChars = append(tempChars, srcChr)
-			}
-
-		}
-		chars = tempChars
-		tempChars = []rune{}
-
-		// S2.
-
-		{
-			// https://www.w3.org/TR/css-text-3/#line-break-transform
-
-			// S1.
-			for srcIdx < len(chars) {
-				srcChr := chars[srcIdx]
-				if isSegmentBreak(srcChr) {
-					tempChars = append(tempChars, srcChr)
-					i := srcIdx + 1
-					for ; i < len(chars); i++ {
-						if !isSegmentBreak(chars[srcIdx]) {
-							srcIdx = i
-							break
-						}
-					}
-				}
-			}
-			// S2.
-			for srcIdx < len(chars) {
-				srcChr := chars[srcIdx]
-				if isSegmentBreak(srcChr) {
-					// FIXME: CSS says to either transform to ' ' or remove,
-					//        depending on context before or after break, but it
-					//        also says this operation is UA-defined.
-					//        So we are transforming to space for now... but is this
-					//        right thing to do?
-					tempChars = append(tempChars, ' ')
-				}
-			}
-			chars = tempChars
-		}
-
-		str := string(chars)
+		str := applyWhitespaceCollapsing(txt.Text(), ifc)
+		ifc.writtenText += str
 
 		// Apply text-transform
 		if v := parentStyleSet.TextTransform(); !util.IsNil(v) {
@@ -430,7 +411,6 @@ func (tb treeBuilder) makeLayoutForNode(
 				textDecors[i].Style = decorStyle
 			}
 		}
-
 		if styleSet.MarginTop().IsAuto() || styleSet.MarginBottom().IsAuto() {
 			panic("TODO: Support auto margin")
 		}

@@ -15,8 +15,9 @@ package layout
 type inlineFormattingContext struct {
 	formattingContextCommon
 
-	bcon      *blockContainer // Block container containing this inline node
-	lineBoxes []lineBox       // List of line boxes
+	bcon        *blockContainer // Block container containing this inline node
+	lineBoxes   []lineBox       // List of line boxes
+	writtenText string
 }
 
 func (ifc inlineFormattingContext) formattingContextType() formattingContextType {
