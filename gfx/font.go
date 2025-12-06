@@ -51,5 +51,5 @@ type Font interface {
 // MeasureText performs dry-run text drawing, and returns dimensions of the text.
 func MeasureText(font Font, text string) (width, height int) {
 	rect := font.DrawText(text, nil, 0, 0, color.RGBA{})
-	return rect.Dy(), rect.Dx()
+	return rect.Dx(), rect.Dy()
 }
