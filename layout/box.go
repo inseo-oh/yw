@@ -21,6 +21,7 @@ type box interface {
 	boxMarginRect() BoxRect
 	boxContentRect() BoxRect
 	boxMargin() BoxEdges
+	boxPadding() BoxEdges
 	logicalWidth(writeMode writeMode) float64
 	logicalHeight(writeMode writeMode) float64
 	ChildBoxes() []box
@@ -35,6 +36,7 @@ type boxCommon struct {
 	elem       dom.Element
 	marginRect BoxRect
 	margin     BoxEdges
+	padding    BoxEdges
 	widthAuto  bool
 	heightAuto bool
 	childBoxes []box
@@ -42,9 +44,11 @@ type boxCommon struct {
 }
 
 func (bx boxCommon) boxElement() dom.Element { return bx.elem }
-func (bx boxCommon) boxMarginRect() BoxRect  { return bx.marginRect }                       // Rect containing margin area
-func (bx boxCommon) boxContentRect() BoxRect { return bx.marginRect.AddPadding(bx.margin) } // Rect containing content area
+func (bx boxCommon) boxMarginRect() BoxRect  { return bx.marginRect }                              // Rect containing margin area
+func (bx boxCommon) boxPaddingRect() BoxRect { return bx.boxMarginRect().AddPadding(bx.margin) }   // Rect containing padding area
+func (bx boxCommon) boxContentRect() BoxRect { return bx.boxPaddingRect().AddPadding(bx.padding) } // Rect containing content area
 func (bx boxCommon) boxMargin() BoxEdges     { return bx.margin }
+func (bx boxCommon) boxPadding() BoxEdges    { return bx.padding }
 
 // https://www.w3.org/TR/css-writing-modes-4/#logical-width
 func (bx boxCommon) logicalWidth(writeMode writeMode) float64 {
@@ -118,10 +122,10 @@ func (bx boxCommon) MakePaintNode() paint.Node {
 		paintNodes = append(paintNodes, child.MakePaintNode())
 	}
 	contentRect := image.Rect(
-		int(bx.boxContentRect().Left),
-		int(bx.boxContentRect().Top),
-		int(bx.boxContentRect().Right()),
-		int(bx.boxContentRect().Bottom()),
+		int(bx.boxPaddingRect().Left),
+		int(bx.boxPaddingRect().Top),
+		int(bx.boxPaddingRect().Right()),
+		int(bx.boxPaddingRect().Bottom()),
 	)
 	return paint.BoxPaint{Items: paintNodes, Color: col, Rect: contentRect}
 }

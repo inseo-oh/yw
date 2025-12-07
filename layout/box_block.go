@@ -21,6 +21,11 @@ type blockContainer struct {
 	createdBfc  bool
 	createdIfc  bool
 	isAnonymous bool
+
+	accumulatedMarginLeft   float64
+	accumulatedPaddingLeft  float64
+	accumulatedMarginRight  float64
+	accumulatedPaddingRight float64
 }
 
 func (bcon blockContainer) String() string {
@@ -31,10 +36,10 @@ func (bcon blockContainer) String() string {
 	if bcon.createdIfc {
 		fcStr += "[IFC]"
 	}
-	leftStr := fmt.Sprintf("%g(%g+%g)", bcon.boxContentRect().Left, bcon.marginRect.Left, bcon.margin.Left)
-	topStr := fmt.Sprintf("%g(%g+%g)", bcon.boxContentRect().Top, bcon.marginRect.Top, bcon.margin.Top)
-	rightStr := fmt.Sprintf("%g(%g-%g)", bcon.boxContentRect().Right(), bcon.marginRect.Right(), bcon.margin.Right)
-	bottomStr := fmt.Sprintf("%g(%g-%g)", bcon.boxContentRect().Bottom(), bcon.marginRect.Bottom(), bcon.margin.Bottom)
+	leftStr := fmt.Sprintf("%g+%g+%g", bcon.marginRect.Left, bcon.margin.Left, bcon.padding.Left)
+	topStr := fmt.Sprintf("%g+%g+%g", bcon.marginRect.Top, bcon.margin.Top, bcon.padding.Top)
+	rightStr := fmt.Sprintf("%g-%g-%g", bcon.marginRect.Right(), bcon.margin.Right, bcon.padding.Right)
+	bottomStr := fmt.Sprintf("%g-%g-%g", bcon.marginRect.Bottom(), bcon.margin.Bottom, bcon.padding.Bottom)
 	return fmt.Sprintf(
 		"block-container [elem %v] at [LTRB %s %s %s %s (%gx%g)] %s",
 		bcon.elem, leftStr, topStr, rightStr, bottomStr, bcon.marginRect.Width, bcon.marginRect.Height, fcStr)
@@ -88,9 +93,9 @@ func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, wr
 			anonChildren = append(anonChildren, childNode)
 			if i == len(children)-1 || !isInline[i+1] {
 				// Create anonymous block container
-				boxLeft, boxTop := calcNextPosition(bcon.bfc, bcon.ifc, writeMode, false)
+				boxLeft, boxTop := calcNextPosition(bcon.bfc, bcon.ifc, bcon, true)
 				boxRect := BoxRect{Left: boxLeft, Top: boxTop, Width: bcon.marginRect.Width, Height: 0}
-				anonBcon := tb.newBlockContainer(bcon.parentFctx, bcon.ifc, bcon, nil, boxRect, BoxEdges{}, false, true)
+				anonBcon := tb.newBlockContainer(bcon.parentFctx, bcon.ifc, bcon, bcon, nil, boxRect, BoxEdges{}, BoxEdges{}, false, true)
 				anonBcon.isAnonymous = true
 				anonBcon.initChildren(tb, anonChildren, writeMode, textDecors)
 				bcon.bfc.incrementNaturalPos(anonBcon.marginRect.Height)

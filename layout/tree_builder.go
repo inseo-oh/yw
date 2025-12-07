@@ -47,7 +47,7 @@ func (tb treeBuilder) newInlineBox(
 	parentBcon *blockContainer,
 	elem dom.Element,
 	marginRect BoxRect,
-	margin BoxEdges,
+	margin, padding BoxEdges,
 	widthAuto, heightAuto bool,
 ) *inlineBox {
 	ibox := &inlineBox{}
@@ -55,6 +55,7 @@ func (tb treeBuilder) newInlineBox(
 	ibox.elem = elem
 	ibox.marginRect = marginRect
 	ibox.margin = margin
+	ibox.padding = padding
 	ibox.widthAuto = widthAuto
 	ibox.heightAuto = heightAuto
 	ibox.parentBcon = parentBcon
@@ -66,9 +67,10 @@ func (tb treeBuilder) newBlockContainer(
 	parentFctx formattingContext,
 	ifc *inlineFormattingContext,
 	parent Node,
+	parentBcon *blockContainer,
 	elem dom.Element,
 	marginRect BoxRect,
-	margin BoxEdges,
+	margin, padding BoxEdges,
 	widthAuto, heightAuto bool,
 ) *blockContainer {
 	bcon := &blockContainer{}
@@ -76,10 +78,17 @@ func (tb treeBuilder) newBlockContainer(
 	bcon.elem = elem
 	bcon.marginRect = marginRect
 	bcon.margin = margin
+	bcon.padding = padding
 	bcon.widthAuto = widthAuto
 	bcon.heightAuto = heightAuto
 	bcon.parentFctx = parentFctx
 	bcon.ifc = ifc
+	if parentBcon != nil {
+		bcon.accumulatedMarginLeft = parentBcon.accumulatedMarginLeft + margin.Left
+		bcon.accumulatedMarginRight = parentBcon.accumulatedMarginRight + margin.Right
+		bcon.accumulatedPaddingLeft = parentBcon.accumulatedPaddingLeft + padding.Left
+		bcon.accumulatedPaddingRight = parentBcon.accumulatedPaddingRight + padding.Right
+	}
 	if util.IsNil(parentFctx) || parentFctx.formattingContextType() != formattingContextTypeBlock {
 		bcon.bfc = makeBfc(bcon)
 		bcon.createdBfc = true
@@ -89,36 +98,26 @@ func (tb treeBuilder) newBlockContainer(
 	return bcon
 }
 
-func calcNextPosition(bfc *blockFormattingContext, ifc *inlineFormattingContext, writeMode writeMode, isInline bool) (float64, float64) {
+func calcNextPosition(bfc *blockFormattingContext, ifc *inlineFormattingContext, parentBcon *blockContainer, isInline bool) (left, top float64) {
 	if isInline {
-		var inlinePos, blockBos float64
+		baseLeft := ifc.contextCreatorBox().boxContentRect().Left
+		left = baseLeft
 		if len(ifc.lineBoxes) != 0 {
-			inlinePos = ifc.naturalPos()
-			blockBos = ifc.currentLineBox().initialBlockPos
+			lb := ifc.currentLineBox()
+			top = lb.initialBlockPos
+			left += ifc.naturalPos()
 		} else {
-			inlinePos = 0
-			blockBos = bfc.naturalPos()
+			top = bfc.naturalPos()
 		}
-		baseRect := bfc.contextCreatorBox().boxMarginRect()
-		if writeMode == writeModeVertical {
-			return baseRect.Left + blockBos, baseRect.Top + inlinePos
-		}
-		return baseRect.Left + inlinePos, baseRect.Top + blockBos
 	} else {
-		var x, y float64
-		if len(ifc.lineBoxes) != 0 {
-			x = ifc.naturalPos()
-		} else {
-			x = 0
-		}
-		y = bfc.naturalPos()
-		baseRect := bfc.contextCreatorBox().boxMarginRect()
-		if writeMode == writeModeVertical {
-			return baseRect.Left + y, baseRect.Top + x
-		}
-		return baseRect.Left + x, baseRect.Top + y
+		baseTop := bfc.contextCreatorBox().boxContentRect().Top
+		baseLeft := bfc.contextCreatorBox().boxContentRect().Left
+		top = bfc.naturalPos() + baseTop
+		left = baseLeft
 	}
-
+	left += parentBcon.accumulatedMarginLeft
+	left += parentBcon.accumulatedPaddingLeft
+	return left, top
 }
 
 var (
@@ -247,6 +246,15 @@ func (tb treeBuilder) makeLayoutForNode(
 		panic("IFC should not be nil at this point")
 	}
 
+	parentBconBox := parentNode
+	for {
+		if _, ok := parentBconBox.(*blockContainer); ok {
+			break
+		}
+		parentBconBox = parentBconBox.parentNode().(box)
+	}
+	parentBcon := parentBconBox.(*blockContainer)
+
 	if n, ok := domNode.(dom.CharacterData); ok && n.CharacterDataType() == dom.CommentCharacterData {
 		//======================================================================
 		// Layout for Comment nodes
@@ -289,7 +297,6 @@ func (tb treeBuilder) makeLayoutForNode(
 			// https://www.w3.org/TR/css-text-3/#white-space-phase-2
 			// S1.
 			fragmentRemaining = strings.TrimLeft(fragmentRemaining, " ")
-
 			if fragmentRemaining == "" {
 				break
 			}
@@ -349,9 +356,7 @@ func (tb treeBuilder) makeLayoutForNode(
 			}
 
 			// Calculate left/top position -------------------------------------
-			left, top := calcNextPosition(bfc, ifc, writeMode, true)
-			left += parentNode.boxMargin().Left
-			top += parentNode.boxMargin().Top
+			left, top := calcNextPosition(bfc, ifc, parentBcon, true)
 			rect.Left = left
 			rect.Top = top
 
@@ -365,7 +370,7 @@ func (tb treeBuilder) makeLayoutForNode(
 
 			ifc.incrementNaturalPos(inlineAxisSize)
 			textNodes = append(textNodes, textNode)
-			if len(fragmentRemaining) != 0 {
+			if len(fragmentRemaining) != 0 && strings.TrimLeft(fragmentRemaining, " ") != "" {
 				// Create next line --------------------------------------------
 				ifc.addLineBox(bfc)
 				if parentNode.isHeightAuto() {
@@ -446,20 +451,24 @@ func (tb treeBuilder) makeLayoutForNode(
 		if styleSet.MarginLeft().IsAuto() || styleSet.MarginRight().IsAuto() {
 			panic("TODO: Support auto margin")
 		}
-		marginParentSize := parentNode.logicalWidth(writeMode)
+		parentLogicalWidth := parentNode.logicalWidth(writeMode)
 		parentFontSize := css.NumFromFloat(fonts.PreferredFontSize) // STUB
 		fontSize := styleSet.FontSize().CalculateRealFontSize(parentFontSize).ToPx(parentFontSize)
 		margin := BoxEdges{
-			Top:    styleSet.MarginTop().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(fontSize)),
-			Right:  styleSet.MarginRight().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(fontSize)),
-			Bottom: styleSet.MarginBottom().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(fontSize)),
-			Left:   styleSet.MarginLeft().Value.AsLength(css.NumFromFloat(marginParentSize)).ToPx(css.NumFromFloat(fontSize)),
+			Top:    styleSet.MarginTop().Value.AsLength(css.NumFromFloat(parentLogicalWidth)).ToPx(css.NumFromFloat(fontSize)),
+			Right:  styleSet.MarginRight().Value.AsLength(css.NumFromFloat(parentLogicalWidth)).ToPx(css.NumFromFloat(fontSize)),
+			Bottom: styleSet.MarginBottom().Value.AsLength(css.NumFromFloat(parentLogicalWidth)).ToPx(css.NumFromFloat(fontSize)),
+			Left:   styleSet.MarginLeft().Value.AsLength(css.NumFromFloat(parentLogicalWidth)).ToPx(css.NumFromFloat(fontSize)),
+		}
+		padding := BoxEdges{
+			Top:    styleSet.PaddingTop().AsLength(css.NumFromFloat(parentLogicalWidth)).ToPx(css.NumFromFloat(fontSize)),
+			Right:  styleSet.PaddingRight().AsLength(css.NumFromFloat(parentLogicalWidth)).ToPx(css.NumFromFloat(fontSize)),
+			Bottom: styleSet.PaddingBottom().AsLength(css.NumFromFloat(parentLogicalWidth)).ToPx(css.NumFromFloat(fontSize)),
+			Left:   styleSet.PaddingLeft().AsLength(css.NumFromFloat(parentLogicalWidth)).ToPx(css.NumFromFloat(fontSize)),
 		}
 		computeBoxRect := func(isInline bool) (boxRect BoxRect, widthAuto, heightAuto bool) {
 			// Calculate left/top position
-			boxLeft, boxTop := calcNextPosition(bfc, ifc, writeMode, isInline)
-			boxLeft += parentNode.boxMargin().Top
-			boxTop += parentNode.boxMargin().Left
+			boxLeft, boxTop := calcNextPosition(bfc, ifc, parentBcon, isInline)
 
 			// Calculate width/height using `width` and `height` property
 			boxWidth := styleSet.Width()
@@ -474,14 +483,14 @@ func (tb treeBuilder) makeLayoutForNode(
 			} else {
 				widthAuto = true
 			}
-			boxWidthPx += margin.Left + margin.Right
+			boxWidthPx += margin.HorizontalSum() + padding.HorizontalSum()
 			if boxHeight.Type != sizing.Auto {
 				parentSize := css.NumFromFloat(parentNode.boxContentRect().Height)
 				boxHeightPx = boxHeight.ComputeUsedValue(parentSize).ToPx(parentSize)
 			} else {
 				heightAuto = true
 			}
-			boxHeightPx += margin.Top + margin.Bottom
+			boxHeightPx += margin.VerticalSum() + padding.VerticalSum()
 
 			return BoxRect{Left: boxLeft, Top: boxTop, Width: boxWidthPx, Height: boxHeightPx},
 				widthAuto, heightAuto
@@ -498,10 +507,10 @@ func (tb treeBuilder) makeLayoutForNode(
 			// Check if we have auto size on a block element. If so, use parent's size and unset auto.
 			if styleDisplay.OuterMode == display.Block {
 				if writeMode == writeModeHorizontal && widthAuto {
-					boxRect.Width = parentNode.boxMarginRect().Width
+					boxRect.Width = parentNode.boxContentRect().Width
 					widthAuto = false
 				} else if writeMode == writeModeVertical && heightAuto {
-					boxRect.Height = parentNode.boxMarginRect().Height
+					boxRect.Height = parentNode.boxContentRect().Height
 					heightAuto = false
 				}
 			}
@@ -555,24 +564,19 @@ func (tb treeBuilder) makeLayoutForNode(
 				}
 				var bx box
 				if shouldMakeInlineBox {
-					parentBcon := parentNode
-					for {
-						if _, ok := parentBcon.(*blockContainer); ok {
-							break
-						}
-						parentBcon = parentBcon.parentNode().(box)
-					}
-					ibox := tb.newInlineBox(parentBcon.(*blockContainer), elem, boxRect, margin, widthAuto, heightAuto)
+					ibox := tb.newInlineBox(parentBcon, elem, boxRect, margin, padding, widthAuto, heightAuto)
 					if !dryRun {
 						ibox.initChildren(tb, elem.Children(), writeMode, textDecors)
 					}
 					bx = ibox
 				} else {
 					oldBlockPos := bfc.currentNaturalPos
-					bcon := tb.newBlockContainer(parentFctx, ifc, parentNode, elem, boxRect, margin, widthAuto, heightAuto)
+					bfc.incrementNaturalPos(margin.Top + padding.Top) // Consume top margin+padding first
+					bcon := tb.newBlockContainer(parentFctx, ifc, parentNode, parentBcon, elem, boxRect, margin, padding, widthAuto, heightAuto)
 					if !dryRun {
 						bcon.initChildren(tb, elem.Children(), writeMode, textDecors)
 					}
+					bfc.incrementNaturalPos(margin.Bottom + padding.Bottom) // Consume bottom margin+padding
 					newBlockPos := bfc.currentNaturalPos
 					bx = bcon
 
@@ -592,7 +596,7 @@ func (tb treeBuilder) makeLayoutForNode(
 				// "flow-root" mode (flow-root, inline-block display modes)
 				//==================================================================
 				// https://www.w3.org/TR/css-display-3/#valdef-display-flow-root
-				bcon := tb.newBlockContainer(parentFctx, ifc, parentNode, elem, boxRect, margin, widthAuto, heightAuto)
+				bcon := tb.newBlockContainer(parentFctx, ifc, parentNode, parentBcon, elem, boxRect, margin, padding, widthAuto, heightAuto)
 				if !dryRun {
 					bcon.initChildren(tb, elem.Children(), writeMode, textDecors)
 				}

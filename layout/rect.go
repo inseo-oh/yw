@@ -7,6 +7,12 @@ package layout
 // BoxEdges store four values for each edge of a rectangle.
 type BoxEdges struct{ Top, Right, Bottom, Left float64 }
 
+// VerticalSum returns top + bottom value.
+func (e BoxEdges) VerticalSum() float64 { return e.Top + e.Bottom }
+
+// HorizontalSum returns left + right value.
+func (e BoxEdges) HorizontalSum() float64 { return e.Left + e.Right }
+
 // BoxRect represents a rectangular area.
 type BoxRect struct{ Left, Top, Width, Height float64 }
 

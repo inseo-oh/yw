@@ -31,7 +31,7 @@ func Build(root dom.Element, viewportWidth, viewportHeight float64, plat platfor
 	bfc := &blockFormattingContext{}
 	ifc := &inlineFormattingContext{}
 	boxRect := BoxRect{Left: 0, Top: 0, Width: viewportWidth, Height: viewportHeight}
-	icb := tb.newBlockContainer(bfc, ifc, nil, nil, boxRect, BoxEdges{}, true, true)
+	icb := tb.newBlockContainer(bfc, ifc, nil, nil, nil, boxRect, BoxEdges{}, BoxEdges{}, true, true)
 	bfc.creatorBox = icb
 	ifc.creatorBox = icb
 	ifc.bcon = icb
