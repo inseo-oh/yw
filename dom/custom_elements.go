@@ -1,6 +1,6 @@
 // This file is part of YW project. Copyright 2025 Oh Inseo (YJK)
 // SPDX-License-Identifier: BSD-3-Clause
-// See LICENSE for details, and LICENSE.thirdparty.md for third-party license information.
+// See LICENSE for details, and LICENSE_THIRDPARTY for third-party license information.
 
 package dom
 
@@ -8,9 +8,9 @@ import "github.com/inseo-oh/yw/namespaces"
 
 // CustomElementRegistry represents a [HTML CustomElementRegistry].
 //
-// [HTML CustomElementRegistry]: https://html.spec.whatwg.org/multipage/custom-elements.html#customelementregistry
-//
 // TODO(ois): CustomElementRegistry is currently STUB.
+//
+// [HTML CustomElementRegistry]: https://html.spec.whatwg.org/multipage/custom-elements.html#customelementregistry
 type CustomElementRegistry struct {
 	IsScoped          bool       // https://html.spec.whatwg.org/multipage/custom-elements.html#is-scoped
 	ScopedDocumentSet []Document // https://html.spec.whatwg.org/multipage/custom-elements.html#scoped-document-set
