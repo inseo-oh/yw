@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .overline {
+            text-decoration: overline solid red;
+        }
+        .line-through {
+            text-decoration: line-through solid orange;
+        }
+        .underline {
+            text-decoration: underline solid darkgoldenrod;
+        }
+        .solid {
+            text-decoration: underline solid green;
+        }
+        .double {
+            text-decoration: underline double blue;
+        }
+        .dotted {
+            text-decoration: underline dotted darkblue;
+        }
+        .dashed {
+            text-decoration: underline dotted purple;
+        }
+        .wavy {
+            text-decoration: underline wavy deeppink;
+        }
+        #outerDiv {
+            text-decoration: underline;
+            color: red;
+        }
+        #innerDiv1 {
+            text-decoration-style: dashed;
+            color: magenta;
+        }
+        #innerDiv2 {
+            text-decoration-color: currentColor;
+        }
+    </style>
+</head>
+<body>
+    <h1>text-decoration</h1>
+    <h2>Box-level inheritance</h2>
+    <div id="outerDiv">
+        This outer div has solid underline with currentColor as text-decoration-color, and since the text is red, we have red line.
+        <div id="innerDiv1">
+            This inner div changes text-decoration-style to dashed, and color to magenta.
+            But since it didn't override text-decoration-color, we should still have red underline.
+            <div id="innerDiv2">
+                This inner div sets text-decoration-color to currentColor, so we should have magenta line.
+            </div>
+        </div>
+    </div>
+    <h2>Different positions</h2>
+    <p class="overline">
+        This is overline  
+    </p>
+    <p class="line-through">
+        This is line-through  
+    </p>
+    <p class="underline">
+        This is underline
+    </p>
+    <h2>Different styles</h2>
+    <h3>solid</h3>
+    <p class="solid">
+        Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusamus excepturi, similique ducimus nihil libero sequi voluptatibus corrupti unde veniam vitae explicabo perspiciatis, rerum quis qui fugiat cum minima sed totam.  
+    </p>
+    <h3>double</h3>
+    <p class="double">
+        Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusamus excepturi, similique ducimus nihil libero sequi voluptatibus corrupti unde veniam vitae explicabo perspiciatis, rerum quis qui fugiat cum minima sed totam.  
+    </p>
+    <h3>dotted</h3>
+    <p class="dotted">
+        Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusamus excepturi, similique ducimus nihil libero sequi voluptatibus corrupti unde veniam vitae explicabo perspiciatis, rerum quis qui fugiat cum minima sed totam.  
+    </p>
+    <h3>dashed</h3>
+    <p class="dashed">
+        Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusamus excepturi, similique ducimus nihil libero sequi voluptatibus corrupti unde veniam vitae explicabo perspiciatis, rerum quis qui fugiat cum minima sed totam.  
+    </p>
+    <h3>wavy</h3>
+    <p class="wavy">
+        Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusamus excepturi, similique ducimus nihil libero sequi voluptatibus corrupti unde veniam vitae explicabo perspiciatis, rerum quis qui fugiat cum minima sed totam.  
+    </p>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        div {
+            padding: 10px;
+        }
+        #div1 {
+            background-color: #111;
+            color: #fff;
+        }
+        #div2 {
+            background-color: #222;
+            color: #eee;
+        }
+        #div3 {
+            background-color: #333;
+            color: #ddd;
+        }
+        #div4 {
+            background-color: #444;
+            color: #ccc;
+        }
+        #div5 {
+            background-color: #555;
+            color: #bbb;
+        }
+        #div6 {
+            background-color: #666;
+            color: #aaa;
+        }
+        #div7 {
+            background-color: #777;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <h1>Nested paddings</h1>
+    <p>
+        Each of these divs have 10px padding.
+    </p>
+    <div id="div1">
+        div1 start
+        <div id="div2">
+            div2 start
+            <div id="div3">
+                div3 start
+                <div id="div4">
+                    div4 start
+                    <div id="div5">
+                        div5 start
+                        <div id="div6">
+                            div6 start
+                            <div id="div7">
+                                Finally, div7
+                            </div>
+                            div6 end
+                        </div>
+                        div5 end
+                    </div>
+                    div4 end
+                </div>
+                div3 end
+            </div>
+            div2 end
+        </div>
+        div1 end
+    </div>
+</body>
+</html>
