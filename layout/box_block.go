@@ -18,8 +18,8 @@ type blockContainer struct {
 	bfc         *blockFormattingContext
 	ifc         *inlineFormattingContext
 	parentFctx  formattingContext
-	createdBfc  bool
-	createdIfc  bool
+	ownsBfc     bool
+	ownsIfc     bool
 	isAnonymous bool
 
 	accumulatedMarginLeft   float64
@@ -30,10 +30,10 @@ type blockContainer struct {
 
 func (bcon blockContainer) String() string {
 	fcStr := ""
-	if bcon.createdBfc {
+	if bcon.ownsBfc {
 		fcStr += "[BFC]"
 	}
-	if bcon.createdIfc {
+	if bcon.ownsIfc {
 		fcStr += "[IFC]"
 	}
 	physMarginRect := bcon.marginRect.toPhysicalRect()
@@ -73,9 +73,9 @@ func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, te
 	needAnonymousBlockContainer := hasInline && hasBlock
 	if hasInline && !hasBlock {
 		bcon.ifc = &inlineFormattingContext{}
-		bcon.ifc.creatorBox = bcon
+		bcon.ifc.ownerBox = bcon
 		bcon.ifc.bcon = bcon
-		bcon.createdIfc = true
+		bcon.ownsIfc = true
 	}
 
 	// Now we can layout the children for real

@@ -25,8 +25,8 @@ func Build(root dom.Element, viewportWidth, viewportHeight float64, plat platfor
 	ifc := &inlineFormattingContext{}
 	boxRect := logicalRect{inlinePos: 0, blockPos: 0, logicalWidth: viewportWidth, logicalHeight: viewportHeight}
 	icb := tb.newBlockContainer(bfc, ifc, nil, nil, nil, boxRect, physicalEdges{}, physicalEdges{}, true, true)
-	bfc.creatorBox = icb
-	ifc.creatorBox = icb
+	bfc.ownerBox = icb
+	ifc.ownerBox = icb
 	ifc.bcon = icb
 	icb.initChildren(tb, []dom.Node{root}, []gfx.TextDecorOptions{})
 	return icb

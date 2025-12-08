@@ -197,7 +197,7 @@ func elementMarginAndPadding(elem dom.Element, parentNode box) (margin, padding 
 }
 func computeNextPosition(bfc *blockFormattingContext, ifc *inlineFormattingContext, parentBcon *blockContainer, isInline bool) (inlinePos, blockPos float64) {
 	if isInline {
-		baseInlinePos := ifc.contextCreatorBox().boxContentRect().inlinePos
+		baseInlinePos := ifc.contextOwnerBox().boxContentRect().inlinePos
 		inlinePos = baseInlinePos
 		if len(ifc.lineBoxes) != 0 {
 			lb := ifc.currentLineBox()
@@ -207,8 +207,8 @@ func computeNextPosition(bfc *blockFormattingContext, ifc *inlineFormattingConte
 			blockPos = bfc.naturalPos()
 		}
 	} else {
-		baseBlockPos := bfc.contextCreatorBox().boxContentRect().blockPos
-		baseInlinePos := bfc.contextCreatorBox().boxContentRect().inlinePos
+		baseBlockPos := bfc.contextOwnerBox().boxContentRect().blockPos
+		baseInlinePos := bfc.contextOwnerBox().boxContentRect().inlinePos
 		blockPos = bfc.naturalPos() + baseBlockPos
 		inlinePos = baseInlinePos
 	}
@@ -325,7 +325,7 @@ func (tb treeBuilder) newBlockContainer(
 	}
 	if util.IsNil(parentFctx) || parentFctx.formattingContextType() != formattingContextTypeBlock {
 		bcon.bfc = makeBfc(bcon)
-		bcon.createdBfc = true
+		bcon.ownsBfc = true
 	} else {
 		bcon.bfc = parentFctx.(*blockFormattingContext)
 	}

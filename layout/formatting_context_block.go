@@ -25,8 +25,8 @@ func (bfc *blockFormattingContext) incrementNaturalPos(pos float64) {
 }
 
 // TODO: Use this thing for every BFC creation, and make similar function for IFC as well.
-func makeBfc(creatorBox box) *blockFormattingContext {
+func makeBfc(ownerBox box) *blockFormattingContext {
 	bfc := blockFormattingContext{}
-	bfc.creatorBox = creatorBox
+	bfc.ownerBox = ownerBox
 	return &bfc
 }

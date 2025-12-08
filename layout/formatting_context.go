@@ -8,11 +8,11 @@ type formattingContext interface {
 	formattingContextType() formattingContextType
 	naturalPos() float64
 	incrementNaturalPos(inc float64)
-	contextCreatorBox() box
+	contextOwnerBox() box
 }
 
 type formattingContextCommon struct {
-	creatorBox box
+	ownerBox box
 }
 type formattingContextType uint8
 
@@ -21,6 +21,6 @@ const (
 	formattingContextTypeInline
 )
 
-func (fc formattingContextCommon) contextCreatorBox() box {
-	return fc.creatorBox
+func (fc formattingContextCommon) contextOwnerBox() box {
+	return fc.ownerBox
 }
