@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // See LICENSE for details, and LICENSE.thirdparty.md for third-party license information.
 
-// Package browser provides entrypoint of the web browser.
-package browser
+// yw is a web page rendering engine aimed at simplicity.
+package yw
 
 import (
 	"image"

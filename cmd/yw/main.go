@@ -11,7 +11,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/inseo-oh/yw/browser"
+	"github.com/inseo-oh/yw"
 	"github.com/inseo-oh/yw/platform/stdplatform"
 )
 
@@ -23,7 +23,7 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	br := browser.Browser{}
+	br := yw.Browser{}
 	viewportImg := image.NewRGBA(image.Rect(0, 0, 1280, 720))
 	fontProvider := stdplatform.NewDefaultFontProvider()
 	br.Run(*url, fontProvider, viewportImg)
