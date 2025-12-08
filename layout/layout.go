@@ -35,7 +35,7 @@ func Build(root dom.Element, viewportWidth, viewportHeight float64, plat platfor
 	bfc.creatorBox = icb
 	ifc.creatorBox = icb
 	ifc.bcon = icb
-	icb.initChildren(tb, []dom.Node{root}, writeModeHorizontal, []gfx.TextDecorOptions{})
+	icb.initChildren(tb, []dom.Node{root}, []gfx.TextDecorOptions{})
 	return icb
 }
 

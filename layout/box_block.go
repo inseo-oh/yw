@@ -48,7 +48,7 @@ func (bcon blockContainer) nodeType() nodeType { return nodeTypeBlockContainer }
 func (bcon blockContainer) isBlockLevel() bool { return true }
 
 // NOTE: This should *only* be called once after making layout node.
-func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, writeMode writeMode, textDecors []gfx.TextDecorOptions) {
+func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, textDecors []gfx.TextDecorOptions) {
 	if len(bcon.childBoxes) != 0 || len(bcon.childTexts) != 0 {
 		panic("this method should be called only once")
 	}
@@ -85,11 +85,11 @@ func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, wr
 			anonChildren = append(anonChildren, childNode)
 			if i == len(children)-1 || !isInline[i+1] {
 				// Create anonymous block container
-				boxLeft, boxTop := calcNextPosition(bcon.bfc, bcon.ifc, bcon, true)
+				boxLeft, boxTop := computeNextPosition(bcon.bfc, bcon.ifc, bcon, true)
 				boxRect := BoxRect{Left: boxLeft, Top: boxTop, Width: bcon.marginRect.Width, Height: 0}
 				anonBcon := tb.newBlockContainer(bcon.parentFctx, bcon.ifc, bcon, bcon, nil, boxRect, BoxEdges{}, BoxEdges{}, false, true)
 				anonBcon.isAnonymous = true
-				anonBcon.initChildren(tb, anonChildren, writeMode, textDecors)
+				anonBcon.initChildren(tb, anonChildren, textDecors)
 				bcon.bfc.incrementNaturalPos(anonBcon.marginRect.Height)
 				anonChildren = []dom.Node{} // Clear children list
 				nodes = []Node{anonBcon}
@@ -97,7 +97,7 @@ func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, wr
 
 		} else {
 			// Create layout node normally
-			nodes = tb.makeLayoutForNode(bcon.parentFctx, bcon.bfc, bcon.ifc, writeMode, textDecors, bcon, childNode)
+			nodes = tb.layoutNode(bcon.parentFctx, bcon.bfc, bcon.ifc, textDecors, bcon, childNode)
 		}
 		if len(nodes) == 0 {
 			continue

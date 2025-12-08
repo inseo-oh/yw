@@ -23,7 +23,7 @@ type inlineFormattingContext struct {
 func (ifc inlineFormattingContext) formattingContextType() formattingContextType {
 	return formattingContextTypeInline
 }
-func (ifc *inlineFormattingContext) addLineBox(bfc *blockFormattingContext) {
+func (ifc *inlineFormattingContext) addLineBox() {
 	lb := lineBox{}
 	lb.currentLineHeight = 0
 	if len(ifc.lineBoxes) != 0 {
@@ -43,7 +43,7 @@ func (ifc inlineFormattingContext) naturalPos() float64 {
 }
 func (ifc *inlineFormattingContext) incrementNaturalPos(pos float64) {
 	if len(ifc.lineBoxes) == 0 {
-		ifc.addLineBox(ifc.bcon.bfc)
+		ifc.addLineBox()
 	}
 	lb := ifc.currentLineBox()
 	if lb.availableWidth < lb.currentNaturalPos+pos {
