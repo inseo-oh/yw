@@ -16,10 +16,10 @@ import (
 )
 
 // Build builds the layout starting from the DOM node root.
-func Build(root dom.Element, viewportWidth, viewportHeight float64, plat platform.Platform) Node {
+func Build(root dom.Element, viewportWidth, viewportHeight float64, fontProvider platform.FontProvider) Node {
 	// https://www.w3.org/TR/css-display-3/#initial-containing-block
 	tb := treeBuilder{}
-	tb.font = plat.OpenFont("this_is_not_real_filename.ttf")
+	tb.font = fontProvider.OpenFont("this_is_not_real_filename.ttf")
 	tb.font.SetTextSize(32)
 	bfc := &blockFormattingContext{}
 	ifc := &inlineFormattingContext{}

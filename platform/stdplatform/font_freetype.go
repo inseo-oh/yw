@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // See LICENSE for details, and LICENSE.thirdparty.md for third-party license information.
 
-package main
+package stdplatform
 
 // #cgo pkg-config: freetype2
 // #include <ft2build.h>
@@ -15,7 +15,34 @@ import (
 	"unsafe"
 
 	"github.com/inseo-oh/yw/gfx"
+	"github.com/inseo-oh/yw/platform"
 )
+
+type freetypeFontProvider struct {
+	ftLib C.FT_Library
+}
+
+func NewFreetypeProvider() platform.FontProvider {
+	var ftLib C.FT_Library
+	if res := C.FT_Init_FreeType(&ftLib); res != C.FT_Err_Ok {
+		log.Fatalf("Failed to initialize FreeType (FT Error %d)", res)
+	}
+
+	return &freetypeFontProvider{
+		ftLib: ftLib,
+	}
+}
+func (prv freetypeFontProvider) OpenFont(name string) gfx.Font {
+	var face C.FT_Face
+	fontName := C.CString("res/font/static/NotoSansKR-Regular.ttf")
+	if res := C.FT_New_Face(prv.ftLib, fontName, 0, &face); res == C.FT_Err_Unknown_File_Format {
+		log.Fatalf("Unrecognized font (FT Error %d)", res)
+	} else if res != C.FT_Err_Ok {
+		log.Fatalf("Failed to open font %s (FT Error %d)", name, res)
+	}
+	C.free(unsafe.Pointer(fontName))
+	return ftFont{face: face}
+}
 
 type ftFont struct {
 	face C.FT_Face

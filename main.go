@@ -12,6 +12,7 @@ import (
 	"os"
 
 	"github.com/inseo-oh/yw/browser"
+	"github.com/inseo-oh/yw/platform/stdplatform"
 )
 
 var url = flag.String("url", "", "The URL")
@@ -24,8 +25,8 @@ func main() {
 	}
 	br := browser.Browser{}
 	viewportImg := image.NewRGBA(image.Rect(0, 0, 1280, 720))
-	plat := initPlatform()
-	br.Run(*url, plat, viewportImg)
+	fontProvider := stdplatform.NewDefaultFontProvider()
+	br.Run(*url, fontProvider, viewportImg)
 
 	destFile, err := os.Create("output.png")
 	if err != nil {

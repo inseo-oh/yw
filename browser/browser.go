@@ -30,7 +30,7 @@ import (
 type Browser struct{}
 
 // Loads the document from urlStr URL, and renders resulting document to viewportImg.
-func (b *Browser) Run(urlStr string, plat platform.Platform, viewportImg *image.RGBA) {
+func (b *Browser) Run(urlStr string, fontProvider platform.FontProvider, viewportImg *image.RGBA) {
 	debugBuiltinStylesheet := false
 
 	// Load the default CSS ----------------------------------------------------
@@ -107,7 +107,7 @@ func (b *Browser) Run(urlStr string, plat platform.Platform, viewportImg *image.
 		}
 	}
 
-	icb := layout.Build(htmlElem, float64(viewportSize.X), float64(viewportSize.Y), plat)
+	icb := layout.Build(htmlElem, float64(viewportSize.X), float64(viewportSize.Y), fontProvider)
 	layout.PrintTree(icb)
 	log.Println("Made layout. Making paint tree...")
 	paintNode := icb.MakePaintNode()
