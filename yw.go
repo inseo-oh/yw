@@ -25,43 +25,47 @@ import (
 	"github.com/inseo-oh/yw/platform"
 )
 
+func loadUserAgentCss() *cssom.Stylesheet {
+	debugBuiltinStylesheet := false
+
+	log.Println("Reading UA CSS")
+	sheetBytes, err := os.ReadFile("res/default.css")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("Parsing UA CSS")
+	stylesheet, err := csssyntax.ParseStylesheet(sheetBytes, nil, "<UA stylesheet>")
+	if err != nil {
+		log.Panicf("failed to parse UA stylesheet: %v", err)
+	}
+	stylesheet.Type = "text/css"
+	stylesheet.OwnerNode = nil
+	// TODO: Set stylesheet.media once we implement that
+	stylesheet.AlternateFlag = false
+	stylesheet.OriginCleanFlag = true
+	stylesheet.Location = nil
+	stylesheet.ParentStylesheet = nil
+	stylesheet.OwnerRule = nil
+
+	if debugBuiltinStylesheet {
+		log.Println("dump of builtin stylesheet")
+		stylesheet.Dump()
+	}
+	return &stylesheet
+}
+
 // Browser represents state of the browser.
 type Browser struct{}
 
 // Run loads the document from urlStr URL, and renders resulting document to viewportImg.
 func (b *Browser) Run(urlStr string, fontProvider platform.FontProvider, viewportImg *image.RGBA) {
-	debugBuiltinStylesheet := false
-
-	// Load the default CSS ----------------------------------------------------
-	log.Println("Loading default CSS")
-	sheetBytes, err := os.ReadFile("res/default.css")
-	if err != nil {
-		log.Fatal(err)
-	}
-	initDefaultCss := func() cssom.Stylesheet {
-		log.Println("Parsing default CSS")
-		stylesheet, err := csssyntax.ParseStylesheet(sheetBytes, nil, "<UA stylesheet>")
-		if err != nil {
-			log.Panicf("failed to parse UA stylesheet: %v", err)
-		}
-		stylesheet.Type = "text/css"
-		stylesheet.OwnerNode = nil
-		// TODO: Set stylesheet.media once we implement that
-		stylesheet.AlternateFlag = false
-		stylesheet.OriginCleanFlag = true
-		stylesheet.Location = nil
-		stylesheet.ParentStylesheet = nil
-		stylesheet.OwnerRule = nil
-
-		if debugBuiltinStylesheet {
-			log.Println("dump of builtin stylesheet")
-			stylesheet.Dump()
-		}
-		return stylesheet
-	}
+	log.Println("= Loading user agent CSS ====================================")
+	uaStylesheet := loadUserAgentCss()
 
 	// Fetch the document ------------------------------------------------------
-	log.Println("Loading document at", urlStr)
+	log.Println("= Fetching document =========================================")
+	log.Printf("Document URL: %s", urlStr)
 	urlObj, err := url.Parse(urlStr)
 	if err != nil {
 		log.Fatal(err)
@@ -76,27 +80,21 @@ func (b *Browser) Run(urlStr string, fontProvider platform.FontProvider, viewpor
 		log.Fatal(err)
 	}
 	// Parse the HTML ----------------------------------------------------------
+	log.Println("= Parsing document ==========================================")
 	html := string(htmlBytes)
 	par := htmlparser.NewParser(html)
 	par.Document = dom.NewDocument()
 	par.Document.SetBaseURL(*urlObj)
 	doc := par.Run()
-
-	// Find the <html> element -------------------------------------------------
-	htmlElem := doc.FilterElementChildrenByLocalName(dom.NamePair{Namespace: namespaces.Html, LocalName: "html"})[0]
-	uaStylesheet := initDefaultCss()
-
-	// Find the <head> element -------------------------------------------------
-	headElem := htmlElem.FilterElementChildrenByLocalName(dom.NamePair{Namespace: namespaces.Html, LocalName: "head"})[0]
+	log.Println("= Document parsed ===========================================")
+	dom.PrintTree(doc)
 
 	// Apply style rules -------------------------------------------------------
-	cascade.ApplyStyleRules(&uaStylesheet, doc)
-	log.Println("Style rules applied")
+	log.Println("= Applying style rules ======================================")
+	cascade.ApplyStyleRules(uaStylesheet, doc)
 
 	// Do something with it ----------------------------------------------------
-	_ = headElem
-	dom.PrintTree(doc)
-	log.Println("Document loaded. Making layout tree...")
+	log.Println("= Building layout tree ======================================")
 	viewportSize := viewportImg.Rect.Size()
 	for y := range viewportSize.Y {
 		for x := range viewportSize.X {
@@ -104,12 +102,13 @@ func (b *Browser) Run(urlStr string, fontProvider platform.FontProvider, viewpor
 		}
 	}
 
+	htmlElem := doc.FilterElementChildrenByLocalName(dom.NamePair{Namespace: namespaces.Html, LocalName: "html"})[0]
 	icb := layout.Build(htmlElem, float64(viewportSize.X), float64(viewportSize.Y), fontProvider)
 	layout.PrintTree(icb)
-	log.Println("Made layout. Making paint tree...")
+	log.Println("= Building paint tree =======================================")
 	paintNode := icb.MakePaintNode()
 	paint.PrintTree(paintNode)
-	log.Println("Painting...")
+	log.Println("= Painting ==================================================")
 	paintNode.Paint(viewportImg)
 
 	log.Println("DONE")
