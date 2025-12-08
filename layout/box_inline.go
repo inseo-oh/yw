@@ -28,9 +28,8 @@ func (bx inlineBox) String() string {
 		bx.elem, leftStr, topStr, rightStr, bottomStr, bx.marginRect.Width, bx.marginRect.Height,
 	)
 }
-func (bx inlineBox) nodeType() nodeType     { return nodeTypeInlineBox }
-func (bx inlineBox) boxMarginRect() BoxRect { return bx.marginRect }
-func (bx inlineBox) isBlockLevel() bool     { return false }
+func (bx inlineBox) nodeType() nodeType { return nodeTypeInlineBox }
+func (bx inlineBox) isBlockLevel() bool { return false }
 
 // NOTE: This should *only* be called once after making layout node.
 func (bx *inlineBox) initChildren(tb treeBuilder, children []dom.Node, writeMode writeMode, textDecors []gfx.TextDecorOptions) {
