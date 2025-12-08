@@ -23,8 +23,8 @@ func Build(root dom.Element, viewportWidth, viewportHeight float64, plat platfor
 	tb.font.SetTextSize(32)
 	bfc := &blockFormattingContext{}
 	ifc := &inlineFormattingContext{}
-	boxRect := BoxRect{Left: 0, Top: 0, Width: viewportWidth, Height: viewportHeight}
-	icb := tb.newBlockContainer(bfc, ifc, nil, nil, nil, boxRect, BoxEdges{}, BoxEdges{}, true, true)
+	boxRect := logicalRect{inlinePos: 0, blockPos: 0, logicalWidth: viewportWidth, logicalHeight: viewportHeight}
+	icb := tb.newBlockContainer(bfc, ifc, nil, nil, nil, boxRect, physicalEdges{}, physicalEdges{}, true, true)
 	bfc.creatorBox = icb
 	ifc.creatorBox = icb
 	ifc.bcon = icb

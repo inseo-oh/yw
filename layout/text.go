@@ -15,7 +15,7 @@ import (
 
 type text struct {
 	nodeCommon
-	rect     BoxRect
+	rect     physicalRect
 	text     string
 	font     gfx.Font
 	fontSize float64

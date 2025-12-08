@@ -36,13 +36,14 @@ func (bcon blockContainer) String() string {
 	if bcon.createdIfc {
 		fcStr += "[IFC]"
 	}
-	leftStr := fmt.Sprintf("%g+%g+%g", bcon.marginRect.Left, bcon.margin.Left, bcon.padding.Left)
-	topStr := fmt.Sprintf("%g+%g+%g", bcon.marginRect.Top, bcon.margin.Top, bcon.padding.Top)
-	rightStr := fmt.Sprintf("%g-%g-%g", bcon.marginRect.Right(), bcon.margin.Right, bcon.padding.Right)
-	bottomStr := fmt.Sprintf("%g-%g-%g", bcon.marginRect.Bottom(), bcon.margin.Bottom, bcon.padding.Bottom)
+	physMarginRect := bcon.marginRect.toPhysicalRect()
+	leftStr := fmt.Sprintf("%g+%g+%g", physMarginRect.Left, bcon.margin.left, bcon.padding.left)
+	topStr := fmt.Sprintf("%g+%g+%g", physMarginRect.Top, bcon.margin.top, bcon.padding.top)
+	rightStr := fmt.Sprintf("%g-%g-%g", physMarginRect.right(), bcon.margin.right, bcon.padding.right)
+	bottomStr := fmt.Sprintf("%g-%g-%g", physMarginRect.bottom(), bcon.margin.bottom, bcon.padding.bottom)
 	return fmt.Sprintf(
 		"block-container [elem %v] at [LTRB %s %s %s %s (%gx%g)] %s",
-		bcon.elem, leftStr, topStr, rightStr, bottomStr, bcon.marginRect.Width, bcon.marginRect.Height, fcStr)
+		bcon.elem, leftStr, topStr, rightStr, bottomStr, physMarginRect.Width, physMarginRect.Height, fcStr)
 }
 func (bcon blockContainer) nodeType() nodeType { return nodeTypeBlockContainer }
 func (bcon blockContainer) isBlockLevel() bool { return true }
@@ -85,12 +86,12 @@ func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, te
 			anonChildren = append(anonChildren, childNode)
 			if i == len(children)-1 || !isInline[i+1] {
 				// Create anonymous block container
-				boxLeft, boxTop := computeNextPosition(bcon.bfc, bcon.ifc, bcon, true)
-				boxRect := BoxRect{Left: boxLeft, Top: boxTop, Width: bcon.marginRect.Width, Height: 0}
-				anonBcon := tb.newBlockContainer(bcon.parentFctx, bcon.ifc, bcon, bcon, nil, boxRect, BoxEdges{}, BoxEdges{}, false, true)
+				inlinePos, blockPos := computeNextPosition(bcon.bfc, bcon.ifc, bcon, true)
+				boxRect := logicalRect{inlinePos: inlinePos, blockPos: blockPos, logicalWidth: bcon.marginRect.logicalWidth, logicalHeight: 0}
+				anonBcon := tb.newBlockContainer(bcon.parentFctx, bcon.ifc, bcon, bcon, nil, boxRect, physicalEdges{}, physicalEdges{}, false, true)
 				anonBcon.isAnonymous = true
 				anonBcon.initChildren(tb, anonChildren, textDecors)
-				bcon.bfc.incrementNaturalPos(anonBcon.marginRect.Height)
+				bcon.bfc.incrementNaturalPos(anonBcon.marginRect.logicalHeight)
 				anonChildren = []dom.Node{} // Clear children list
 				nodes = []Node{anonBcon}
 			}

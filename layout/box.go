@@ -18,10 +18,10 @@ import (
 type box interface {
 	Node
 	boxElement() dom.Element
-	boxMarginRect() BoxRect
-	boxContentRect() BoxRect
-	boxMargin() BoxEdges
-	boxPadding() BoxEdges
+	boxMarginRect() logicalRect
+	boxContentRect() logicalRect
+	boxMargin() physicalEdges
+	boxPadding() physicalEdges
 	logicalWidth() float64
 	logicalHeight() float64
 	ChildBoxes() []box
@@ -33,31 +33,31 @@ type box interface {
 }
 type boxCommon struct {
 	nodeCommon
-	elem       dom.Element
-	marginRect BoxRect
-	margin     BoxEdges
-	padding    BoxEdges
-	widthAuto  bool
-	heightAuto bool
-	childBoxes []box
-	childTexts []*text
+	elem               dom.Element
+	marginRect         logicalRect
+	margin             physicalEdges
+	padding            physicalEdges
+	physicalWidthAuto  bool
+	physicalHeightAuto bool
+	childBoxes         []box
+	childTexts         []*text
 }
 
-func (bx boxCommon) boxElement() dom.Element { return bx.elem }
-func (bx boxCommon) boxMarginRect() BoxRect  { return bx.marginRect }                              // Rect containing margin area
-func (bx boxCommon) boxPaddingRect() BoxRect { return bx.boxMarginRect().AddPadding(bx.margin) }   // Rect containing padding area
-func (bx boxCommon) boxContentRect() BoxRect { return bx.boxPaddingRect().AddPadding(bx.padding) } // Rect containing content area
-func (bx boxCommon) boxMargin() BoxEdges     { return bx.margin }
-func (bx boxCommon) boxPadding() BoxEdges    { return bx.padding }
+func (bx boxCommon) boxElement() dom.Element     { return bx.elem }
+func (bx boxCommon) boxMarginRect() logicalRect  { return bx.marginRect }                              // Rect containing margin area
+func (bx boxCommon) boxPaddingRect() logicalRect { return bx.boxMarginRect().addPadding(bx.margin) }   // Rect containing padding area
+func (bx boxCommon) boxContentRect() logicalRect { return bx.boxPaddingRect().addPadding(bx.padding) } // Rect containing content area
+func (bx boxCommon) boxMargin() physicalEdges    { return bx.margin }
+func (bx boxCommon) boxPadding() physicalEdges   { return bx.padding }
 
 // https://www.w3.org/TR/css-writing-modes-4/#logical-width
 func (bx boxCommon) logicalWidth() float64 {
-	return bx.boxContentRect().Width
+	return bx.boxContentRect().logicalWidth
 }
 
 // https://www.w3.org/TR/css-writing-modes-4/#logical-height
 func (bx boxCommon) logicalHeight() float64 {
-	return bx.boxContentRect().Height
+	return bx.boxContentRect().logicalHeight
 }
 func (bx boxCommon) ChildBoxes() []box {
 	return bx.childBoxes
@@ -65,19 +65,19 @@ func (bx boxCommon) ChildBoxes() []box {
 func (bx boxCommon) ChildTexts() []*text {
 	return bx.childTexts
 }
-func (bx boxCommon) isWidthAuto() bool  { return bx.widthAuto }
-func (bx boxCommon) isHeightAuto() bool { return bx.heightAuto }
-func (bx *boxCommon) incrementSize(width, height float64) {
-	if width == 0 && height == 0 {
+func (bx boxCommon) isWidthAuto() bool  { return bx.physicalWidthAuto }
+func (bx boxCommon) isHeightAuto() bool { return bx.physicalHeightAuto }
+func (bx *boxCommon) incrementSize(logicalWidth, logicalHeight float64) {
+	if logicalWidth == 0 && logicalHeight == 0 {
 		return
 	}
-	bx.marginRect.Width += width
-	bx.marginRect.Height += height
+	bx.marginRect.logicalWidth += logicalWidth
+	bx.marginRect.logicalHeight += logicalHeight
 	parent := bx.parentNode()
 	if !util.IsNil(parent) {
 		if parent, ok := parent.(box); ok {
-			w := width
-			h := height
+			w := logicalWidth
+			h := logicalHeight
 			if !parent.isWidthAuto() {
 				w = 0
 			}
@@ -88,9 +88,9 @@ func (bx *boxCommon) incrementSize(width, height float64) {
 		}
 	}
 }
-func (bx *boxCommon) incrementIfNeeded(minWidth, minHeight float64) (widthDiff, heightDiff float64) {
-	wDiff := max(minWidth-bx.boxContentRect().Width, 0)
-	hDiff := max(minHeight-bx.boxContentRect().Height, 0)
+func (bx *boxCommon) incrementIfNeeded(minLogicalWidth, minLogicalHeight float64) (widthDiff, heightDiff float64) {
+	wDiff := max(minLogicalWidth-bx.boxContentRect().logicalWidth, 0)
+	hDiff := max(minLogicalHeight-bx.boxContentRect().logicalHeight, 0)
 	bx.incrementSize(wDiff, hDiff)
 	return wDiff, hDiff
 }
@@ -112,11 +112,12 @@ func (bx boxCommon) MakePaintNode() paint.Node {
 	for _, child := range bx.ChildTexts() {
 		paintNodes = append(paintNodes, child.MakePaintNode())
 	}
+	paddingPhysRect := bx.boxPaddingRect().toPhysicalRect()
 	contentRect := image.Rect(
-		int(bx.boxPaddingRect().Left),
-		int(bx.boxPaddingRect().Top),
-		int(bx.boxPaddingRect().Right()),
-		int(bx.boxPaddingRect().Bottom()),
+		int(paddingPhysRect.Left),
+		int(paddingPhysRect.Top),
+		int(paddingPhysRect.right()),
+		int(paddingPhysRect.bottom()),
 	)
 	return paint.BoxPaint{Items: paintNodes, Color: col, Rect: contentRect}
 }

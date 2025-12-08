@@ -19,14 +19,14 @@ type inlineBox struct {
 }
 
 func (bx inlineBox) String() string {
-	leftStr := fmt.Sprintf("%g(%g+%g)", bx.boxContentRect().Left, bx.marginRect.Left, bx.margin.Left)
-	topStr := fmt.Sprintf("%g(%g+%g)", bx.boxContentRect().Top, bx.marginRect.Top, bx.margin.Top)
-	rightStr := fmt.Sprintf("%g(%g-%g)", bx.boxContentRect().Right(), bx.marginRect.Right(), bx.margin.Right)
-	bottomStr := fmt.Sprintf("%g(%g-%g)", bx.boxContentRect().Bottom(), bx.marginRect.Bottom(), bx.margin.Bottom)
+	physMarginRect := bx.marginRect.toPhysicalRect()
+	leftStr := fmt.Sprintf("%g+%g+%g", physMarginRect.Left, bx.margin.left, bx.padding.left)
+	topStr := fmt.Sprintf("%g+%g+%g", physMarginRect.Top, bx.margin.top, bx.padding.top)
+	rightStr := fmt.Sprintf("%g-%g-%g", physMarginRect.right(), bx.margin.right, bx.padding.right)
+	bottomStr := fmt.Sprintf("%g-%g-%g", physMarginRect.bottom(), bx.margin.bottom, bx.padding.bottom)
 	return fmt.Sprintf(
-		"inline-box %v at [LTRB %s %s %s %s (%gx%g)]",
-		bx.elem, leftStr, topStr, rightStr, bottomStr, bx.marginRect.Width, bx.marginRect.Height,
-	)
+		"inline-box [elem %v] at [LTRB %s %s %s %s (%gx%g)]",
+		bx.elem, leftStr, topStr, rightStr, bottomStr, physMarginRect.Width, physMarginRect.Height)
 }
 func (bx inlineBox) nodeType() nodeType { return nodeTypeInlineBox }
 func (bx inlineBox) isBlockLevel() bool { return false }

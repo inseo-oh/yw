@@ -4,30 +4,36 @@
 
 package layout
 
-// BoxEdges store four values for each edge of a rectangle.
-type BoxEdges struct{ Top, Right, Bottom, Left float64 }
+type physicalEdges struct{ top, right, bottom, left float64 }
 
-// VerticalSum returns top + bottom value.
-func (e BoxEdges) VerticalSum() float64 { return e.Top + e.Bottom }
+func (e physicalEdges) verticalSum() float64   { return e.top + e.bottom }
+func (e physicalEdges) horizontalSum() float64 { return e.left + e.right }
 
-// HorizontalSum returns left + right value.
-func (e BoxEdges) HorizontalSum() float64 { return e.Left + e.Right }
+type logicalRect struct{ inlinePos, blockPos, logicalWidth, logicalHeight float64 }
 
-// BoxRect represents a rectangular area.
-type BoxRect struct{ Left, Top, Width, Height float64 }
-
-// Right returns right of the rectangle.
-func (r BoxRect) Right() float64 { return r.Left + r.Width - 1 }
-
-// Bottom returns bottom of the rectangle.
-func (r BoxRect) Bottom() float64 { return r.Top + r.Height - 1 }
-
-// AddPadding adds given amount to each edge(top, right, bottom, left), and
-// returns resulting rectangle.
-func (r BoxRect) AddPadding(edges BoxEdges) BoxRect {
-	r.Top += edges.Top
-	r.Left += edges.Left
-	r.Width -= edges.Left + edges.Right
-	r.Height -= edges.Top + edges.Bottom
+func (r logicalRect) addPadding(edges physicalEdges) logicalRect {
+	// TODO: Support vertical writing mode
+	r.blockPos += edges.top
+	r.inlinePos += edges.left
+	r.logicalWidth -= edges.left + edges.right
+	r.logicalHeight -= edges.top + edges.bottom
 	return r
+}
+func (r logicalRect) toPhysicalRect() physicalRect {
+	// TODO: Support vertical writing mode
+	return physicalRect{
+		Left:   r.inlinePos,
+		Top:    r.blockPos,
+		Width:  r.logicalWidth,
+		Height: r.logicalHeight,
+	}
+}
+
+type physicalRect struct{ Left, Top, Width, Height float64 }
+
+func (r physicalRect) right() float64  { return r.Left + r.Width - 1 }
+func (r physicalRect) bottom() float64 { return r.Top + r.Height - 1 }
+func physicalSizeToLogical(physicalWidth, physicalHeight float64) (logicalWidth, logicalHeight float64) {
+	// TODO: Support vertical writing mode
+	return physicalWidth, physicalHeight
 }
