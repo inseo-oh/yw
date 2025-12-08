@@ -15,7 +15,12 @@ import (
 	"github.com/inseo-oh/yw/platform/stdplatform"
 )
 
-var url = flag.String("url", "", "The URL")
+var (
+	url        = flag.String("url", "", "The URL")
+	dumpDom    = flag.Bool("dumpdom", false, "Dump DOM tree")
+	dumpLayout = flag.Bool("dumplayout", false, "Dump layout tree")
+	dumpPaint  = flag.Bool("dumppaint", false, "Dump paint tree")
+)
 
 func main() {
 	flag.Parse()
@@ -23,7 +28,11 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	br := yw.Browser{}
+	br := yw.Browser{
+		DumpDom:    *dumpDom,
+		DumpLayout: *dumpLayout,
+		DumpPaint:  *dumpPaint,
+	}
 	viewportImg := image.NewRGBA(image.Rect(0, 0, 1280, 720))
 	fontProvider := stdplatform.NewDefaultFontProvider()
 	br.Run(*url, fontProvider, viewportImg)

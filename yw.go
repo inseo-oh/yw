@@ -56,7 +56,11 @@ func loadUserAgentCss() *cssom.Stylesheet {
 }
 
 // Browser represents state of the browser.
-type Browser struct{}
+type Browser struct {
+	DumpDom    bool // Dump DOM tree?
+	DumpLayout bool // Dump layout tree?
+	DumpPaint  bool // Dump paint tree?
+}
 
 // Run loads the document from urlStr URL, and renders resulting document to viewportImg.
 func (b *Browser) Run(urlStr string, fontProvider platform.FontProvider, viewportImg *image.RGBA) {
@@ -87,7 +91,9 @@ func (b *Browser) Run(urlStr string, fontProvider platform.FontProvider, viewpor
 	par.Document.SetBaseURL(*urlObj)
 	doc := par.Run()
 	log.Println("= Document parsed ===========================================")
-	dom.PrintTree(doc)
+	if b.DumpDom {
+		dom.PrintTree(doc)
+	}
 
 	// Apply style rules -------------------------------------------------------
 	log.Println("= Applying style rules ======================================")
@@ -104,10 +110,14 @@ func (b *Browser) Run(urlStr string, fontProvider platform.FontProvider, viewpor
 
 	htmlElem := doc.FilterElementChildrenByLocalName(dom.NamePair{Namespace: namespaces.Html, LocalName: "html"})[0]
 	icb := layout.Build(htmlElem, float64(viewportSize.X), float64(viewportSize.Y), fontProvider)
-	layout.PrintTree(icb)
+	if b.DumpLayout {
+		layout.PrintTree(icb)
+	}
 	log.Println("= Building paint tree =======================================")
 	paintNode := icb.MakePaintNode()
-	paint.PrintTree(paintNode)
+	if b.DumpPaint {
+		paint.PrintTree(paintNode)
+	}
 	log.Println("= Painting ==================================================")
 	paintNode.Paint(viewportImg)
 
