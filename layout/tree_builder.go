@@ -324,7 +324,8 @@ func (tb treeBuilder) newBlockContainer(
 		bcon.accumulatedPaddingRight = parentBcon.accumulatedPaddingRight + padding.right
 	}
 	if util.IsNil(parentFctx) || parentFctx.formattingContextType() != formattingContextTypeBlock {
-		bcon.bfc = makeBfc(bcon)
+		bcon.bfc = &blockFormattingContext{}
+		bcon.bfc.ownerBox = bcon
 		bcon.ownsBfc = true
 	} else {
 		bcon.bfc = parentFctx.(*blockFormattingContext)
