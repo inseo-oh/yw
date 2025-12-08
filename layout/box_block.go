@@ -57,18 +57,13 @@ func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, wr
 	hasInline, hasBlock := false, false
 	isInline := make([]bool, len(children))
 	for i, childNode := range children {
-		nodes := tb.makeLayoutForNode(bcon.parentFctx, bcon.bfc, bcon.ifc, writeMode, textDecors, bcon, childNode, true)
+		isBlockLevel := tb.isElementBlockLevel(bcon.parentFctx, childNode)
 		isInline[i] = false
-		if len(nodes) == 0 {
-			continue
-		}
-		for _, node := range nodes {
-			if node.isBlockLevel() {
-				hasBlock = true
-			} else {
-				hasInline = true
-				isInline[i] = true
-			}
+		if isBlockLevel {
+			hasBlock = true
+		} else {
+			hasInline = true
+			isInline[i] = true
 		}
 	}
 
@@ -79,9 +74,6 @@ func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, wr
 		bcon.ifc = &inlineFormattingContext{}
 		bcon.ifc.creatorBox = bcon
 		bcon.ifc.bcon = bcon
-		if bcon.bfc.isDummyContext {
-			bcon.ifc.isDummyContext = true
-		}
 		bcon.createdIfc = true
 	}
 
@@ -105,7 +97,7 @@ func (bcon *blockContainer) initChildren(tb treeBuilder, children []dom.Node, wr
 
 		} else {
 			// Create layout node normally
-			nodes = tb.makeLayoutForNode(bcon.parentFctx, bcon.bfc, bcon.ifc, writeMode, textDecors, bcon, childNode, false)
+			nodes = tb.makeLayoutForNode(bcon.parentFctx, bcon.bfc, bcon.ifc, writeMode, textDecors, bcon, childNode)
 		}
 		if len(nodes) == 0 {
 			continue

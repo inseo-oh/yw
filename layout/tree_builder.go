@@ -183,15 +183,60 @@ func applySegmentBreakTransform(str string) string {
 	return str
 }
 
+func (tb treeBuilder) isElementBlockLevel(parentFctx formattingContext, domNode dom.Node) bool {
+	if n, ok := domNode.(dom.CharacterData); ok && n.CharacterDataType() == dom.CommentCharacterData {
+		return false
+	}
+	if txt, ok := domNode.(dom.CharacterData); ok && txt.CharacterDataType() == dom.TextCharacterData {
+		return false
+	} else if elem, ok := domNode.(dom.Element); ok {
+		styleSetSrc := cssom.ComputedStyleSetSourceOf(elem)
+		styleSet := styleSetSrc.ComputedStyleSet()
+		styleDisplay := styleSet.Display()
+		switch styleDisplay.Mode {
+		case display.DisplayNone:
+			return false
+		case display.OuterInnerMode:
+			switch styleDisplay.InnerMode {
+			case display.Flow:
+				//==================================================================
+				// "flow" mode (block, inline, run-in, list-item, inline list-item display modes)
+				//==================================================================
+
+				// https://www.w3.org/TR/css-display-3/#valdef-display-flow
+
+				shouldMakeInlineBox := false
+				if styleDisplay.OuterMode == display.Inline ||
+					styleDisplay.OuterMode == display.RunIn {
+					if parentFctx.formattingContextType() == formattingContextTypeBlock ||
+						parentFctx.formattingContextType() == formattingContextTypeInline {
+						shouldMakeInlineBox = true
+					}
+				}
+				if shouldMakeInlineBox {
+					return false
+				}
+				return true
+			case display.FlowRoot:
+				//==================================================================
+				// "flow-root" mode (flow-root, inline-block display modes)
+				//==================================================================
+
+				// https://www.w3.org/TR/css-display-3/#valdef-display-flow-root
+				return true
+			default:
+				log.Panicf("TODO: Support display: %v", styleDisplay)
+			}
+
+		default:
+			log.Panicf("TODO: Support display: %v", styleDisplay)
+		}
+	}
+
+	panic("unreachable")
+}
+
 // This function can be seen as heart of layout process.
-//
-// dryRun flag is intended for determine resulting box type. If dryRun is true:
-//   - parentFctx, parentNode will be internally replaced by dummy ones,
-//     so that they don't affect actual parent context.
-//   - will not layout its children, and so returned box will have empty children.
-//   - New dummy formatting context will have its isDummyContext set to true.
-//     (As of writing this comment, this is mostly for debug prints.
-//     outputs with dummy contexts can be confusing when mixed with real ones)
 func (tb treeBuilder) makeLayoutForNode(
 	parentFctx formattingContext,
 	bfc *blockFormattingContext,
@@ -200,7 +245,6 @@ func (tb treeBuilder) makeLayoutForNode(
 	textDecors []gfx.TextDecorOptions,
 	parentNode box,
 	domNode dom.Node,
-	dryRun bool,
 ) []Node {
 	var parentElem dom.Element
 	{
@@ -213,37 +257,6 @@ func (tb treeBuilder) makeLayoutForNode(
 			currNode = parent.(box)
 		}
 		parentElem = currNode.boxElement()
-	}
-
-	if dryRun {
-		dummyBcon := &blockContainer{}
-		dummyBcon.elem = parentNode.boxElement()
-		dummyBcon.bfc = &blockFormattingContext{
-			formattingContextCommon: formattingContextCommon{
-				isDummyContext: true,
-				creatorBox:     dummyBcon,
-			},
-		}
-		bfc = dummyBcon.bfc
-		ifc = &inlineFormattingContext{
-			formattingContextCommon: formattingContextCommon{
-				isDummyContext: true,
-				creatorBox:     dummyBcon,
-			},
-			bcon: dummyBcon,
-		}
-		if parentFctx.formattingContextType() == formattingContextTypeBlock {
-			parentFctx = bfc
-		} else {
-			parentFctx = ifc
-		}
-		parentNode = dummyBcon
-	}
-	if bfc == nil {
-		panic("BFC should not be nil at this point")
-	}
-	if ifc == nil {
-		panic("IFC should not be nil at this point")
 	}
 
 	parentBconBox := parentNode
@@ -331,7 +344,7 @@ func (tb treeBuilder) makeLayoutForNode(
 					inlineAxisSize = rect.Height
 				}
 				// Check if we overflow beyond available size
-				if ifc.isDummyContext || lineBox.currentNaturalPos+inlineAxisSize <= lineBox.availableWidth {
+				if lineBox.currentNaturalPos+inlineAxisSize <= lineBox.availableWidth {
 					// If not, we don't have to fragment text further.
 					break
 				}
@@ -565,17 +578,13 @@ func (tb treeBuilder) makeLayoutForNode(
 				var bx box
 				if shouldMakeInlineBox {
 					ibox := tb.newInlineBox(parentBcon, elem, boxRect, margin, padding, widthAuto, heightAuto)
-					if !dryRun {
-						ibox.initChildren(tb, elem.Children(), writeMode, textDecors)
-					}
+					ibox.initChildren(tb, elem.Children(), writeMode, textDecors)
 					bx = ibox
 				} else {
 					oldBlockPos := bfc.currentNaturalPos
 					bfc.incrementNaturalPos(margin.Top + padding.Top) // Consume top margin+padding first
 					bcon := tb.newBlockContainer(parentFctx, ifc, parentNode, parentBcon, elem, boxRect, margin, padding, widthAuto, heightAuto)
-					if !dryRun {
-						bcon.initChildren(tb, elem.Children(), writeMode, textDecors)
-					}
+					bcon.initChildren(tb, elem.Children(), writeMode, textDecors)
 					bfc.incrementNaturalPos(margin.Bottom + padding.Bottom) // Consume bottom margin+padding
 					newBlockPos := bfc.currentNaturalPos
 					bx = bcon
@@ -597,9 +606,7 @@ func (tb treeBuilder) makeLayoutForNode(
 				//==================================================================
 				// https://www.w3.org/TR/css-display-3/#valdef-display-flow-root
 				bcon := tb.newBlockContainer(parentFctx, ifc, parentNode, parentBcon, elem, boxRect, margin, padding, widthAuto, heightAuto)
-				if !dryRun {
-					bcon.initChildren(tb, elem.Children(), writeMode, textDecors)
-				}
+				bcon.initChildren(tb, elem.Children(), writeMode, textDecors)
 
 				// Increment natural position
 				inlineAxisSize := bcon.boxMarginRect().Width

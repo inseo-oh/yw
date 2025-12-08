@@ -46,7 +46,7 @@ func (ifc *inlineFormattingContext) incrementNaturalPos(pos float64) {
 		ifc.addLineBox(ifc.bcon.bfc)
 	}
 	lb := ifc.currentLineBox()
-	if lb.availableWidth < lb.currentNaturalPos+pos && !ifc.isDummyContext {
+	if lb.availableWidth < lb.currentNaturalPos+pos {
 		panic("content overflow")
 	}
 	lb.currentNaturalPos += pos

@@ -38,7 +38,7 @@ func (bx *inlineBox) initChildren(tb treeBuilder, children []dom.Node, writeMode
 		panic("this method should be called only once")
 	}
 	for _, childNode := range children {
-		nodes := tb.makeLayoutForNode(bx.parentBcon.ifc, bx.parentBcon.bfc, bx.parentBcon.ifc, writeMode, textDecors, bx, childNode, false)
+		nodes := tb.makeLayoutForNode(bx.parentBcon.ifc, bx.parentBcon.bfc, bx.parentBcon.ifc, writeMode, textDecors, bx, childNode)
 		if len(nodes) == 0 {
 			continue
 		}

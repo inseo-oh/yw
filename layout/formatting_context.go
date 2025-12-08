@@ -12,8 +12,7 @@ type formattingContext interface {
 }
 
 type formattingContextCommon struct {
-	isDummyContext bool
-	creatorBox     box
+	creatorBox box
 }
 type formattingContextType uint8
 
