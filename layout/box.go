@@ -22,8 +22,8 @@ type box interface {
 	boxContentRect() BoxRect
 	boxMargin() BoxEdges
 	boxPadding() BoxEdges
-	logicalWidth(writeMode writeMode) float64
-	logicalHeight(writeMode writeMode) float64
+	logicalWidth() float64
+	logicalHeight() float64
 	ChildBoxes() []box
 	ChildTexts() []*text
 	isWidthAuto() bool
@@ -51,19 +51,13 @@ func (bx boxCommon) boxMargin() BoxEdges     { return bx.margin }
 func (bx boxCommon) boxPadding() BoxEdges    { return bx.padding }
 
 // https://www.w3.org/TR/css-writing-modes-4/#logical-width
-func (bx boxCommon) logicalWidth(writeMode writeMode) float64 {
-	if writeMode == writeModeHorizontal {
-		return bx.boxContentRect().Width
-	}
-	return bx.boxContentRect().Height
+func (bx boxCommon) logicalWidth() float64 {
+	return bx.boxContentRect().Width
 }
 
 // https://www.w3.org/TR/css-writing-modes-4/#logical-height
-func (bx boxCommon) logicalHeight(writeMode writeMode) float64 {
-	if writeMode == writeModeHorizontal {
-		return bx.boxContentRect().Height
-	}
-	return bx.boxContentRect().Width
+func (bx boxCommon) logicalHeight() float64 {
+	return bx.boxContentRect().Height
 }
 func (bx boxCommon) ChildBoxes() []box {
 	return bx.childBoxes

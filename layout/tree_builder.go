@@ -178,8 +178,7 @@ func elementMarginAndPadding(elem dom.Element, parentNode box) (margin, padding 
 		panic("TODO: Support auto margin")
 	}
 
-	writeMode := writeModeHorizontal
-	parentLogicalWidth := parentNode.logicalWidth(writeMode)
+	parentLogicalWidth := parentNode.logicalWidth()
 	parentFontSize := css.NumFromFloat(fonts.PreferredFontSize) // STUB
 	fontSize := styleSet.FontSize().CalculateRealFontSize(parentFontSize).ToPx(parentFontSize)
 	margin = BoxEdges{
@@ -496,7 +495,6 @@ func (tb treeBuilder) layoutText(txt dom.Text, parentNode box, bfc *blockFormatt
 	return textNodes
 }
 func (tb treeBuilder) layoutElement(elem dom.Element, parentNode box, parentFctx formattingContext, bfc *blockFormattingContext, ifc *inlineFormattingContext, textDecors []gfx.TextDecorOptions) Node {
-	writeMode := writeModeHorizontal
 	parentBcon := closestParentBlockContainer(parentNode)
 
 	styleSetSrc := cssom.ComputedStyleSetSourceOf(elem)
@@ -515,12 +513,9 @@ func (tb treeBuilder) layoutElement(elem dom.Element, parentNode box, parentFctx
 
 		// Check if we have auto size on a block element. If so, use parent's size and unset auto.
 		if styleDisplay.OuterMode == display.Block {
-			if writeMode == writeModeHorizontal && widthAuto {
+			if widthAuto {
 				boxRect.Width = parentNode.boxContentRect().Width
 				widthAuto = false
-			} else if writeMode == writeModeVertical && heightAuto {
-				boxRect.Height = parentNode.boxContentRect().Height
-				heightAuto = false
 			}
 		}
 
@@ -584,12 +579,7 @@ func (tb treeBuilder) layoutElement(elem dom.Element, parentNode box, parentFctx
 				newBlockPos := bfc.currentNaturalPos
 
 				// Increment natural position (but only the amount that hasn't been incremented)
-				inlineAxisSize := bcon.boxMarginRect().Width
 				blockAxisSize := bcon.boxMarginRect().Height
-				if writeMode == writeModeVertical {
-					inlineAxisSize, blockAxisSize = blockAxisSize, inlineAxisSize
-				}
-				_ = inlineAxisSize
 				posDiff := newBlockPos - oldBlockPos
 				bfc.incrementNaturalPos(blockAxisSize - posDiff)
 				return bcon
@@ -605,9 +595,6 @@ func (tb treeBuilder) layoutElement(elem dom.Element, parentNode box, parentFctx
 			// Increment natural position
 			inlineAxisSize := bcon.boxMarginRect().Width
 			blockAxisSize := bcon.boxMarginRect().Height
-			if writeMode == writeModeVertical {
-				inlineAxisSize, blockAxisSize = blockAxisSize, inlineAxisSize
-			}
 			switch styleDisplay.OuterMode {
 			case display.Inline:
 				ifc.incrementNaturalPos(inlineAxisSize)

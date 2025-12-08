@@ -15,13 +15,6 @@ import (
 	"github.com/inseo-oh/yw/util"
 )
 
-type writeMode uint8
-
-const (
-	writeModeHorizontal writeMode = iota
-	writeModeVertical
-)
-
 // Build builds the layout starting from the DOM node root.
 func Build(root dom.Element, viewportWidth, viewportHeight float64, plat platform.Platform) Node {
 	// https://www.w3.org/TR/css-display-3/#initial-containing-block
