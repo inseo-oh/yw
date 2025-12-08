@@ -19,7 +19,6 @@ import (
 	"github.com/inseo-oh/yw/css/csssyntax"
 	"github.com/inseo-oh/yw/dom"
 	"github.com/inseo-oh/yw/gfx/paint"
-	"github.com/inseo-oh/yw/html/elements"
 	"github.com/inseo-oh/yw/html/htmlparser"
 	"github.com/inseo-oh/yw/layout"
 	"github.com/inseo-oh/yw/namespaces"
@@ -39,16 +38,14 @@ func (b *Browser) Run(urlStr string, fontProvider platform.FontProvider, viewpor
 	if err != nil {
 		log.Fatal(err)
 	}
-	// TODO: Can't we pass dom.Document instead?
-	// Also, should <html> own the default stylesheet?
-	initDefaultCss := func(htm elements.HTMLElement) cssom.Stylesheet {
+	initDefaultCss := func() cssom.Stylesheet {
 		log.Println("Parsing default CSS")
 		stylesheet, err := csssyntax.ParseStylesheet(sheetBytes, nil, "<UA stylesheet>")
 		if err != nil {
 			log.Panicf("failed to parse UA stylesheet: %v", err)
 		}
 		stylesheet.Type = "text/css"
-		stylesheet.OwnerNode = htm
+		stylesheet.OwnerNode = nil
 		// TODO: Set stylesheet.media once we implement that
 		stylesheet.AlternateFlag = false
 		stylesheet.OriginCleanFlag = true
@@ -87,7 +84,7 @@ func (b *Browser) Run(urlStr string, fontProvider platform.FontProvider, viewpor
 
 	// Find the <html> element -------------------------------------------------
 	htmlElem := doc.FilterElementChildrenByLocalName(dom.NamePair{Namespace: namespaces.Html, LocalName: "html"})[0]
-	uaStylesheet := initDefaultCss(htmlElem.(elements.HTMLElement))
+	uaStylesheet := initDefaultCss()
 
 	// Find the <head> element -------------------------------------------------
 	headElem := htmlElem.FilterElementChildrenByLocalName(dom.NamePair{Namespace: namespaces.Html, LocalName: "head"})[0]
