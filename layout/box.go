@@ -77,9 +77,6 @@ func (bx *boxCommon) incrementSize(width, height float64) {
 	if width == 0 && height == 0 {
 		return
 	}
-	if bx.marginRect.Width+width == 1355 {
-		panic("?")
-	}
 	bx.marginRect.Width += width
 	bx.marginRect.Height += height
 	parent := bx.parentNode()
