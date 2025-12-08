@@ -14,6 +14,20 @@ Everything is in WIP and very early stage. For now, this repo is mostly for back
 
 There are also some "tools" inside cmd directory, but they were made for experimenting, and will likely get removed in the future.
 
+## Getting started
+
+If you want to try this out yourself, run:
+
+```
+go run ./cmd/yw -url <HTTP/HTTPS URL of the page>
+```
+
+Or to build as executable:
+
+```
+go build ./cmd/yw
+```
+
 ## License
 
 -   See `LICENSE` for license of YW.
