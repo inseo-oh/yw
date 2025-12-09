@@ -22,6 +22,7 @@ type freetypeFontProvider struct {
 	ftLib C.FT_Library
 }
 
+// Returns new [platform.FontProvider] implementing Freetype support.
 func NewFreetypeProvider() platform.FontProvider {
 	var ftLib C.FT_Library
 	if res := C.FT_Init_FreeType(&ftLib); res != C.FT_Err_Ok {

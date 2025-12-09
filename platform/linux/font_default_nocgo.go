@@ -8,6 +8,7 @@ package stdplatform
 
 import "github.com/inseo-oh/yw/platform"
 
+// Returns new default [platform.FontProvider]. (In current build configuration, it is the same as [NewNullFontProvider])
 func NewDefaultFontProvider() platform.FontProvider {
 	return NewNullFontProvider()
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/inseo-oh/yw/platform"
 )
 
+// Returns new [platform.FontProvider] that doesn't do anything.
 type NullFontProvider struct{}
 
 func NewNullFontProvider() platform.FontProvider {
