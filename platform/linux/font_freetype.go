@@ -23,7 +23,7 @@ type freetypeFontProvider struct {
 }
 
 // Returns new [platform.FontProvider] implementing Freetype support.
-func NewFreetypeProvider() platform.FontProvider {
+func NewFreetypeFontProvider() platform.FontProvider {
 	var ftLib C.FT_Library
 	if res := C.FT_Init_FreeType(&ftLib); res != C.FT_Err_Ok {
 		log.Fatalf("Failed to initialize FreeType (FT Error %d)", res)

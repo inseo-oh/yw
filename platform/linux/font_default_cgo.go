@@ -8,7 +8,7 @@ package linux
 
 import "github.com/inseo-oh/yw/platform"
 
-// Returns new default [platform.FontProvider]. (In current build configuration, it is the same as [NewFreetypeProvider])
+// Returns new default [platform.FontProvider]. (In current build configuration, it is the same as [NewFreetypeFontProvider])
 func NewDefaultFontProvider() platform.FontProvider {
-	return NewFreetypeProvider()
+	return NewFreetypeFontProvider()
 }
