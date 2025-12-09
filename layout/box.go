@@ -28,8 +28,8 @@ type box interface {
 	ChildTexts() []*text
 	isWidthAuto() bool
 	isHeightAuto() bool
-	incrementSize(width, height float64)
-	incrementIfNeeded(width, height float64) (widthDiff, heightDiff float64) // TODO: Return inline and block size, not width and height.
+	incrementSize(logicalWidth, logicalHeight float64)
+	incrementIfNeeded(logicalWidth, logicalHeight float64) (logicalWidthDiff, logicalHeightDiff float64)
 }
 type boxCommon struct {
 	nodeCommon
@@ -88,7 +88,7 @@ func (bx *boxCommon) incrementSize(logicalWidth, logicalHeight float64) {
 		}
 	}
 }
-func (bx *boxCommon) incrementIfNeeded(minLogicalWidth, minLogicalHeight float64) (widthDiff, heightDiff float64) {
+func (bx *boxCommon) incrementIfNeeded(minLogicalWidth, minLogicalHeight float64) (logicalWidthDiff, logicalHeightDiff float64) {
 	wDiff := max(minLogicalWidth-bx.boxContentRect().logicalWidth, 0)
 	hDiff := max(minLogicalHeight-bx.boxContentRect().logicalHeight, 0)
 	bx.incrementSize(wDiff, hDiff)
