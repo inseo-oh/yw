@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // See LICENSE for details, and LICENSE_THIRDPARTY for third-party license information.
 
-package stdplatform
+package linux
 
 // #cgo pkg-config: freetype2
 // #include <ft2build.h>

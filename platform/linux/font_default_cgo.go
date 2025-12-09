@@ -4,7 +4,7 @@
 
 //go:build cgo
 
-package stdplatform
+package linux
 
 import "github.com/inseo-oh/yw/platform"
 

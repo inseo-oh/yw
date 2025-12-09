@@ -12,7 +12,7 @@ import (
 	"os"
 
 	"github.com/inseo-oh/yw"
-	"github.com/inseo-oh/yw/platform/stdplatform"
+	"github.com/inseo-oh/yw/platform/linux"
 )
 
 var (
@@ -34,7 +34,7 @@ func main() {
 		DumpPaint:  *dumpPaint,
 	}
 	viewportImg := image.NewRGBA(image.Rect(0, 0, 1280, 720))
-	fontProvider := stdplatform.NewDefaultFontProvider()
+	fontProvider := linux.NewDefaultFontProvider()
 	br.Run(*url, fontProvider, viewportImg)
 
 	destFile, err := os.Create("output.png")
