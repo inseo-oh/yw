@@ -197,7 +197,7 @@ func elementMarginAndPadding(elem dom.Element, parentNode box) (margin, padding 
 }
 func computeNextPosition(bfc *blockFormattingContext, ifc *inlineFormattingContext, parentBcon *blockContainer, isInline bool) (inlinePos, blockPos float64) {
 	if isInline {
-		baseInlinePos := ifc.contextOwnerBox().boxContentRect().inlinePos
+		baseInlinePos := bfc.contextOwnerBox().boxContentRect().inlinePos
 		inlinePos = baseInlinePos
 		if len(ifc.lineBoxes) != 0 {
 			lb := ifc.currentLineBox()
