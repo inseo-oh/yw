@@ -536,21 +536,9 @@ func (tb treeBuilder) layoutElement(elem dom.Element, parentNode box, parentFctx
 		case display.Inline:
 			if parentNode.isWidthAuto() {
 				parentNode.incrementSize(boxRect.toPhysicalRect().Width, 0)
-				if len(ifc.lineBoxes) == 0 {
-					ifc.addLineBox()
-				}
 			}
 			if parentNode.isHeightAuto() {
-				if len(ifc.lineBoxes) == 0 {
-					ifc.addLineBox()
-				}
-				lineBox := ifc.currentLineBox()
-				lineBox.currentLineHeight = max(lineBox.currentLineHeight, boxRect.toPhysicalRect().Height)
-
-				// Increment parent's height if needed.
-				if parentNode.boxMarginRect().toPhysicalRect().Height < lineBox.currentLineHeight {
-					parentNode.incrementIfNeeded(0, lineBox.currentLineHeight)
-				}
+				// TODO
 			}
 		}
 
