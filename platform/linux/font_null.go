@@ -13,13 +13,13 @@ import (
 )
 
 // Returns new [platform.FontProvider] that doesn't do anything.
-type NullFontProvider struct{}
+type nullFontProvider struct{}
 
 func NewNullFontProvider() platform.FontProvider {
-	return &NullFontProvider{}
+	return &nullFontProvider{}
 }
 
-func (prv NullFontProvider) OpenFont(name string) gfx.Font {
+func (prv nullFontProvider) OpenFont(name string) gfx.Font {
 	return nullFont{}
 }
 
