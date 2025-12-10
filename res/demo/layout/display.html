@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display modes</title>
+    <style>
+        h1 {
+            margin-bottom: 20px;
+        }
+        div {
+            font-size: 40px;
+        }
+        #div1 {
+            background-color: lightcyan;
+        }
+        #div2 {
+            background-color: lightpink;
+        }
+        #div3 {
+            background-color: lightgreen;
+        }
+        .blue {
+            color: blue;
+        }
+        .green {
+            color: green;
+        }
+        .gray {
+            color: gray;
+        }
+    </style>
+</head>
+<body>
+    <h1>Display modes (div(display: block) and span(display: inline))</h1>
+    <div id="div1">
+        This is a block element <span class="blue">and this is a span inside it</span>, and text may continue after the block element.
+    </div>
+    <div id="div2">
+        This is a block element with <span class="green">multiple span. This is green,</span>
+        and <span class="blue">this is blue span.</span> 
+    </div>
+    <div id="div3">
+        This is a block element with <span class="gray">span that has very long text: Lorem ipsum dolor sit amet consectetur, adipisicing elit. A ipsam iure, possimus tempora vitae ad delectus est ut natus modi ab necessitatibus nisi molestias pariatur beatae. Repellendus possimus consequatur sint.</span>
+        How cool is it :D
+    </div>
+</body>
+</html>
