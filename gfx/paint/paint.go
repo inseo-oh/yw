@@ -131,18 +131,14 @@ func (t BoxPaint) String() string {
 }
 
 // PrintTree prints paint tree to the standard output.
-func PrintTree(node Node) {
-	var doPrint func(node Node, indentLevel int)
-	doPrint = func(node Node, indentLevel int) {
-		currNode := node
-		indent := strings.Repeat(" ", indentLevel*4)
-		fmt.Printf("%s%v\n", indent, node)
-		if gpaint, ok := currNode.(BoxPaint); ok {
-			for _, child := range gpaint.Items {
-				doPrint(child, indentLevel+1)
-			}
+func PrintTree(node Node, indentLevel int) {
+	currNode := node
+	indent := strings.Repeat(" ", indentLevel*4)
+	fmt.Printf("%s%v\n", indent, node)
+	if gpaint, ok := currNode.(BoxPaint); ok {
+		for _, child := range gpaint.Items {
+			PrintTree(child, indentLevel+1)
 		}
 	}
-	doPrint(node, 0)
 
 }

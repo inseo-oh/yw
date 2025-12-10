@@ -317,9 +317,9 @@ func TestHtmlParser(t *testing.T) {
 		}
 		if failed {
 			log.Print("---------- Got ----------")
-			dom.PrintTree(par.Document)
+			dom.PrintTree(par.Document, 0)
 			log.Print("---------- Expected ----------")
-			dom.PrintTree(cs.domToot)
+			dom.PrintTree(cs.domToot, 0)
 			t.Fail()
 		}
 

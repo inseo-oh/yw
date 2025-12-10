@@ -590,18 +590,11 @@ func AdoptNodeInto(node Node, document Document) {
 }
 
 // PrintTree prints DOM tree to standard output.
-func PrintTree(node Node) {
-	currNode := node
-	count := 0
-	if !util.IsNil(currNode.Parent()) {
-		for n := currNode.Parent(); !util.IsNil(n); n = n.Parent() {
-			count += 4
-		}
-	}
-	indent := strings.Repeat(" ", count)
+func PrintTree(node Node, indentLevel int) {
+	indent := strings.Repeat(" ", indentLevel*4)
 	fmt.Printf("%s%v\n", indent, node)
-	for _, child := range currNode.Children() {
-		PrintTree(child)
+	for _, child := range node.Children() {
+		PrintTree(child, indentLevel+1)
 	}
 }
 

@@ -12,7 +12,6 @@ import (
 	"github.com/inseo-oh/yw/dom"
 	"github.com/inseo-oh/yw/gfx"
 	"github.com/inseo-oh/yw/platform"
-	"github.com/inseo-oh/yw/util"
 )
 
 // Build builds the layout starting from the DOM node root.
@@ -32,23 +31,16 @@ func Build(root dom.Element, viewportWidth, viewportHeight float64, fontProvider
 	return icb
 }
 
-// PrintTree prints the layout tree.
-func PrintTree(node Node) {
-	currNode := node
-	count := 0
-	if !util.IsNil(currNode.parentNode()) {
-		for n := currNode.parentNode(); !util.IsNil(n); n = n.parentNode() {
-			count += 4
-		}
-	}
-	indent := strings.Repeat(" ", count)
+// PrintTree prints the layout tree to standard output.
+func PrintTree(node Node, indentLevel int) {
+	indent := strings.Repeat(" ", indentLevel*4)
 	fmt.Printf("%s%v\n", indent, node)
-	if bx, ok := currNode.(box); ok {
+	if bx, ok := node.(box); ok {
 		for _, child := range bx.ChildBoxes() {
-			PrintTree(child)
+			PrintTree(child, indentLevel+1)
 		}
 		for _, child := range bx.ChildTexts() {
-			PrintTree(child)
+			PrintTree(child, indentLevel+1)
 		}
 	}
 }

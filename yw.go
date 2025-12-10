@@ -92,7 +92,7 @@ func (b *Browser) Run(urlStr string, fontProvider platform.FontProvider, viewpor
 	doc := par.Run()
 	log.Println("= Document parsed ===========================================")
 	if b.DumpDom {
-		dom.PrintTree(doc)
+		dom.PrintTree(doc, 0)
 	}
 
 	// Apply style rules -------------------------------------------------------
@@ -111,12 +111,12 @@ func (b *Browser) Run(urlStr string, fontProvider platform.FontProvider, viewpor
 	htmlElem := doc.FilterElementChildrenByLocalName(dom.NamePair{Namespace: namespaces.Html, LocalName: "html"})[0]
 	icb := layout.Build(htmlElem, float64(viewportSize.X), float64(viewportSize.Y), fontProvider)
 	if b.DumpLayout {
-		layout.PrintTree(icb)
+		layout.PrintTree(icb, 0)
 	}
 	log.Println("= Building paint tree =======================================")
 	paintNode := icb.MakePaintNode()
 	if b.DumpPaint {
-		paint.PrintTree(paintNode)
+		paint.PrintTree(paintNode, 0)
 	}
 	log.Println("= Painting ==================================================")
 	paintNode.Paint(viewportImg)

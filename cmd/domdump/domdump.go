@@ -29,5 +29,5 @@ func main() {
 	str := string(bytes)
 	par := htmlparser.NewParser(str)
 	doc := par.Run()
-	dom.PrintTree(doc)
+	dom.PrintTree(doc, 0)
 }
