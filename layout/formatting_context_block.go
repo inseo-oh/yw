@@ -14,9 +14,6 @@ type blockFormattingContext struct {
 	currentNaturalPos float64
 }
 
-func (bfc blockFormattingContext) formattingContextType() formattingContextType {
-	return formattingContextTypeBlock
-}
 func (bfc blockFormattingContext) naturalPos() float64 {
 	return bfc.currentNaturalPos
 }

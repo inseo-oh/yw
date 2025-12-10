@@ -20,9 +20,6 @@ type inlineFormattingContext struct {
 	writtenText string
 }
 
-func (ifc inlineFormattingContext) formattingContextType() formattingContextType {
-	return formattingContextTypeInline
-}
 func (ifc *inlineFormattingContext) addLineBox() {
 	lb := lineBox{}
 	lb.currentLineHeight = 0

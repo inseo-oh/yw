@@ -323,7 +323,7 @@ func (tb treeBuilder) newBlockContainer(
 		bcon.accumulatedPaddingLeft = parentBcon.accumulatedPaddingLeft + padding.left
 		bcon.accumulatedPaddingRight = parentBcon.accumulatedPaddingRight + padding.right
 	}
-	if util.IsNil(parentFctx) || parentFctx.formattingContextType() != formattingContextTypeBlock {
+	if _, ok := parentFctx.(*blockFormattingContext); !ok {
 		bcon.bfc = &blockFormattingContext{}
 		bcon.bfc.ownerBox = bcon
 		bcon.ownsBfc = true
@@ -358,8 +358,8 @@ func (tb treeBuilder) isElementBlockLevel(parentFctx formattingContext, domNode 
 				shouldMakeInlineBox := false
 				if styleDisplay.OuterMode == display.Inline ||
 					styleDisplay.OuterMode == display.RunIn {
-					if parentFctx.formattingContextType() == formattingContextTypeBlock ||
-						parentFctx.formattingContextType() == formattingContextTypeInline {
+					switch parentFctx.(type) {
+					case *blockFormattingContext, *inlineFormattingContext:
 						shouldMakeInlineBox = true
 					}
 				}
@@ -553,8 +553,8 @@ func (tb treeBuilder) layoutElement(elem dom.Element, parentNode box, parentFctx
 			shouldMakeInlineBox := false
 			if styleDisplay.OuterMode == display.Inline ||
 				styleDisplay.OuterMode == display.RunIn {
-				if parentFctx.formattingContextType() == formattingContextTypeBlock ||
-					parentFctx.formattingContextType() == formattingContextTypeInline {
+				switch parentFctx.(type) {
+				case *blockFormattingContext, *inlineFormattingContext:
 					shouldMakeInlineBox = true
 				}
 			}
