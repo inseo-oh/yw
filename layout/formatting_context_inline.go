@@ -15,9 +15,10 @@ package layout
 type inlineFormattingContext struct {
 	formattingContextCommon
 
-	bcon        *blockContainer // Block container containing this inline node
-	lineBoxes   []lineBox       // List of line boxes
-	writtenText string
+	bcon                  *blockContainer // Block container containing this inline node
+	lineBoxes             []lineBox       // List of line boxes
+	initialAvailableWidth float64
+	writtenText           string
 }
 
 func (ifc *inlineFormattingContext) addLineBox() {
@@ -29,7 +30,7 @@ func (ifc *inlineFormattingContext) addLineBox() {
 	} else {
 		lb.initialBlockPos = ifc.bcon.boxContentRect().blockPos
 	}
-	lb.availableWidth = ifc.bcon.marginRect.logicalWidth
+	lb.availableWidth = ifc.initialAvailableWidth
 	ifc.lineBoxes = append(ifc.lineBoxes, lb)
 }
 func (ifc *inlineFormattingContext) currentLineBox() *lineBox {

@@ -220,17 +220,19 @@ func computeBoxRect(
 	elem dom.Element, bfc *blockFormattingContext, ifc *inlineFormattingContext,
 	parentNode box, parentBcon *blockContainer,
 	margin, padding physicalEdges,
-	isInline bool,
+	styleDisplay display.Display,
 ) (boxRect logicalRect, physWidthAuto, physHeightAuto bool) {
 	styleSetSrc := cssom.ComputedStyleSetSourceOf(elem)
 	styleSet := styleSetSrc.ComputedStyleSet()
+	isInline := styleDisplay.Mode == display.OuterInnerMode && styleDisplay.OuterMode == display.Inline
+	isInlineFlowRoot := isInline && styleDisplay.InnerMode == display.FlowRoot
 
 	// Calculate left/top position
 	inlinePos, blockPos := computeNextPosition(bfc, ifc, parentBcon, isInline)
 
 	var boxWidth, boxHeight sizing.Size
 	var boxWidthPhysical, boxHeightPhysical float64
-	if !isInline {
+	if !isInline || isInlineFlowRoot {
 		// Calculate width/height using `width` and `height` property
 		boxWidth = styleSet.Width()
 		boxHeight = styleSet.Height()
@@ -312,9 +314,11 @@ func (tb treeBuilder) newBlockContainer(
 	marginRect logicalRect,
 	margin, padding physicalEdges,
 	physWidthAuto, physHeightAuto bool,
+	isInlineFlowRoot bool,
 ) *blockContainer {
 	bcon := &blockContainer{}
 	bcon.parent = parent
+	bcon.parentBcon = parentBcon
 	bcon.elem = elem
 	bcon.marginRect = marginRect
 	bcon.margin = margin
@@ -323,13 +327,14 @@ func (tb treeBuilder) newBlockContainer(
 	bcon.physicalHeightAuto = physHeightAuto
 	bcon.parentFctx = parentFctx
 	bcon.ifc = ifc
+	bcon.isInlineFlowRoot = isInlineFlowRoot
 	if parentBcon != nil {
 		bcon.accumulatedMarginLeft = parentBcon.accumulatedMarginLeft + margin.left
 		bcon.accumulatedMarginRight = parentBcon.accumulatedMarginRight + margin.right
 		bcon.accumulatedPaddingLeft = parentBcon.accumulatedPaddingLeft + padding.left
 		bcon.accumulatedPaddingRight = parentBcon.accumulatedPaddingRight + padding.right
 	}
-	if _, ok := parentFctx.(*blockFormattingContext); !ok {
+	if _, ok := parentFctx.(*blockFormattingContext); !ok || isInlineFlowRoot {
 		bcon.bfc = &blockFormattingContext{}
 		bcon.bfc.ownerBox = bcon
 		bcon.ownsBfc = true
@@ -379,7 +384,7 @@ func (tb treeBuilder) isElementBlockLevel(parentFctx formattingContext, domNode 
 				//==================================================================
 
 				// https://www.w3.org/TR/css-display-3/#valdef-display-flow-root
-				return true
+				return false
 			default:
 				log.Panicf("TODO: Support display: %v", styleDisplay)
 			}
@@ -520,8 +525,7 @@ func (tb treeBuilder) layoutElement(elem dom.Element, parentNode box, parentFctx
 	case display.DisplayNone:
 		return nil
 	case display.OuterInnerMode:
-		isInline := styleDisplay.OuterMode == display.Inline
-		boxRect, physWidthAuto, physHeightAuto := computeBoxRect(elem, bfc, ifc, parentNode, parentBcon, margin, padding, isInline)
+		boxRect, physWidthAuto, physHeightAuto := computeBoxRect(elem, bfc, ifc, parentNode, parentBcon, margin, padding, styleDisplay)
 		isLogicalWidthAuto := func() bool { return physWidthAuto } // STUB
 		setLogicalWidthAuto := func(v bool) { physWidthAuto = v }  // STUB
 
@@ -553,7 +557,12 @@ func (tb treeBuilder) layoutElement(elem dom.Element, parentNode box, parentFctx
 		}
 
 		var bx box
+		var oldInlinePos float64
 		oldBlockPos := bfc.currentNaturalPos
+		if len(ifc.lineBoxes) != 0 {
+			oldInlinePos = ifc.currentLineBox().currentNaturalPos
+		}
+
 		switch styleDisplay.InnerMode {
 		case display.Flow:
 			//==================================================================
@@ -576,7 +585,8 @@ func (tb treeBuilder) layoutElement(elem dom.Element, parentNode box, parentFctx
 				bx = ibox
 			} else {
 				bfc.incrementNaturalPos(margin.top + padding.top) // Consume top margin+padding first
-				bcon := tb.newBlockContainer(parentFctx, ifc, parentNode, parentBcon, elem, boxRect, margin, padding, physWidthAuto, physHeightAuto)
+				bcon := tb.newBlockContainer(
+					parentFctx, ifc, parentNode, parentBcon, elem, boxRect, margin, padding, physWidthAuto, physHeightAuto, false)
 				bcon.initChildren(tb, elem.Children(), textDecors)
 				bfc.incrementNaturalPos(margin.bottom + padding.bottom) // Consume bottom margin+padding
 				bx = bcon
@@ -586,23 +596,36 @@ func (tb treeBuilder) layoutElement(elem dom.Element, parentNode box, parentFctx
 			// "flow-root" mode (flow-root, inline-block display modes)
 			//==================================================================
 			// https://www.w3.org/TR/css-display-3/#valdef-display-flow-root
-			bcon := tb.newBlockContainer(parentFctx, ifc, parentNode, parentBcon, elem, boxRect, margin, padding, physWidthAuto, physHeightAuto)
+			bcon := tb.newBlockContainer(parentFctx, ifc, parentNode, parentBcon, elem, boxRect, margin, padding, physWidthAuto, physHeightAuto, true)
 			bcon.initChildren(tb, elem.Children(), textDecors)
 			bx = bcon
 		default:
 			log.Panicf("TODO: Support display: %v", styleDisplay)
 		}
 		newBlockPos := bfc.currentNaturalPos
+		var newInlinePos float64
+		if len(ifc.lineBoxes) != 0 {
+			newInlinePos = ifc.currentLineBox().currentNaturalPos
+		}
 
 		if bcon, ok := bx.(*blockContainer); ok {
+			// Increment natural position (but only the amount that hasn't been incremented)
 			switch styleDisplay.OuterMode {
 			case display.Block:
-				// Increment natural position (but only the amount that hasn't been incremented)
 				logicalHeight := bcon.boxMarginRect().logicalHeight
 				posDiff := newBlockPos - oldBlockPos
 				bfc.incrementNaturalPos(logicalHeight - posDiff)
 			case display.Inline:
-				panic("TODO")
+				logicalWidth := bcon.boxMarginRect().logicalWidth
+				posDiff := newInlinePos - oldInlinePos
+				ifc.incrementNaturalPos(logicalWidth - posDiff)
+
+				lb := ifc.currentLineBox()
+				heightDiff := bcon.boxMarginRect().toPhysicalRect().Height - lb.currentLineHeight
+				lb.currentLineHeight = max(lb.currentLineHeight, bcon.boxMarginRect().toPhysicalRect().Height)
+				if parentNode.isHeightAuto() {
+					parentNode.incrementSize(0, heightDiff)
+				}
 			}
 
 		}

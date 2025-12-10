@@ -23,10 +23,11 @@ func Build(root dom.Element, viewportWidth, viewportHeight float64, fontProvider
 	bfc := &blockFormattingContext{}
 	ifc := &inlineFormattingContext{}
 	boxRect := logicalRect{inlinePos: 0, blockPos: 0, logicalWidth: viewportWidth, logicalHeight: viewportHeight}
-	icb := tb.newBlockContainer(bfc, ifc, nil, nil, nil, boxRect, physicalEdges{}, physicalEdges{}, true, true)
+	icb := tb.newBlockContainer(bfc, ifc, nil, nil, nil, boxRect, physicalEdges{}, physicalEdges{}, true, true, false)
 	bfc.ownerBox = icb
 	ifc.ownerBox = icb
 	ifc.bcon = icb
+	ifc.initialAvailableWidth = viewportWidth
 	icb.initChildren(tb, []dom.Node{root}, []gfx.TextDecorOptions{})
 	return icb
 }

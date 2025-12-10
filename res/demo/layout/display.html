@@ -9,7 +9,7 @@
             margin-bottom: 20px;
         }
         div {
-            font-size: 40px;
+            font-size: 30px;
         }
         #div1 {
             background-color: lightcyan;
@@ -23,6 +23,9 @@
         #div4 {
             background-color: lightblue;
         }
+        #div5 {
+            background-color: lightgoldenrodyellow;
+        }
         .blue {
             color: blue;
         }
@@ -35,6 +38,10 @@
         .sized {
             width: 200px;
             height: 200px;
+        }
+        .inline-block {
+            display: inline-block;
+            background-color: greenyellow;
         }
     </style>
 </head>
@@ -53,6 +60,9 @@
     </div>
     <div id="div4">
         Inline elements cannot have width/height set. <span class="blue sized">This span has width: 200 and height: 200</span>, and those will be ignored
+    </div>
+    <div id="div5">
+        Inline-block elements CAN have width/height set. <span class="inline-block blue sized">This span has width: 200 and height: 200</span> And here's some text after the inline-block element.
     </div>
 </body>
 </html>
