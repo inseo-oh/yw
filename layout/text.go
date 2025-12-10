@@ -26,9 +26,6 @@ type text struct {
 func (txt text) String() string {
 	return fmt.Sprintf("text %s at [%v]", strconv.Quote(txt.text), txt.rect)
 }
-func (txt text) nodeType() nodeType {
-	return nodeTypeText
-}
 func (txt text) MakePaintNode() paint.Node {
 	return paint.TextPaint{
 		Left:   int(txt.rect.Left),

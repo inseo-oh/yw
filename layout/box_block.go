@@ -45,7 +45,6 @@ func (bcon blockContainer) String() string {
 		"block-container [elem %v] at [LTRB %s %s %s %s (%gx%g)] %s",
 		bcon.elem, leftStr, topStr, rightStr, bottomStr, physMarginRect.Width, physMarginRect.Height, fcStr)
 }
-func (bcon blockContainer) nodeType() nodeType { return nodeTypeBlockContainer }
 func (bcon blockContainer) isBlockLevel() bool { return true }
 
 // NOTE: This should *only* be called once after making layout node.

@@ -14,21 +14,12 @@ type Node interface {
 	// String returns description of the node.
 	String() string
 
-	nodeType() nodeType
 	parentNode() Node
 	isBlockLevel() bool
 }
 type nodeCommon struct {
 	parent Node
 }
-
-type nodeType uint8
-
-const (
-	nodeTypeInlineBox nodeType = iota
-	nodeTypeBlockContainer
-	nodeTypeText
-)
 
 func (n nodeCommon) parentNode() Node {
 	return n.parent

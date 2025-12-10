@@ -28,7 +28,6 @@ func (bx inlineBox) String() string {
 		"inline-box [elem %v] at [LTRB %s %s %s %s (%gx%g)]",
 		bx.elem, leftStr, topStr, rightStr, bottomStr, physMarginRect.Width, physMarginRect.Height)
 }
-func (bx inlineBox) nodeType() nodeType { return nodeTypeInlineBox }
 func (bx inlineBox) isBlockLevel() bool { return false }
 
 // NOTE: This should *only* be called once after making layout node.
