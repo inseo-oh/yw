@@ -548,6 +548,8 @@ func (tb treeBuilder) layoutElement(elem dom.Element, parentNode box, parentFctx
 			}
 		}
 
+		var bx box
+		oldBlockPos := bfc.currentNaturalPos
 		switch styleDisplay.InnerMode {
 		case display.Flow:
 			//==================================================================
@@ -567,20 +569,13 @@ func (tb treeBuilder) layoutElement(elem dom.Element, parentNode box, parentFctx
 			if shouldMakeInlineBox {
 				ibox := tb.newInlineBox(parentBcon, elem, boxRect, margin, padding, physWidthAuto, physHeightAuto)
 				ibox.initChildren(tb, elem.Children(), textDecors)
-				return ibox
+				bx = ibox
 			} else {
-				oldBlockPos := bfc.currentNaturalPos
 				bfc.incrementNaturalPos(margin.top + padding.top) // Consume top margin+padding first
 				bcon := tb.newBlockContainer(parentFctx, ifc, parentNode, parentBcon, elem, boxRect, margin, padding, physWidthAuto, physHeightAuto)
 				bcon.initChildren(tb, elem.Children(), textDecors)
 				bfc.incrementNaturalPos(margin.bottom + padding.bottom) // Consume bottom margin+padding
-				newBlockPos := bfc.currentNaturalPos
-
-				// Increment natural position (but only the amount that hasn't been incremented)
-				logicalHeight := bcon.boxMarginRect().logicalHeight
-				posDiff := newBlockPos - oldBlockPos
-				bfc.incrementNaturalPos(logicalHeight - posDiff)
-				return bcon
+				bx = bcon
 			}
 		case display.FlowRoot:
 			//==================================================================
@@ -589,21 +584,25 @@ func (tb treeBuilder) layoutElement(elem dom.Element, parentNode box, parentFctx
 			// https://www.w3.org/TR/css-display-3/#valdef-display-flow-root
 			bcon := tb.newBlockContainer(parentFctx, ifc, parentNode, parentBcon, elem, boxRect, margin, padding, physWidthAuto, physHeightAuto)
 			bcon.initChildren(tb, elem.Children(), textDecors)
-
-			// Increment natural position
-			logiWidth := bcon.boxMarginRect().logicalWidth
-			logiHeight := bcon.boxMarginRect().logicalHeight
-			switch styleDisplay.OuterMode {
-			case display.Inline:
-				ifc.incrementNaturalPos(logiWidth)
-			case display.Block:
-				bfc.incrementNaturalPos(logiHeight)
-			}
-
-			return bcon
+			bx = bcon
 		default:
 			log.Panicf("TODO: Support display: %v", styleDisplay)
 		}
+		newBlockPos := bfc.currentNaturalPos
+
+		if bcon, ok := bx.(*blockContainer); ok {
+			switch styleDisplay.OuterMode {
+			case display.Block:
+				// Increment natural position (but only the amount that hasn't been incremented)
+				logicalHeight := bcon.boxMarginRect().logicalHeight
+				posDiff := newBlockPos - oldBlockPos
+				bfc.incrementNaturalPos(logicalHeight - posDiff)
+			case display.Inline:
+				panic("TODO")
+			}
+
+		}
+		return bx
 
 	default:
 		log.Panicf("TODO: Support display: %v", styleDisplay)
