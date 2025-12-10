@@ -458,6 +458,10 @@ func (tb treeBuilder) layoutText(txt dom.Text, parentNode box, bfc *blockFormatt
 			}
 			strLen-- // Decrement length and try again
 		}
+		if strLen == 0 {
+			// Display at least one chracter per line
+			strLen = 1
+		}
 		fragment := fragmentRemaining[:strLen]
 		fragmentRemaining = fragmentRemaining[strLen:]
 
