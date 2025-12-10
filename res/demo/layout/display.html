@@ -20,6 +20,9 @@
         #div3 {
             background-color: lightgreen;
         }
+        #div4 {
+            background-color: lightblue;
+        }
         .blue {
             color: blue;
         }
@@ -28,6 +31,10 @@
         }
         .gray {
             color: gray;
+        }
+        .sized {
+            width: 200px;
+            height: 200px;
         }
     </style>
 </head>
@@ -43,6 +50,9 @@
     <div id="div3">
         This is a block element with <span class="gray">span that has very long text: Lorem ipsum dolor sit amet consectetur, adipisicing elit. A ipsam iure, possimus tempora vitae ad delectus est ut natus modi ab necessitatibus nisi molestias pariatur beatae. Repellendus possimus consequatur sint.</span>
         How cool is it :D
+    </div>
+    <div id="div4">
+        Inline elements cannot have width/height set. <span class="blue sized">This span has width: 200 and height: 200</span>, and those will be ignored
     </div>
 </body>
 </html>

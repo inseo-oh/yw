@@ -228,11 +228,17 @@ func computeBoxRect(
 	// Calculate left/top position
 	inlinePos, blockPos := computeNextPosition(bfc, ifc, parentBcon, isInline)
 
-	// Calculate width/height using `width` and `height` property
-	boxWidth := styleSet.Width()
-	boxHeight := styleSet.Height()
-	boxWidthPhysical := 0.0
-	boxHeightPhysical := 0.0
+	var boxWidth, boxHeight sizing.Size
+	var boxWidthPhysical, boxHeightPhysical float64
+	if !isInline {
+		// Calculate width/height using `width` and `height` property
+		boxWidth = styleSet.Width()
+		boxHeight = styleSet.Height()
+	} else {
+		// Inline elemenrs always have auto size
+		boxWidth = sizing.Size{Type: sizing.Auto}
+		boxHeight = sizing.Size{Type: sizing.Auto}
+	}
 
 	// If width or height is auto, we start from 0 and expand it as we layout the children.
 	if boxWidth.Type != sizing.Auto {
