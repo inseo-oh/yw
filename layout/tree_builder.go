@@ -433,7 +433,7 @@ func (tb treeBuilder) layoutText(txt dom.Text, parentNode box, bfc *blockFormatt
 		// Create line box if needed
 		firstLineBoxCreated := false
 		if len(ifc.lineBoxes) == 0 {
-			ifc.addLineBox()
+			ifc.addLineBox(metrics.LineHeight)
 			firstLineBoxCreated = true
 		}
 		lineBox := ifc.currentLineBox()
@@ -502,9 +502,9 @@ func (tb treeBuilder) layoutText(txt dom.Text, parentNode box, bfc *blockFormatt
 		textNodes = append(textNodes, textNode)
 		if len(fragmentRemaining) != 0 && strings.TrimLeft(fragmentRemaining, " ") != "" {
 			// Create next line --------------------------------------------
-			ifc.addLineBox()
+			ifc.addLineBox(metrics.LineHeight)
 			if parentNode.isHeightAuto() {
-				parentNode.incrementSize(0, lineBox.currentLineHeight)
+				parentNode.incrementSize(0, metrics.LineHeight)
 			}
 		}
 	}

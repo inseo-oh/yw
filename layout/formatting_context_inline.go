@@ -21,9 +21,9 @@ type inlineFormattingContext struct {
 	writtenText           string
 }
 
-func (ifc *inlineFormattingContext) addLineBox() {
+func (ifc *inlineFormattingContext) addLineBox(lineHeight float64) {
 	lb := lineBox{}
-	lb.currentLineHeight = 0
+	lb.currentLineHeight = lineHeight
 	if len(ifc.lineBoxes) != 0 {
 		lastLb := ifc.currentLineBox()
 		lb.initialBlockPos = lastLb.initialBlockPos + lastLb.currentLineHeight
@@ -41,7 +41,7 @@ func (ifc inlineFormattingContext) naturalPos() float64 {
 }
 func (ifc *inlineFormattingContext) incrementNaturalPos(pos float64) {
 	if len(ifc.lineBoxes) == 0 {
-		ifc.addLineBox()
+		panic("attempted to increment natural position without creating lineBox")
 	}
 	lb := ifc.currentLineBox()
 	if lb.availableWidth < lb.currentNaturalPos+pos {
