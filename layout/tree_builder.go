@@ -618,6 +618,9 @@ func (tb treeBuilder) layoutElement(elem dom.Element, parentNode box, parentFctx
 			case display.Inline:
 				logicalWidth := bcon.boxMarginRect().logicalWidth
 				posDiff := newInlinePos - oldInlinePos
+				if len(ifc.lineBoxes) == 0 {
+					ifc.addLineBox(0)
+				}
 				ifc.incrementNaturalPos(logicalWidth - posDiff)
 
 				lb := ifc.currentLineBox()
