@@ -111,6 +111,7 @@ type NodeCallbacks struct {
 	IntrinsicSize                 func() (width float64, height float64) // Callback for [Element.IntrinsicSize]
 	PoppedFromStackOfOpenElements func()                                 // Callback called when HTML parser pops node from stack of open elements.
 	PresentationalHints           func() any                             // Callback called by CSS system to get presentational hints.
+	RunFormResetAlgorithm         func()                                 // https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#concept-form-reset-control
 }
 
 // NewNode constructs a new [Node].

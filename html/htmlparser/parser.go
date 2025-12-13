@@ -489,8 +489,11 @@ func (p *Parser) createElementForToken(token tagToken, namespace namespaces.Name
 		p.parseErrorEncountered(token)
 	}
 	if elem.(elements.HTMLElement).IsFormResettableElement() && !elem.(elements.HTMLElement).IsFormAssociatedCustomElement() {
-		// TODO: Invoke reset algorithm
-		panic("TODO[https://html.spec.whatwg.org/multipage/parsing.html#create-an-element-for-the-token]")
+		if f := elem.Callbacks().RunFormResetAlgorithm; f != nil {
+			f()
+		} else {
+			log.Printf("TODO: Implement reset algorithm for %v", elem)
+		}
 	}
 	hasAttr := func(name string) bool {
 		_, ok := elem.AttrWithoutNamespace(name)
