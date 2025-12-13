@@ -159,9 +159,7 @@ func (s Style) String() string {
 // [CSS font-size]: https://www.w3.org/TR/css-fonts-3/#propdef-font-size
 type Size interface {
 	// CalculateRealFontSize calculates real size.
-	//
-	// TODO(ois): Can't we just return floating point value representing pixel size?
-	CalculateRealFontSize(parentFontSize css.Num) values.Length
+	CalculateRealFontSize(parentFontSize css.Num) float64
 	String() string
 }
 
@@ -216,8 +214,8 @@ var absoluteSizeMap = map[AbsoluteSize]float64{
 	XXLarge:    (PreferredFontSize * 2) / 1,
 }
 
-func (s AbsoluteSize) CalculateRealFontSize(parentFontSize css.Num) values.Length {
-	return values.LengthFromPx(css.NumFromFloat(absoluteSizeMap[s]))
+func (s AbsoluteSize) CalculateRealFontSize(parentFontSize css.Num) float64 {
+	return absoluteSizeMap[s]
 }
 
 func pxToAbsoluteSize(size css.Num) AbsoluteSize {
@@ -256,7 +254,7 @@ func (s RelativeSize) String() string {
 	return fmt.Sprintf("<bad RelativeSize %d>", s)
 }
 
-func (s RelativeSize) CalculateRealFontSize(parentFontSize css.Num) values.Length {
+func (s RelativeSize) CalculateRealFontSize(parentFontSize css.Num) float64 {
 	parentAbsSize := pxToAbsoluteSize(parentFontSize)
 	var resultAbsSize AbsoluteSize
 	switch s {
@@ -302,12 +300,12 @@ func (s RelativeSize) CalculateRealFontSize(parentFontSize css.Num) values.Lengt
 		return resultAbsSize.CalculateRealFontSize(parentFontSize)
 	}
 	log.Panicf("<bad RelativeSize %d>", s)
-	return values.LengthFromPx(parentFontSize)
+	return 0
 }
 
 // LengthFontSize represents font size specified directly using [values.LengthResolvable].
 type LengthFontSize struct{ values.LengthResolvable }
 
-func (l LengthFontSize) CalculateRealFontSize(parentFontSize css.Num) values.Length {
-	return l.AsLength(parentFontSize)
+func (l LengthFontSize) CalculateRealFontSize(parentFontSize css.Num) float64 {
+	return l.AsLength(parentFontSize).ToPx(parentFontSize)
 }

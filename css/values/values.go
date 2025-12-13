@@ -128,4 +128,6 @@ type Percentage struct {
 
 func (len Percentage) String() string { return fmt.Sprintf("%v%%", len.Value) }
 
-func (len Percentage) AsLength(containerSize css.Num) Length { panic("TODO") }
+func (len Percentage) AsLength(onehundredPecrent css.Num) Length {
+	return LengthFromPx(css.NumFromFloat(onehundredPecrent.ToFloat() * len.Value.ToFloat()))
+}

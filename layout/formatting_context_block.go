@@ -4,6 +4,8 @@
 
 package layout
 
+import "log"
+
 // Block Formatting Contexts(BFC for short) are responsible for tracking Y-axis,
 // or more accurately, the opposite axis of writing mode.
 // (English uses X-axis for writing text, so BFC's position grows Y-axis)
@@ -20,6 +22,6 @@ func (bfc blockFormattingContext) naturalPos() float64 {
 func (bfc *blockFormattingContext) incrementNaturalPos(pos float64) {
 	bfc.currentNaturalPos += pos
 	if pos < 0 {
-		panic("?")
+		log.Printf("warning: attempted to increment natural position with negative value %g", pos)
 	}
 }

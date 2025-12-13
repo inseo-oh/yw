@@ -180,7 +180,7 @@ func elementMarginAndPadding(elem dom.Element, boxParent Box) (margin, padding p
 
 	parentLogicalWidth := boxParent.logicalWidth()
 	parentFontSize := css.NumFromFloat(fonts.PreferredFontSize) // STUB
-	fontSize := styleSet.FontSize().CalculateRealFontSize(parentFontSize).ToPx(parentFontSize)
+	fontSize := styleSet.FontSize().CalculateRealFontSize(parentFontSize)
 	margin = physicalEdges{
 		top:    styleSet.MarginTop().Value.AsLength(css.NumFromFloat(parentLogicalWidth)).ToPx(css.NumFromFloat(fontSize)),
 		right:  styleSet.MarginRight().Value.AsLength(css.NumFromFloat(parentLogicalWidth)).ToPx(css.NumFromFloat(fontSize)),
@@ -548,7 +548,7 @@ func (tb treeBuilder) layoutText(txt dom.Text, boxParent Box, bfc *blockFormatti
 
 	// Calculate the font size
 	parentFontSize := css.NumFromFloat(fonts.PreferredFontSize) // STUB
-	fontSize := parentStyleSet.FontSize().CalculateRealFontSize(parentFontSize).ToPx(parentFontSize)
+	fontSize := parentStyleSet.FontSize().CalculateRealFontSize(parentFontSize)
 	tb.font.SetTextSize(int(fontSize)) // NOTE: Size we set here will only be used for measuring
 	metrics := tb.font.Metrics()
 
