@@ -667,21 +667,21 @@ func (tb treeBuilder) layoutElement(elem dom.Element, boxParent Box, parentFctx 
 		}
 
 		boxRect, physWidthAuto, physHeightAuto := computeBoxRect(elem, bfc, ifc, boxParent, parentBcon, margin, padding, styleDisplay)
-		isLogicalWidthAuto := func() bool { return physWidthAuto } // STUB
-		setLogicalWidthAuto := func(v bool) { physWidthAuto = v }  // STUB
 
 		switch styleDisplay.OuterMode {
 		case display.Block:
 			// Check if we have auto size on a block element. If so, use parent's size and unset auto.
-			if isLogicalWidthAuto() {
+			if physWidthAuto {
+				// TODO: Support vertical writing mode
 				boxRect.logicalWidth = boxParent.boxContentRect().logicalWidth
-				setLogicalWidthAuto(false)
+				physWidthAuto = false
 			}
 		case display.Inline:
 			// Check if we have auto size on a inline element. If so, use current line height and unset auto.
 			if physHeightAuto && len(ifc.lineBoxes) != 0 {
+				// TODO: Support vertical writing mode
 				boxRect.logicalHeight = ifc.currentLineBox().currentLineHeight
-				setLogicalWidthAuto(false)
+				physHeightAuto = false
 			}
 		}
 
