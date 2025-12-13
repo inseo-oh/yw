@@ -390,18 +390,23 @@ func (tb treeBuilder) newBlockContainer(
 	// If we have both inline and block-level, we need anonymous block container for inline nodes.
 	// (This is actually part of CSS spec)
 	needAnonymousBlockContainer := hasInline && hasBlock
+
+	// Create IFC if we only have inline contents.
 	if hasInline && !hasBlock {
-		var initialAvailableWidth float64
+		// Calculate current initial available width ---------------------------
+		var currrentInitialAvailableWidth float64
 		if len(bcon.ifc.lineBoxes) != 0 {
-			initialAvailableWidth = bcon.ifc.currentLineBox().availableWidth
+			currrentInitialAvailableWidth = bcon.ifc.currentLineBox().availableWidth
 		} else {
-			initialAvailableWidth = bcon.ifc.initialAvailableWidth
+			currrentInitialAvailableWidth = bcon.ifc.initialAvailableWidth
 		}
+		// Initialize new IFC --------------------------------------------------
 		bcon.ifc = &inlineFormattingContext{}
 		bcon.ifc.ownerBox = bcon
 		bcon.ifc.bcon = bcon
+		// If display mode is inline flow-root, and width is auto, we inherit initial available width from parent.
 		if bcon.isInlineFlowRoot && bcon.isWidthAuto() {
-			bcon.ifc.initialAvailableWidth = initialAvailableWidth
+			bcon.ifc.initialAvailableWidth = currrentInitialAvailableWidth
 		} else {
 			bcon.ifc.initialAvailableWidth = bcon.marginRect.logicalWidth
 		}
