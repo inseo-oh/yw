@@ -159,7 +159,7 @@ func (s Style) String() string {
 // [CSS font-size]: https://www.w3.org/TR/css-fonts-3/#propdef-font-size
 type Size interface {
 	// CalculateRealFontSize calculates real size.
-	CalculateRealFontSize(parentFontSize css.Num) float64
+	CalculateRealFontSize(fontSize func() css.Num, parentFontSize func() css.Num) float64
 	String() string
 }
 
@@ -214,7 +214,7 @@ var absoluteSizeMap = map[AbsoluteSize]float64{
 	XXLarge:    (PreferredFontSize * 2) / 1,
 }
 
-func (s AbsoluteSize) CalculateRealFontSize(parentFontSize css.Num) float64 {
+func (s AbsoluteSize) CalculateRealFontSize(fontSize func() css.Num, parentFontSize func() css.Num) float64 {
 	return absoluteSizeMap[s]
 }
 
@@ -254,8 +254,8 @@ func (s RelativeSize) String() string {
 	return fmt.Sprintf("<bad RelativeSize %d>", s)
 }
 
-func (s RelativeSize) CalculateRealFontSize(parentFontSize css.Num) float64 {
-	parentAbsSize := pxToAbsoluteSize(parentFontSize)
+func (s RelativeSize) CalculateRealFontSize(fontSize func() css.Num, parentFontSize func() css.Num) float64 {
+	parentAbsSize := pxToAbsoluteSize(parentFontSize())
 	var resultAbsSize AbsoluteSize
 	switch s {
 	case Larger:
@@ -277,7 +277,7 @@ func (s RelativeSize) CalculateRealFontSize(parentFontSize css.Num) float64 {
 		default:
 			log.Panicf("<bad AbsoluteSize value %d>", s)
 		}
-		return resultAbsSize.CalculateRealFontSize(parentFontSize)
+		return resultAbsSize.CalculateRealFontSize(fontSize, parentFontSize)
 	case Smaller:
 		switch parentAbsSize {
 		case XXSmall:
@@ -297,7 +297,7 @@ func (s RelativeSize) CalculateRealFontSize(parentFontSize css.Num) float64 {
 		default:
 			log.Panicf("<bad AbsoluteSize %d>", s)
 		}
-		return resultAbsSize.CalculateRealFontSize(parentFontSize)
+		return resultAbsSize.CalculateRealFontSize(fontSize, parentFontSize)
 	}
 	log.Panicf("<bad RelativeSize %d>", s)
 	return 0
@@ -306,6 +306,6 @@ func (s RelativeSize) CalculateRealFontSize(parentFontSize css.Num) float64 {
 // LengthFontSize represents font size specified directly using [values.LengthResolvable].
 type LengthFontSize struct{ values.LengthResolvable }
 
-func (l LengthFontSize) CalculateRealFontSize(parentFontSize css.Num) float64 {
-	return l.AsLength(parentFontSize).ToPx(parentFontSize)
+func (l LengthFontSize) CalculateRealFontSize(fontSize func() css.Num, parentFontSize func() css.Num) float64 {
+	return l.AsLength(parentFontSize).ToPx(fontSize)
 }

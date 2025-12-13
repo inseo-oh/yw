@@ -16,7 +16,7 @@ import (
 //
 // [Length] and [Percentage] implements this type.
 type LengthResolvable interface {
-	AsLength(containerSize css.Num) Length
+	AsLength(containerSize func() css.Num) Length
 	String() string
 }
 
@@ -35,14 +35,14 @@ func LengthFromPx(px css.Num) Length {
 	return Length{px, Px}
 }
 
-func (l Length) String() string                        { return fmt.Sprintf("%v%v", l.Value, l.Unit) }
-func (l Length) AsLength(containerSize css.Num) Length { return l }
-func (l Length) ToPx(parentFontSize css.Num) float64 {
+func (l Length) String() string                               { return fmt.Sprintf("%v%v", l.Value, l.Unit) }
+func (l Length) AsLength(containerSize func() css.Num) Length { return l }
+func (l Length) ToPx(fontSize func() css.Num) float64 {
 	switch l.Unit {
 	case Px:
 		return l.Value.ToFloat()
 	case Em:
-		return parentFontSize.ToFloat() * l.Value.ToFloat()
+		return fontSize().ToFloat() * l.Value.ToFloat()
 	case Pt:
 		// STUB -- For now we treat pt and px as the same thing.
 		return l.Value.ToFloat()
@@ -128,6 +128,6 @@ type Percentage struct {
 
 func (len Percentage) String() string { return fmt.Sprintf("%v%%", len.Value) }
 
-func (len Percentage) AsLength(onehundredPecrent css.Num) Length {
-	return LengthFromPx(css.NumFromFloat(onehundredPecrent.ToFloat() * len.Value.ToFloat()))
+func (len Percentage) AsLength(containerSize func() css.Num) Length {
+	return LengthFromPx(css.NumFromFloat((len.Value.ToFloat() * containerSize().ToFloat()) / 100))
 }

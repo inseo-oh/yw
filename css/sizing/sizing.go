@@ -54,7 +54,7 @@ func (s Size) String() string {
 }
 
 // ComputeUsedValue computes length value for the size.
-func (s Size) ComputeUsedValue(parentSize css.Num) values.Length {
+func (s Size) ComputeUsedValue(containerSize func() css.Num) values.Length {
 	switch s.Type {
 	case NoneSize:
 		panic("TODO: NoneSize")
@@ -67,7 +67,7 @@ func (s Size) ComputeUsedValue(parentSize css.Num) values.Length {
 	case FitContent:
 		panic("TODO: FitContent")
 	case ManualSize:
-		return s.Size.AsLength(parentSize)
+		return s.Size.AsLength(containerSize)
 	}
 	log.Panicf("<bad Size type %v>", s.Type)
 	return values.Length{}

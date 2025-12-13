@@ -14,6 +14,7 @@ import (
 	"github.com/inseo-oh/yw/css/cssom"
 	"github.com/inseo-oh/yw/css/display"
 	"github.com/inseo-oh/yw/css/fonts"
+	"github.com/inseo-oh/yw/css/props"
 	"github.com/inseo-oh/yw/css/sizing"
 	"github.com/inseo-oh/yw/css/textdecor"
 	"github.com/inseo-oh/yw/dom"
@@ -83,6 +84,21 @@ func applySegmentBreakTransform(str string) string {
 
 	return str
 }
+
+func fontSizeOf(styleSetSrc props.ComputedStyleSetSource) float64 {
+	parentFontSize := func() css.Num {
+		parentSetSrc := styleSetSrc.ParentSource()
+		var parentSize float64
+		if !util.IsNil(parentSetSrc) {
+			parentSize = fontSizeOf(parentSetSrc)
+		} else {
+			parentSize = props.DescriptorsMap["font-size"].Initial.(fonts.LengthFontSize).CalculateRealFontSize(nil, nil)
+		}
+		return css.NumFromFloat(parentSize)
+	}
+	return styleSetSrc.ComputedStyleSet().FontSize().CalculateRealFontSize(parentFontSize, parentFontSize)
+}
+
 func closestDomElementForBox(bx Box) dom.Element {
 	currBox := bx
 	for currBox.boxElement() == nil {
@@ -178,20 +194,19 @@ func elementMarginAndPadding(elem dom.Element, boxParent Box) (margin, padding p
 		panic("TODO: Support auto margin")
 	}
 
-	parentLogicalWidth := boxParent.logicalWidth()
-	parentFontSize := css.NumFromFloat(fonts.PreferredFontSize) // STUB
-	fontSize := styleSet.FontSize().CalculateRealFontSize(parentFontSize)
+	parentLogicalWidth := func() css.Num { return css.NumFromFloat(boxParent.logicalWidth()) }
+	fontSize := func() css.Num { return css.NumFromFloat(fontSizeOf(styleSetSrc)) }
 	margin = physicalEdges{
-		top:    styleSet.MarginTop().Value.AsLength(css.NumFromFloat(parentLogicalWidth)).ToPx(css.NumFromFloat(fontSize)),
-		right:  styleSet.MarginRight().Value.AsLength(css.NumFromFloat(parentLogicalWidth)).ToPx(css.NumFromFloat(fontSize)),
-		bottom: styleSet.MarginBottom().Value.AsLength(css.NumFromFloat(parentLogicalWidth)).ToPx(css.NumFromFloat(fontSize)),
-		left:   styleSet.MarginLeft().Value.AsLength(css.NumFromFloat(parentLogicalWidth)).ToPx(css.NumFromFloat(fontSize)),
+		top:    styleSet.MarginTop().Value.AsLength(parentLogicalWidth).ToPx(fontSize),
+		right:  styleSet.MarginRight().Value.AsLength(parentLogicalWidth).ToPx(fontSize),
+		bottom: styleSet.MarginBottom().Value.AsLength(parentLogicalWidth).ToPx(fontSize),
+		left:   styleSet.MarginLeft().Value.AsLength(parentLogicalWidth).ToPx(fontSize),
 	}
 	padding = physicalEdges{
-		top:    styleSet.PaddingTop().AsLength(css.NumFromFloat(parentLogicalWidth)).ToPx(css.NumFromFloat(fontSize)),
-		right:  styleSet.PaddingRight().AsLength(css.NumFromFloat(parentLogicalWidth)).ToPx(css.NumFromFloat(fontSize)),
-		bottom: styleSet.PaddingBottom().AsLength(css.NumFromFloat(parentLogicalWidth)).ToPx(css.NumFromFloat(fontSize)),
-		left:   styleSet.PaddingLeft().AsLength(css.NumFromFloat(parentLogicalWidth)).ToPx(css.NumFromFloat(fontSize)),
+		top:    styleSet.PaddingTop().AsLength(parentLogicalWidth).ToPx(fontSize),
+		right:  styleSet.PaddingRight().AsLength(parentLogicalWidth).ToPx(fontSize),
+		bottom: styleSet.PaddingBottom().AsLength(parentLogicalWidth).ToPx(fontSize),
+		left:   styleSet.PaddingLeft().AsLength(parentLogicalWidth).ToPx(fontSize),
 	}
 	return margin, padding
 }
@@ -245,15 +260,17 @@ func computeBoxRect(
 
 	// If width or height is auto, we start from 0 and expand it as we layout the children.
 	if boxWidth.Type != sizing.Auto {
-		parentSize := css.NumFromFloat(boxParent.boxContentRect().toPhysicalRect().Width)
-		boxWidthPhysical = boxWidth.ComputeUsedValue(parentSize).ToPx(parentSize)
+		containerSize := func() css.Num { return css.NumFromFloat(boxParent.boxContentRect().toPhysicalRect().Width) }
+		fontSize := func() css.Num { return css.NumFromFloat(fontSizeOf(styleSetSrc)) }
+		boxWidthPhysical = boxWidth.ComputeUsedValue(containerSize).ToPx(fontSize)
 	} else {
 		physWidthAuto = true
 	}
 	boxWidthPhysical += margin.horizontalSum() + padding.horizontalSum()
 	if boxHeight.Type != sizing.Auto {
-		parentSize := css.NumFromFloat(boxParent.boxContentRect().toPhysicalRect().Height)
-		boxHeightPhysical = boxHeight.ComputeUsedValue(parentSize).ToPx(parentSize)
+		parentSize := func() css.Num { return css.NumFromFloat(boxParent.boxContentRect().toPhysicalRect().Height) }
+		fontSize := func() css.Num { return css.NumFromFloat(fontSizeOf(styleSetSrc)) }
+		boxHeightPhysical = boxHeight.ComputeUsedValue(parentSize).ToPx(fontSize)
 	} else {
 		physHeightAuto = true
 	}
@@ -547,8 +564,7 @@ func (tb treeBuilder) layoutText(txt dom.Text, boxParent Box, bfc *blockFormatti
 	}
 
 	// Calculate the font size
-	parentFontSize := css.NumFromFloat(fonts.PreferredFontSize) // STUB
-	fontSize := parentStyleSet.FontSize().CalculateRealFontSize(parentFontSize)
+	fontSize := fontSizeOf(parentStyleSetSrc)
 	tb.font.SetTextSize(int(fontSize)) // NOTE: Size we set here will only be used for measuring
 	metrics := tb.font.Metrics()
 
