@@ -1057,6 +1057,7 @@ func (t *tokenizer) run() {
 				emitToken(&eofToken{})
 				return
 			default:
+				t.tkh.Cursor--
 				if t.tkh.ConsumeStrIfMatches("PUBLIC", util.AsciiCaseInsensitive) != "" {
 					panic("TODO[https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-name-state]")
 				} else if t.tkh.ConsumeStrIfMatches("SYSTEM", util.AsciiCaseInsensitive) != "" {
@@ -1064,7 +1065,6 @@ func (t *tokenizer) run() {
 				} else {
 					t.parseErrorEncountered(invalid_character_sequence_after_doctype_name_error)
 					currDoctypeToken().forceQuirks = true
-					t.tkh.Cursor--
 					panic("TODO[https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-name-state]")
 					// t.state = bogusDoctypeState
 				}
