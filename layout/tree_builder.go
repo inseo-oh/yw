@@ -291,6 +291,7 @@ func (tb treeBuilder) newInlineBox(
 	marginRect logicalRect,
 	margin, padding physicalEdges,
 	physWidthAuto, physHeightAuto bool,
+	children []dom.Node, textDecors []gfx.TextDecorOptions,
 ) *inlineBox {
 	ibox := &inlineBox{}
 	ibox.parent = parentBcon
@@ -301,6 +302,23 @@ func (tb treeBuilder) newInlineBox(
 	ibox.physicalWidthAuto = physWidthAuto
 	ibox.physicalHeightAuto = physHeightAuto
 	ibox.parentBcon = parentBcon
+
+	for _, childNode := range children {
+		nodes := tb.layoutNode(ibox.parentBcon.ifc, ibox.parentBcon.bfc, ibox.parentBcon.ifc, textDecors, ibox, childNode)
+		if len(nodes) == 0 {
+			continue
+		}
+		for _, node := range nodes {
+			if subBx, ok := node.(box); ok {
+				ibox.childBoxes = append(ibox.childBoxes, subBx)
+			} else if txt, ok := node.(*text); ok {
+				ibox.childTexts = append(ibox.childTexts, txt)
+			} else {
+				log.Panicf("unknown node result %v", node)
+			}
+		}
+	}
+
 	return ibox
 }
 
@@ -580,8 +598,7 @@ func (tb treeBuilder) layoutElement(elem dom.Element, parentNode box, parentFctx
 				}
 			}
 			if shouldMakeInlineBox {
-				ibox := tb.newInlineBox(parentBcon, elem, boxRect, margin, padding, physWidthAuto, physHeightAuto)
-				ibox.initChildren(tb, elem.Children(), textDecors)
+				ibox := tb.newInlineBox(parentBcon, elem, boxRect, margin, padding, physWidthAuto, physHeightAuto, elem.Children(), textDecors)
 				bx = ibox
 			} else {
 				bfc.incrementNaturalPos(margin.top + padding.top) // Consume top margin+padding first
