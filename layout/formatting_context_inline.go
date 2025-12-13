@@ -18,6 +18,7 @@ type inlineFormattingContext struct {
 	bcon                  *blockContainer // Block container containing this inline node
 	lineBoxes             []lineBox       // List of line boxes
 	initialAvailableWidth float64
+	initialBlockPos       float64
 	writtenText           string
 }
 
@@ -28,7 +29,7 @@ func (ifc *inlineFormattingContext) addLineBox(lineHeight float64) {
 		lastLb := ifc.currentLineBox()
 		lb.initialBlockPos = lastLb.initialBlockPos + lastLb.currentLineHeight
 	} else {
-		lb.initialBlockPos = ifc.bcon.boxContentRect().blockPos
+		lb.initialBlockPos = ifc.initialBlockPos
 	}
 	lb.availableWidth = ifc.initialAvailableWidth
 	ifc.lineBoxes = append(ifc.lineBoxes, lb)

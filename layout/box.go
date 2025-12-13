@@ -15,7 +15,7 @@ import (
 	"github.com/inseo-oh/yw/util"
 )
 
-// Box represents a box node in the box tree.
+// Box represents a box in the box tree
 type Box interface {
 	ChildBoxes() []Box
 	ChildTexts() []*text

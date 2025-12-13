@@ -19,4 +19,7 @@ func (bfc blockFormattingContext) naturalPos() float64 {
 }
 func (bfc *blockFormattingContext) incrementNaturalPos(pos float64) {
 	bfc.currentNaturalPos += pos
+	if pos < 0 {
+		panic("?")
+	}
 }

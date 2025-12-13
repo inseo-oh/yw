@@ -5,6 +5,7 @@
 package layout
 
 import (
+	"fmt"
 	"image/color"
 	"log"
 	"regexp"
@@ -197,6 +198,7 @@ func elementMarginAndPadding(elem dom.Element, boxParent Box) (margin, padding p
 }
 func computeNextPosition(bfc *blockFormattingContext, ifc *inlineFormattingContext, parentBcon *blockContainer, isInline bool) (inlinePos, blockPos float64) {
 	if isInline {
+		baseBlockPos := bfc.contextOwnerBox().boxContentRect().blockPos
 		baseInlinePos := bfc.contextOwnerBox().boxContentRect().inlinePos
 		inlinePos = baseInlinePos
 		if len(ifc.lineBoxes) != 0 {
@@ -204,7 +206,7 @@ func computeNextPosition(bfc *blockFormattingContext, ifc *inlineFormattingConte
 			blockPos = lb.initialBlockPos
 			inlinePos += ifc.naturalPos()
 		} else {
-			blockPos = bfc.naturalPos()
+			blockPos = baseBlockPos + bfc.naturalPos()
 		}
 	} else {
 		baseBlockPos := bfc.contextOwnerBox().boxContentRect().blockPos
@@ -229,6 +231,7 @@ func computeBoxRect(
 
 	// Calculate left/top position
 	inlinePos, blockPos := computeNextPosition(bfc, ifc, parentBcon, isInline)
+	fmt.Printf("blockPos: %v, bfc: %g, bfc: %g\n", blockPos, bfc.currentNaturalPos, bfc.naturalPos())
 
 	var boxWidth, boxHeight sizing.Size
 	var boxWidthPhysical, boxHeightPhysical float64
@@ -345,6 +348,7 @@ func (tb treeBuilder) newBlockContainer(
 		ifc.ownerBox = bcon
 		ifc.bcon = bcon
 		ifc.initialAvailableWidth = marginRect.toPhysicalRect().Width
+		ifc.initialBlockPos = 0
 	}
 
 	bcon.parent = parentBox
@@ -391,8 +395,11 @@ func (tb treeBuilder) newBlockContainer(
 	// (This is actually part of CSS spec)
 	needAnonymousBlockContainer := hasInline && hasBlock
 
-	// Create IFC if we only have inline contents.
 	if hasInline && !hasBlock {
+		//======================================================================
+		// We only have inline contents
+		//======================================================================
+
 		// Calculate current initial available width ---------------------------
 		var currrentInitialAvailableWidth float64
 		if len(bcon.ifc.lineBoxes) != 0 {
@@ -411,42 +418,63 @@ func (tb treeBuilder) newBlockContainer(
 			bcon.ifc.initialAvailableWidth = bcon.marginRect.logicalWidth
 		}
 		bcon.ownsIfc = true
-	}
-
-	// Now we can layout the children for real
-	anonChildren := []dom.Node{}
-	for i, childNode := range children {
-		var nodes []any
-		if isInline[i] && needAnonymousBlockContainer {
-			anonChildren = append(anonChildren, childNode)
-			if i == len(children)-1 || !isInline[i+1] {
-				// Create anonymous block container
-				inlinePos, blockPos := computeNextPosition(bcon.bfc, bcon.ifc, bcon, true)
-				boxRect := logicalRect{inlinePos: inlinePos, blockPos: blockPos, logicalWidth: bcon.marginRect.logicalWidth, logicalHeight: 0}
-				anonBcon := tb.newBlockContainer(bcon.parentFctx, bcon.ifc, bcon, bcon, nil, boxRect, physicalEdges{}, physicalEdges{}, false, true, false, anonChildren, textDecors)
-				anonBcon.isAnonymous = true
-				bcon.bfc.incrementNaturalPos(anonBcon.marginRect.logicalHeight)
-				anonChildren = []dom.Node{} // Clear children list
-				nodes = []any{anonBcon}
+		// Calculate common margin-top -----------------------------------------
+		commonMarginTop := 0.0
+		commonMarginBottom := 0.0
+		for _, child := range children {
+			var margin physicalEdges
+			if elem, ok := child.(dom.Element); ok {
+				styleDisplay := cssom.ComputedStyleSetSourceOf(elem).ComputedStyleSet().Display()
+				if styleDisplay.Mode == display.OuterInnerMode && (styleDisplay.OuterMode != display.Inline || styleDisplay.InnerMode == display.FlowRoot) {
+					margin, _ = elementMarginAndPadding(elem, bcon)
+					commonMarginTop = max(commonMarginTop, margin.top)
+					commonMarginBottom = max(commonMarginBottom, margin.bottom)
+				}
 			}
+		}
+		// Create root inline box ----------------------------------------------
+		bcon.bfc.incrementNaturalPos(commonMarginTop)
+		bcon.ifc.initialBlockPos = bcon.bfc.ownerBox.boxContentRect().blockPos + bcon.bfc.currentNaturalPos
+		ibox := tb.newInlineBox(bcon, nil, bcon.boxContentRect(), physicalEdges{}, physicalEdges{}, false, true, children, textDecors)
+		bcon.bfc.incrementNaturalPos(commonMarginBottom)
+		bcon.childBoxes = append(bcon.childBoxes, ibox)
+		bcon.incrementSize(0, commonMarginTop+commonMarginBottom)
+	} else {
+		//======================================================================
+		// We have either only block contents, or mix of inline and block contents.
+		// (In the latter case, we create anonymous block container, so we end up having
+		// only block contents)
+		//======================================================================
 
-		} else {
-			// Create layout node normally
-			nodes = tb.layoutNode(bcon.parentFctx, bcon.bfc, bcon.ifc, textDecors, bcon, childNode)
-		}
-		if len(nodes) == 0 {
-			continue
-		}
-		for _, node := range nodes {
-			if bx, ok := node.(Box); ok {
-				bcon.childBoxes = append(bcon.childBoxes, bx)
-			} else if txt, ok := node.(*text); ok {
-				bcon.childTexts = append(bcon.childTexts, txt)
+		anonChildren := []dom.Node{}
+		for i, childNode := range children {
+			var boxes []any
+			if isInline[i] && needAnonymousBlockContainer {
+				anonChildren = append(anonChildren, childNode)
+				if i == len(children)-1 || !isInline[i+1] {
+					// Create anonymous block container
+					inlinePos, blockPos := computeNextPosition(bcon.bfc, bcon.ifc, bcon, true)
+					boxRect := logicalRect{inlinePos: inlinePos, blockPos: blockPos, logicalWidth: bcon.marginRect.logicalWidth, logicalHeight: 0}
+					anonBcon := tb.newBlockContainer(bcon.parentFctx, bcon.ifc, bcon, bcon, nil, boxRect, physicalEdges{}, physicalEdges{}, false, true, false, anonChildren, textDecors)
+					anonBcon.isAnonymous = true
+					bcon.bfc.incrementNaturalPos(anonBcon.marginRect.logicalHeight)
+					anonChildren = []dom.Node{} // Clear children list
+					boxes = []any{anonBcon}
+				}
+
 			} else {
-				log.Panicf("unknown node result %v", node)
+				// Create layout node normally
+				boxes = tb.layoutNode(bcon.parentFctx, bcon.bfc, bcon.ifc, textDecors, bcon, childNode)
 			}
-		}
+			if len(boxes) == 0 {
+				continue
+			}
+			for _, bx := range boxes {
+				// NOTE: We should only have boxes at this point
+				bcon.childBoxes = append(bcon.childBoxes, bx.(Box))
+			}
 
+		}
 	}
 
 	return bcon
@@ -632,6 +660,12 @@ func (tb treeBuilder) layoutElement(elem dom.Element, boxParent Box, parentFctx 
 	case display.DisplayNone:
 		return nil
 	case display.OuterInnerMode:
+		if styleDisplay.OuterMode == display.Inline {
+			// Top and bottom margins are handled when creating inline box.
+			margin.top = 0
+			margin.bottom = 0
+		}
+
 		boxRect, physWidthAuto, physHeightAuto := computeBoxRect(elem, bfc, ifc, boxParent, parentBcon, margin, padding, styleDisplay)
 		isLogicalWidthAuto := func() bool { return physWidthAuto } // STUB
 		setLogicalWidthAuto := func(v bool) { physWidthAuto = v }  // STUB
