@@ -225,6 +225,17 @@ const (
 	beforeDoctypeNameState
 	doctypeNameState
 	afterDoctypeNameState
+	afterDoctypePublicKeywordState
+	beforeDoctypePublicIdentifierState
+	doctypePublicIdentifierDoubleQuotedState
+	doctypePublicIdentifierSingleQuotedState
+	afterDoctypePublicIdentifierState
+	betweenDoctypePublicAndSystemIdentifiersState
+	afterDoctypeSystemKeywordState
+	beforeDoctypeSystemIdentifierState
+	doctypeSystemIdentifierDoubleQuotedState
+	doctypeSystemIdentifierSingleQuotedState
+	afterDoctypeSystemIdentifierState
 	characterReferenceState
 	namedCharacterReferenceState
 	numericCharacterReferenceState
@@ -238,32 +249,42 @@ const (
 type parseError string
 
 const (
-	absence_of_digits_in_numeric_character_reference_error = parseError("absence-of-digits-in-numeric-character-reference")
-	abrupt_closing_of_empty_comment_error                  = parseError("abrupt-closing-of-empty-comment")
-	character_reference_outside_unicode_range_error        = parseError("character-reference-outside-unicode-range")
-	control_character_reference_error                      = parseError("control-character-reference")
-	eof_before_tag_name_error                              = parseError("eof-before-tag-name")
-	eof_in_comment_error                                   = parseError("eof-in-comment")
-	eof_in_doctype_error                                   = parseError("eof-in-doctype")
-	eof_in_tag_error                                       = parseError("eof-in-tag")
-	incorrectly_opened_comment_error                       = parseError("incorrectly-opened-comment")
-	invalid_character_sequence_after_doctype_name_error    = parseError("invalid-character-sequence-after-doctype-name")
-	invalid_first_character_of_tag_name_error              = parseError("invalid-first-character-of-tag-name")
-	missing_attribute_value_error                          = parseError("missing-attribute-value")
-	missing_doctype_name_error                             = parseError("missing-doctype-name")
-	missing_end_tag_name_error                             = parseError("missing-end-tag-name")
-	missing_semicolon_after_character_reference_error      = parseError("missing-semicolon-after-character-reference")
-	missing_whitespace_before_doctype_name_error           = parseError("missing-whitespace-before-doctype-name")
-	missing_whitepace_between_attributes_error             = parseError("missing-whitespace-between-attributes")
-	noncharacter_reference_error                           = parseError("noncharacter-character-reference")
-	null_character_reference_error                         = parseError("null-character-reference")
-	surrogate_character_reference_error                    = parseError("surrogate-character-reference")
-	unexpected_character_in_attribute_name_error           = parseError("unexpected-character-in-attribute-name")
-	unexpected_character_in_unquoted_attribute_value_error = parseError("unexpected-character-in-unquoted-attribute-value")
-	unexpected_equals_sign_before_attribute_name_error     = parseError("unexpected-equals-sign-before-attribute-name")
-	unexpected_null_character_error                        = parseError("unexpected-null-character")
-	unexpected_question_mark_instead_of_tag_name_error     = parseError("unexpected-question-mark-instead-of-tag-name")
-	unexpected_solidus_in_tag_error                        = parseError("unexpected-solidus-in-tag")
+	absence_of_digits_in_numeric_character_reference_error                 = parseError("absence-of-digits-in-numeric-character-reference")
+	abrupt_closing_of_empty_comment_error                                  = parseError("abrupt-closing-of-empty-comment")
+	abrupt_doctype_public_identifier_error                                 = parseError("abrupt-doctype-public-identifier")
+	abrupt_doctype_system_identifier_error                                 = parseError("abrupt-doctype-system-identifier")
+	character_reference_outside_unicode_range_error                        = parseError("character-reference-outside-unicode-range")
+	control_character_reference_error                                      = parseError("control-character-reference")
+	eof_before_tag_name_error                                              = parseError("eof-before-tag-name")
+	eof_in_comment_error                                                   = parseError("eof-in-comment")
+	eof_in_doctype_error                                                   = parseError("eof-in-doctype")
+	eof_in_tag_error                                                       = parseError("eof-in-tag")
+	incorrectly_opened_comment_error                                       = parseError("incorrectly-opened-comment")
+	invalid_character_sequence_after_doctype_name_error                    = parseError("invalid-character-sequence-after-doctype-name")
+	invalid_first_character_of_tag_name_error                              = parseError("invalid-first-character-of-tag-name")
+	missing_attribute_value_error                                          = parseError("missing-attribute-value")
+	missing_doctype_name_error                                             = parseError("missing-doctype-name")
+	missing_doctype_public_identifier_error                                = parseError("missing-doctype-public-identifier")
+	missing_doctype_system_identifier_error                                = parseError("missing-doctype-system-identifier")
+	missing_end_tag_name_error                                             = parseError("missing-end-tag-name")
+	missing_semicolon_after_character_reference_error                      = parseError("missing-semicolon-after-character-reference")
+	missing_quote_before_doctype_public_identifier_error                   = parseError("missing-quote-before-doctype-public-identifier")
+	missing_quote_before_doctype_system_identifier_error                   = parseError("missing-quote-before-doctype-system-identifier")
+	missing_whitespace_after_doctype_public_keyword_error                  = parseError("missing-whitespace-after-doctype-public-keyword")
+	missing_whitespace_after_doctype_system_keyword_error                  = parseError("missing-whitespace-after-doctype-system-keyword")
+	missing_whitespace_before_doctype_name_error                           = parseError("missing-whitespace-before-doctype-name")
+	missing_whitepace_between_attributes_error                             = parseError("missing-whitespace-between-attributes")
+	missing_whitespace_between_doctype_public_and_system_identifiers_error = parseError("missing-whitespace-between-doctype-public-and-system-identifiers")
+	noncharacter_reference_error                                           = parseError("noncharacter-character-reference")
+	null_character_reference_error                                         = parseError("null-character-reference")
+	surrogate_character_reference_error                                    = parseError("surrogate-character-reference")
+	unexpected_character_in_attribute_name_error                           = parseError("unexpected-character-in-attribute-name")
+	unexpected_character_in_unquoted_attribute_value_error                 = parseError("unexpected-character-in-unquoted-attribute-value")
+	unexpected_equals_sign_before_attribute_name_error                     = parseError("unexpected-equals-sign-before-attribute-name")
+	unexpected_null_character_error                                        = parseError("unexpected-null-character")
+	unexpected_question_mark_instead_of_tag_name_error                     = parseError("unexpected-question-mark-instead-of-tag-name")
+	unexpected_solidus_in_tag_error                                        = parseError("unexpected-solidus-in-tag")
+	unexpected_character_after_doctype_system_identifier_error             = parseError("unexpected-character-after-doctype-system-identifier")
 )
 
 type tokenizer struct {
@@ -1059,9 +1080,9 @@ func (t *tokenizer) run() {
 			default:
 				t.tkh.Cursor--
 				if t.tkh.ConsumeStrIfMatches("PUBLIC", util.AsciiCaseInsensitive) != "" {
-					panic("TODO[https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-name-state]")
+					t.state = afterDoctypePublicKeywordState
 				} else if t.tkh.ConsumeStrIfMatches("SYSTEM", util.AsciiCaseInsensitive) != "" {
-					panic("TODO[https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-name-state]")
+					t.state = afterDoctypeSystemKeywordState
 				} else {
 					t.parseErrorEncountered(invalid_character_sequence_after_doctype_name_error)
 					currDoctypeToken().forceQuirks = true
@@ -1069,7 +1090,297 @@ func (t *tokenizer) run() {
 					// t.state = bogusDoctypeState
 				}
 			}
-		// https://html.spec.whatwg.org/multipage/parsing.html#character-reference-state
+		// https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-public-keyword-state
+		case afterDoctypePublicKeywordState:
+			nextChar := t.tkh.ConsumeChar()
+			switch nextChar {
+			case '\t', '\n', 0x000c, ' ':
+				t.state = beforeDoctypePublicIdentifierState
+			case '"':
+				t.parseErrorEncountered(missing_whitespace_after_doctype_public_keyword_error)
+				currDoctypeToken().publicId = new(string)
+				t.state = doctypePublicIdentifierDoubleQuotedState
+			case '\'':
+				t.parseErrorEncountered(missing_whitespace_after_doctype_public_keyword_error)
+				currDoctypeToken().publicId = new(string)
+				t.state = doctypePublicIdentifierSingleQuotedState
+			case '>':
+				t.parseErrorEncountered(missing_doctype_public_identifier_error)
+				currDoctypeToken().forceQuirks = true
+				t.state = dataState
+				emitToken(currTk)
+			case -1:
+				t.parseErrorEncountered(eof_in_doctype_error)
+				currDoctypeToken().forceQuirks = true
+				emitToken(currTk)
+				emitToken(&eofToken{})
+				return
+			default:
+				t.parseErrorEncountered(missing_quote_before_doctype_public_identifier_error)
+				currDoctypeToken().forceQuirks = true
+				t.tkh.Cursor--
+				panic("TODO[https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-public-keyword-state]")
+				// t.state = bogusDoctypeState
+			}
+		// https://html.spec.whatwg.org/multipage/parsing.html#before-doctype-public-identifier-state
+		case beforeDoctypePublicIdentifierState:
+			nextChar := t.tkh.ConsumeChar()
+			switch nextChar {
+			case '\t', '\n', 0x000c, ' ':
+			case '"':
+				currDoctypeToken().publicId = new(string)
+				t.state = doctypePublicIdentifierDoubleQuotedState
+			case '\'':
+				currDoctypeToken().publicId = new(string)
+				t.state = doctypePublicIdentifierSingleQuotedState
+			case '>':
+				t.parseErrorEncountered(missing_doctype_public_identifier_error)
+				currDoctypeToken().forceQuirks = true
+				t.state = dataState
+				emitToken(currTk)
+			case -1:
+				t.parseErrorEncountered(eof_in_doctype_error)
+				currDoctypeToken().forceQuirks = true
+				emitToken(currTk)
+				emitToken(&eofToken{})
+				return
+			default:
+				t.parseErrorEncountered(missing_quote_before_doctype_public_identifier_error)
+				currDoctypeToken().forceQuirks = true
+				t.tkh.Cursor--
+				panic("TODO[https://html.spec.whatwg.org/multipage/parsing.html#before-doctype-public-identifier-state]")
+				// t.state = bogusDoctypeState
+			}
+		// https://html.spec.whatwg.org/multipage/parsing.html#doctype-public-identifier-(double-quoted)-state
+		case doctypePublicIdentifierDoubleQuotedState:
+			nextChar := t.tkh.ConsumeChar()
+			switch nextChar {
+			case '"':
+				t.state = afterDoctypePublicIdentifierState
+			case 0:
+				t.parseErrorEncountered(unexpected_null_character_error)
+				*(currDoctypeToken().publicId) += string(rune(0xfffd))
+			case '>':
+				t.parseErrorEncountered(abrupt_doctype_public_identifier_error)
+				currDoctypeToken().forceQuirks = true
+				t.state = dataState
+				emitToken(currTk)
+			case -1:
+				t.parseErrorEncountered(eof_in_doctype_error)
+				currDoctypeToken().forceQuirks = true
+				emitToken(currTk)
+				emitToken(&eofToken{})
+				return
+			default:
+				*(currDoctypeToken().publicId) += string(nextChar)
+			}
+		// https://html.spec.whatwg.org/multipage/parsing.html#doctype-public-identifier-(single-quoted)-state
+		case doctypePublicIdentifierSingleQuotedState:
+			nextChar := t.tkh.ConsumeChar()
+			switch nextChar {
+			case '\'':
+				t.state = afterDoctypePublicIdentifierState
+			case 0:
+				t.parseErrorEncountered(unexpected_null_character_error)
+				*(currDoctypeToken().publicId) += string(rune(0xfffd))
+			case '>':
+				t.parseErrorEncountered(abrupt_doctype_public_identifier_error)
+				currDoctypeToken().forceQuirks = true
+				t.state = dataState
+				emitToken(currTk)
+			case -1:
+				t.parseErrorEncountered(eof_in_doctype_error)
+				currDoctypeToken().forceQuirks = true
+				emitToken(currTk)
+				emitToken(&eofToken{})
+				return
+			default:
+				*(currDoctypeToken().publicId) += string(nextChar)
+			}
+		// https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-public-identifier-state
+		case afterDoctypePublicIdentifierState:
+			nextChar := t.tkh.ConsumeChar()
+			switch nextChar {
+			case '\t', '\n', 0x000c, ' ':
+				t.state = betweenDoctypePublicAndSystemIdentifiersState
+			case '>':
+				t.state = dataState
+				emitToken(currTk)
+			case '"':
+				t.parseErrorEncountered(missing_whitespace_between_doctype_public_and_system_identifiers_error)
+				currDoctypeToken().systemId = new(string)
+				t.state = doctypeSystemIdentifierDoubleQuotedState
+			case '\'':
+				t.parseErrorEncountered(missing_whitespace_between_doctype_public_and_system_identifiers_error)
+				currDoctypeToken().systemId = new(string)
+				t.state = doctypeSystemIdentifierSingleQuotedState
+			case -1:
+				t.parseErrorEncountered(eof_in_doctype_error)
+				currDoctypeToken().forceQuirks = true
+				emitToken(currTk)
+				emitToken(&eofToken{})
+			default:
+				t.parseErrorEncountered(missing_quote_before_doctype_system_identifier_error)
+				currDoctypeToken().forceQuirks = true
+				t.tkh.Cursor--
+				panic("TODO[https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-public-identifier-state]")
+				// t.state = bogusDoctypeState
+			}
+		// https://html.spec.whatwg.org/multipage/parsing.html#between-doctype-public-and-system-identifiers-state
+		case betweenDoctypePublicAndSystemIdentifiersState:
+			nextChar := t.tkh.ConsumeChar()
+			switch nextChar {
+			case '\t', '\n', 0x000c, ' ':
+			case '>':
+				t.state = dataState
+				emitToken(currTk)
+			case '"':
+				currDoctypeToken().systemId = new(string)
+				t.state = doctypeSystemIdentifierDoubleQuotedState
+			case '\'':
+				currDoctypeToken().systemId = new(string)
+				t.state = doctypeSystemIdentifierSingleQuotedState
+			case -1:
+				t.parseErrorEncountered(eof_in_doctype_error)
+				currDoctypeToken().forceQuirks = true
+				emitToken(currTk)
+				emitToken(&eofToken{})
+			default:
+				t.parseErrorEncountered(missing_quote_before_doctype_system_identifier_error)
+				currDoctypeToken().forceQuirks = true
+				t.tkh.Cursor--
+				panic("TODO[https://html.spec.whatwg.org/multipage/parsing.html#between-doctype-public-and-system-identifiers-state]")
+				// t.state = bogusDoctypeState
+			}
+		// https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-system-keyword-state
+		case afterDoctypeSystemKeywordState:
+			nextChar := t.tkh.ConsumeChar()
+			switch nextChar {
+			case '\t', '\n', 0x000c, ' ':
+				t.state = beforeDoctypeSystemIdentifierState
+			case '"':
+				t.parseErrorEncountered(missing_whitespace_after_doctype_system_keyword_error)
+				currDoctypeToken().systemId = new(string)
+				t.state = doctypeSystemIdentifierDoubleQuotedState
+			case '\'':
+				t.parseErrorEncountered(missing_whitespace_after_doctype_system_keyword_error)
+				currDoctypeToken().systemId = new(string)
+				t.state = doctypeSystemIdentifierSingleQuotedState
+			case '>':
+				t.parseErrorEncountered(missing_doctype_system_identifier_error)
+				currDoctypeToken().forceQuirks = true
+				t.state = dataState
+				emitToken(currTk)
+			case -1:
+				t.parseErrorEncountered(eof_in_doctype_error)
+				currDoctypeToken().forceQuirks = true
+				emitToken(currTk)
+				emitToken(&eofToken{})
+				return
+			default:
+				t.parseErrorEncountered(missing_quote_before_doctype_system_identifier_error)
+				currDoctypeToken().forceQuirks = true
+				t.tkh.Cursor--
+				panic("TODO[https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-system-keyword-state]")
+				// t.state = bogusDoctypeState
+			}
+		// https://html.spec.whatwg.org/multipage/parsing.html#before-doctype-system-identifier-state
+		case beforeDoctypeSystemIdentifierState:
+			nextChar := t.tkh.ConsumeChar()
+			switch nextChar {
+			case '\t', '\n', 0x000c, ' ':
+			case '"':
+				currDoctypeToken().systemId = new(string)
+				t.state = doctypeSystemIdentifierDoubleQuotedState
+			case '\'':
+				currDoctypeToken().systemId = new(string)
+				t.state = doctypeSystemIdentifierSingleQuotedState
+			case '>':
+				t.parseErrorEncountered(missing_doctype_system_identifier_error)
+				currDoctypeToken().forceQuirks = true
+				t.state = dataState
+				emitToken(currTk)
+			case -1:
+				t.parseErrorEncountered(eof_in_doctype_error)
+				currDoctypeToken().forceQuirks = true
+				emitToken(currTk)
+				emitToken(&eofToken{})
+				return
+			default:
+				t.parseErrorEncountered(missing_quote_before_doctype_system_identifier_error)
+				currDoctypeToken().forceQuirks = true
+				t.tkh.Cursor--
+				panic("TODO[https://html.spec.whatwg.org/multipage/parsing.html#before-doctype-system-identifier-state]")
+				// t.state = bogusDoctypeState
+			}
+
+			// https://html.spec.whatwg.org/multipage/parsing.html#doctype-system-identifier-(double-quoted)-state
+		case doctypeSystemIdentifierDoubleQuotedState:
+			nextChar := t.tkh.ConsumeChar()
+			switch nextChar {
+			case '"':
+				t.state = afterDoctypeSystemIdentifierState
+			case 0:
+				t.parseErrorEncountered(unexpected_null_character_error)
+				*(currDoctypeToken().systemId) += string(rune(0xfffd))
+			case '>':
+				t.parseErrorEncountered(abrupt_doctype_system_identifier_error)
+				currDoctypeToken().forceQuirks = true
+				t.state = dataState
+				emitToken(currTk)
+			case -1:
+				t.parseErrorEncountered(eof_in_doctype_error)
+				currDoctypeToken().forceQuirks = true
+				emitToken(currTk)
+				emitToken(&eofToken{})
+				return
+			default:
+				*(currDoctypeToken().systemId) += string(nextChar)
+			}
+		// https://html.spec.whatwg.org/multipage/parsing.html#doctype-system-identifier-(single-quoted)-state
+		case doctypeSystemIdentifierSingleQuotedState:
+			nextChar := t.tkh.ConsumeChar()
+			switch nextChar {
+			case '\'':
+				t.state = afterDoctypeSystemIdentifierState
+			case 0:
+				t.parseErrorEncountered(unexpected_null_character_error)
+				*(currDoctypeToken().systemId) += string(rune(0xfffd))
+			case '>':
+				t.parseErrorEncountered(abrupt_doctype_system_identifier_error)
+				currDoctypeToken().forceQuirks = true
+				t.state = dataState
+				emitToken(currTk)
+			case -1:
+				t.parseErrorEncountered(eof_in_doctype_error)
+				currDoctypeToken().forceQuirks = true
+				emitToken(currTk)
+				emitToken(&eofToken{})
+				return
+			default:
+				*(currDoctypeToken().systemId) += string(nextChar)
+			}
+		// https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-system-identifier-state
+		case afterDoctypeSystemIdentifierState:
+			nextChar := t.tkh.ConsumeChar()
+			switch nextChar {
+			case '\t', '\n', 0x000c, ' ':
+			case '>':
+				t.state = dataState
+				emitToken(currTk)
+			case -1:
+				t.parseErrorEncountered(eof_in_doctype_error)
+				currDoctypeToken().forceQuirks = true
+				emitToken(currTk)
+				emitToken(&eofToken{})
+			default:
+				t.parseErrorEncountered(unexpected_character_after_doctype_system_identifier_error)
+				t.tkh.Cursor--
+				panic("TODO[https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-system-identifier-state]")
+				// t.state = bogusDoctypeState
+			}
+
+			// https://html.spec.whatwg.org/multipage/parsing.html#character-reference-state
 		case characterReferenceState:
 			nextChar := t.tkh.ConsumeChar()
 			switch nextChar {
