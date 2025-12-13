@@ -373,7 +373,7 @@ func (tb treeBuilder) newBlockContainer(
 		bcon.bfc = parentFctx.(*blockFormattingContext)
 	}
 
-	// Check each children's display type - By running dry-run layout on each of them
+	// Check each children's display type.
 	hasInline, hasBlock := false, false
 	isInline := make([]bool, len(children))
 	for i, childNode := range children {
