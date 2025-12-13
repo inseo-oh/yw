@@ -7,13 +7,13 @@ package layout
 type formattingContext interface {
 	naturalPos() float64
 	incrementNaturalPos(inc float64)
-	contextOwnerBox() box
+	contextOwnerBox() Box
 }
 
 type formattingContextCommon struct {
-	ownerBox box
+	ownerBox Box
 }
 
-func (fc formattingContextCommon) contextOwnerBox() box {
+func (fc formattingContextCommon) contextOwnerBox() Box {
 	return fc.ownerBox
 }

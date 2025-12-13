@@ -14,7 +14,6 @@ import (
 )
 
 type text struct {
-	nodeCommon
 	rect     physicalRect
 	text     string
 	font     gfx.Font

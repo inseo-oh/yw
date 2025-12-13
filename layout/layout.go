@@ -15,33 +15,26 @@ import (
 )
 
 // Build builds the layout starting from the DOM node root.
-func Build(root dom.Element, viewportWidth, viewportHeight float64, fontProvider platform.FontProvider) Node {
+func Build(root dom.Element, viewportWidth, viewportHeight float64, fontProvider platform.FontProvider) Box {
 	// https://www.w3.org/TR/css-display-3/#initial-containing-block
 	tb := treeBuilder{}
 	tb.font = fontProvider.OpenFont("this_is_not_real_filename.ttf")
 	tb.font.SetTextSize(32)
-	bfc := &blockFormattingContext{}
-	ifc := &inlineFormattingContext{}
 	boxRect := logicalRect{inlinePos: 0, blockPos: 0, logicalWidth: viewportWidth, logicalHeight: viewportHeight}
-	icb := tb.newBlockContainer(bfc, ifc, nil, nil, nil, boxRect, physicalEdges{}, physicalEdges{}, true, true, false)
-	bfc.ownerBox = icb
-	ifc.ownerBox = icb
-	ifc.bcon = icb
-	ifc.initialAvailableWidth = viewportWidth
-	icb.initChildren(tb, []dom.Node{root}, []gfx.TextDecorOptions{})
+	icb := tb.newBlockContainer(nil, nil, nil, nil, nil, boxRect, physicalEdges{}, physicalEdges{}, true, true, false, []dom.Node{root}, []gfx.TextDecorOptions{})
 	return icb
 }
 
 // PrintTree prints the layout tree to standard output.
-func PrintTree(node Node, indentLevel int) {
+func PrintTree(bx Box, indentLevel int) {
 	indent := strings.Repeat(" ", indentLevel*4)
-	fmt.Printf("%s%v\n", indent, node)
-	if bx, ok := node.(box); ok {
-		for _, child := range bx.ChildBoxes() {
-			PrintTree(child, indentLevel+1)
-		}
-		for _, child := range bx.ChildTexts() {
-			PrintTree(child, indentLevel+1)
-		}
+	fmt.Printf("%s%v\n", indent, bx)
+	for _, child := range bx.ChildBoxes() {
+		PrintTree(child, indentLevel+1)
+	}
+
+	indent = strings.Repeat(" ", (indentLevel+1)*4)
+	for _, child := range bx.ChildTexts() {
+		fmt.Printf("%s%v\n", indent, child)
 	}
 }

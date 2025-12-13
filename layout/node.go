@@ -14,13 +14,5 @@ type Node interface {
 	// String returns description of the node.
 	String() string
 
-	parentNode() Node
 	isBlockLevel() bool
-}
-type nodeCommon struct {
-	parent Node
-}
-
-func (n nodeCommon) parentNode() Node {
-	return n.parent
 }

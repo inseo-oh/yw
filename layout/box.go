@@ -15,8 +15,16 @@ import (
 	"github.com/inseo-oh/yw/util"
 )
 
-type box interface {
-	Node
+// Box represents a box node in the box tree.
+type Box interface {
+	ChildBoxes() []Box
+	ChildTexts() []*text
+
+	// MakePaintNode creates a paint node for given node and its children.
+	// (So calling this on the root node will generate paint tree for the whole page)
+	MakePaintNode() paint.Node
+
+	boxParent() Box
 	boxElement() dom.Element
 	boxMarginRect() logicalRect
 	boxContentRect() logicalRect
@@ -24,25 +32,24 @@ type box interface {
 	boxPadding() physicalEdges
 	logicalWidth() float64
 	logicalHeight() float64
-	ChildBoxes() []box
-	ChildTexts() []*text
 	isWidthAuto() bool
 	isHeightAuto() bool
 	incrementSize(logicalWidth, logicalHeight float64)
 	incrementIfNeeded(logicalWidth, logicalHeight float64) (logicalWidthDiff, logicalHeightDiff float64)
 }
 type boxCommon struct {
-	nodeCommon
+	parent             Box
 	elem               dom.Element
 	marginRect         logicalRect
 	margin             physicalEdges
 	padding            physicalEdges
 	physicalWidthAuto  bool
 	physicalHeightAuto bool
-	childBoxes         []box
+	childBoxes         []Box
 	childTexts         []*text
 }
 
+func (bx boxCommon) boxParent() Box              { return bx.parent }
 func (bx boxCommon) boxElement() dom.Element     { return bx.elem }
 func (bx boxCommon) boxMarginRect() logicalRect  { return bx.marginRect }                              // Rect containing margin area
 func (bx boxCommon) boxPaddingRect() logicalRect { return bx.boxMarginRect().addPadding(bx.margin) }   // Rect containing padding area
@@ -59,7 +66,8 @@ func (bx boxCommon) logicalWidth() float64 {
 func (bx boxCommon) logicalHeight() float64 {
 	return bx.boxContentRect().logicalHeight
 }
-func (bx boxCommon) ChildBoxes() []box {
+
+func (bx boxCommon) ChildBoxes() []Box {
 	return bx.childBoxes
 }
 func (bx boxCommon) ChildTexts() []*text {
@@ -67,25 +75,24 @@ func (bx boxCommon) ChildTexts() []*text {
 }
 func (bx boxCommon) isWidthAuto() bool  { return bx.physicalWidthAuto }
 func (bx boxCommon) isHeightAuto() bool { return bx.physicalHeightAuto }
+
 func (bx *boxCommon) incrementSize(logicalWidth, logicalHeight float64) {
 	if logicalWidth == 0 && logicalHeight == 0 {
 		return
 	}
 	bx.marginRect.logicalWidth += logicalWidth
 	bx.marginRect.logicalHeight += logicalHeight
-	parent := bx.parentNode()
+	parent := bx.parent
 	if !util.IsNil(parent) {
-		if parent, ok := parent.(box); ok {
-			w := logicalWidth
-			h := logicalHeight
-			if !parent.isWidthAuto() {
-				w = 0
-			}
-			if !parent.isHeightAuto() {
-				h = 0
-			}
-			parent.incrementSize(w, h)
+		w := logicalWidth
+		h := logicalHeight
+		if !parent.isWidthAuto() {
+			w = 0
 		}
+		if !parent.isHeightAuto() {
+			h = 0
+		}
+		parent.incrementSize(w, h)
 	}
 }
 func (bx *boxCommon) incrementIfNeeded(minLogicalWidth, minLogicalHeight float64) (logicalWidthDiff, logicalHeightDiff float64) {
@@ -94,6 +101,7 @@ func (bx *boxCommon) incrementIfNeeded(minLogicalWidth, minLogicalHeight float64
 	bx.incrementSize(wDiff, hDiff)
 	return wDiff, hDiff
 }
+
 func (bx boxCommon) MakePaintNode() paint.Node {
 	var col color.Color
 	paintNodes := []paint.Node{}
