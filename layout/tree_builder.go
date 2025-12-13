@@ -5,7 +5,6 @@
 package layout
 
 import (
-	"fmt"
 	"image/color"
 	"log"
 	"regexp"
@@ -231,7 +230,6 @@ func computeBoxRect(
 
 	// Calculate left/top position
 	inlinePos, blockPos := computeNextPosition(bfc, ifc, parentBcon, isInline)
-	fmt.Printf("blockPos: %v, bfc: %g, bfc: %g\n", blockPos, bfc.currentNaturalPos, bfc.naturalPos())
 
 	var boxWidth, boxHeight sizing.Size
 	var boxWidthPhysical, boxHeightPhysical float64
