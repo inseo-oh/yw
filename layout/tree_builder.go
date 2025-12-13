@@ -319,7 +319,6 @@ func (tb treeBuilder) newInlineBox(
 
 	return ibox
 }
-
 func (tb treeBuilder) newBlockContainer(
 	parentFctx formattingContext,
 	ifc *inlineFormattingContext,
@@ -447,7 +446,6 @@ func (tb treeBuilder) newBlockContainer(
 
 	return bcon
 }
-
 func (tb treeBuilder) isElementBlockLevel(parentFctx formattingContext, domNode dom.Node) bool {
 	if n, ok := domNode.(dom.CharacterData); ok && n.CharacterDataType() == dom.CommentCharacterData {
 		return false
