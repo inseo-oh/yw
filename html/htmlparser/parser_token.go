@@ -273,7 +273,7 @@ const (
 	missing_whitespace_after_doctype_public_keyword_error                  = parseError("missing-whitespace-after-doctype-public-keyword")
 	missing_whitespace_after_doctype_system_keyword_error                  = parseError("missing-whitespace-after-doctype-system-keyword")
 	missing_whitespace_before_doctype_name_error                           = parseError("missing-whitespace-before-doctype-name")
-	missing_whitepace_between_attributes_error                             = parseError("missing-whitespace-between-attributes")
+	missing_whitespace_between_attributes_error                            = parseError("missing-whitespace-between-attributes")
 	missing_whitespace_between_doctype_public_and_system_identifiers_error = parseError("missing-whitespace-between-doctype-public-and-system-identifiers")
 	noncharacter_reference_error                                           = parseError("noncharacter-character-reference")
 	null_character_reference_error                                         = parseError("null-character-reference")
@@ -833,7 +833,7 @@ func (t *tokenizer) run() {
 				emitToken(&eofToken{})
 				return
 			default:
-				t.parseErrorEncountered(missing_whitepace_between_attributes_error)
+				t.parseErrorEncountered(missing_whitespace_between_attributes_error)
 				t.tkh.Cursor--
 				t.state = beforeAttributeNameState
 			}
