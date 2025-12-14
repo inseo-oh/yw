@@ -19,7 +19,6 @@ import (
 var requiredImports = []string{
 	"fmt",
 	"github.com/inseo-oh/yw/util",
-	"github.com/inseo-oh/yw/css",
 	"github.com/inseo-oh/yw/css/csscolor",
 	"github.com/inseo-oh/yw/css/box",
 	"github.com/inseo-oh/yw/css/backgrounds",

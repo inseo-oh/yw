@@ -5,7 +5,6 @@ package props
 
 import (
 	"fmt"
-	"github.com/inseo-oh/yw/css"
 	"github.com/inseo-oh/yw/css/backgrounds"
 	"github.com/inseo-oh/yw/css/box"
 	"github.com/inseo-oh/yw/css/csscolor"
@@ -414,35 +413,35 @@ var DescriptorsMap = map[string]Descriptor{
 		},
 	},
 	"margin-top": {
-		Initial: box.Margin{Value: values.LengthFromPx(css.NumFromInt(0))},
+		Initial: box.Margin{Value: values.LengthFromPx(0)},
 		ApplyFunc: func(dest *ComputedStyleSet, value any) {
 			v := value.(box.Margin)
 			dest.MarginTopValue = &v
 		},
 	},
 	"margin-right": {
-		Initial: box.Margin{Value: values.LengthFromPx(css.NumFromInt(0))},
+		Initial: box.Margin{Value: values.LengthFromPx(0)},
 		ApplyFunc: func(dest *ComputedStyleSet, value any) {
 			v := value.(box.Margin)
 			dest.MarginRightValue = &v
 		},
 	},
 	"margin-bottom": {
-		Initial: box.Margin{Value: values.LengthFromPx(css.NumFromInt(0))},
+		Initial: box.Margin{Value: values.LengthFromPx(0)},
 		ApplyFunc: func(dest *ComputedStyleSet, value any) {
 			v := value.(box.Margin)
 			dest.MarginBottomValue = &v
 		},
 	},
 	"margin-left": {
-		Initial: box.Margin{Value: values.LengthFromPx(css.NumFromInt(0))},
+		Initial: box.Margin{Value: values.LengthFromPx(0)},
 		ApplyFunc: func(dest *ComputedStyleSet, value any) {
 			v := value.(box.Margin)
 			dest.MarginLeftValue = &v
 		},
 	},
 	"margin": {
-		Initial: MarginShorthand{Left: box.Margin{Value: values.LengthFromPx(css.NumFromInt(0))}, Top: box.Margin{Value: values.LengthFromPx(css.NumFromInt(0))}, Right: box.Margin{Value: values.LengthFromPx(css.NumFromInt(0))}, Bottom: box.Margin{Value: values.LengthFromPx(css.NumFromInt(0))}},
+		Initial: MarginShorthand{Left: box.Margin{Value: values.LengthFromPx(0)}, Top: box.Margin{Value: values.LengthFromPx(0)}, Right: box.Margin{Value: values.LengthFromPx(0)}, Bottom: box.Margin{Value: values.LengthFromPx(0)}},
 		ApplyFunc: func(dest *ComputedStyleSet, value any) {
 			v := value.(MarginShorthand)
 			dest.MarginShorthandValue = &v
@@ -453,35 +452,35 @@ var DescriptorsMap = map[string]Descriptor{
 		},
 	},
 	"padding-top": {
-		Initial: values.LengthFromPx(css.NumFromInt(0)),
+		Initial: values.LengthFromPx(0),
 		ApplyFunc: func(dest *ComputedStyleSet, value any) {
 			v := value.(values.LengthResolvable)
 			dest.PaddingTopValue = &v
 		},
 	},
 	"padding-right": {
-		Initial: values.LengthFromPx(css.NumFromInt(0)),
+		Initial: values.LengthFromPx(0),
 		ApplyFunc: func(dest *ComputedStyleSet, value any) {
 			v := value.(values.LengthResolvable)
 			dest.PaddingRightValue = &v
 		},
 	},
 	"padding-bottom": {
-		Initial: values.LengthFromPx(css.NumFromInt(0)),
+		Initial: values.LengthFromPx(0),
 		ApplyFunc: func(dest *ComputedStyleSet, value any) {
 			v := value.(values.LengthResolvable)
 			dest.PaddingBottomValue = &v
 		},
 	},
 	"padding-left": {
-		Initial: values.LengthFromPx(css.NumFromInt(0)),
+		Initial: values.LengthFromPx(0),
 		ApplyFunc: func(dest *ComputedStyleSet, value any) {
 			v := value.(values.LengthResolvable)
 			dest.PaddingLeftValue = &v
 		},
 	},
 	"padding": {
-		Initial: PaddingShorthand{Left: values.LengthFromPx(css.NumFromInt(0)), Top: values.LengthFromPx(css.NumFromInt(0)), Right: values.LengthFromPx(css.NumFromInt(0)), Bottom: values.LengthFromPx(css.NumFromInt(0))},
+		Initial: PaddingShorthand{Left: values.LengthFromPx(0), Top: values.LengthFromPx(0), Right: values.LengthFromPx(0), Bottom: values.LengthFromPx(0)},
 		ApplyFunc: func(dest *ComputedStyleSet, value any) {
 			v := value.(PaddingShorthand)
 			dest.PaddingShorthandValue = &v

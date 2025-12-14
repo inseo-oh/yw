@@ -24,14 +24,14 @@ type LengthResolvable interface {
 //
 // https://www.w3.org/TR/css-values-3/#length-value
 type Length struct {
-	Value css.Num
+	Value float64
 	Unit  LengthUnit
 }
 
 // LengthFromPx creates a Px unit length from a number.
 //
 // TODO(ois): Wouldn't this be more useful if this just accepted float value?
-func LengthFromPx(px css.Num) Length {
+func LengthFromPx(px float64) Length {
 	return Length{px, Px}
 }
 
@@ -40,12 +40,12 @@ func (l Length) AsLength(containerSize func() css.Num) Length { return l }
 func (l Length) ToPx(fontSize func() css.Num) float64 {
 	switch l.Unit {
 	case Px:
-		return l.Value.ToFloat()
+		return l.Value
 	case Em:
-		return fontSize().ToFloat() * l.Value.ToFloat()
+		return fontSize().ToFloat() * l.Value
 	case Pt:
 		// STUB -- For now we treat pt and px as the same thing.
-		return l.Value.ToFloat()
+		return l.Value
 	default:
 		log.Panicf("TODO: %v", l)
 	}
@@ -123,11 +123,11 @@ func (u LengthUnit) String() string {
 //
 // https://www.w3.org/TR/css-values-3/#percentage-value
 type Percentage struct {
-	Value css.Num
+	Value float64
 }
 
 func (len Percentage) String() string { return fmt.Sprintf("%v%%", len.Value) }
 
 func (len Percentage) AsLength(containerSize func() css.Num) Length {
-	return LengthFromPx(css.NumFromFloat((len.Value.ToFloat() * containerSize().ToFloat()) / 100))
+	return LengthFromPx((len.Value * containerSize().ToFloat()) / 100)
 }

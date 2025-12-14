@@ -54,15 +54,15 @@ var (
 	// https://www.w3.org/TR/css-box-3/
 	//==========================================================================
 	// https://www.w3.org/TR/css-box-3/#margin-physical
-	propMarginTop    = SimpleProp{"margin-top", typeMargin, "box.Margin{Value: values.LengthFromPx(css.NumFromInt(0))}", false}
-	propMarginRight  = SimpleProp{"margin-right", typeMargin, "box.Margin{Value: values.LengthFromPx(css.NumFromInt(0))}", false}
-	propMarginBottom = SimpleProp{"margin-bottom", typeMargin, "box.Margin{Value: values.LengthFromPx(css.NumFromInt(0))}", false}
-	propMarginLeft   = SimpleProp{"margin-left", typeMargin, "box.Margin{Value: values.LengthFromPx(css.NumFromInt(0))}", false}
+	propMarginTop    = SimpleProp{"margin-top", typeMargin, "box.Margin{Value: values.LengthFromPx(0)}", false}
+	propMarginRight  = SimpleProp{"margin-right", typeMargin, "box.Margin{Value: values.LengthFromPx(0)}", false}
+	propMarginBottom = SimpleProp{"margin-bottom", typeMargin, "box.Margin{Value: values.LengthFromPx(0)}", false}
+	propMarginLeft   = SimpleProp{"margin-left", typeMargin, "box.Margin{Value: values.LengthFromPx(0)}", false}
 	// https://www.w3.org/TR/css-box-3/#padding-physical
-	propPaddingTop    = SimpleProp{"padding-top", typePadding, "values.LengthFromPx(css.NumFromInt(0))", false}
-	propPaddingRight  = SimpleProp{"padding-right", typePadding, "values.LengthFromPx(css.NumFromInt(0))", false}
-	propPaddingBottom = SimpleProp{"padding-bottom", typePadding, "values.LengthFromPx(css.NumFromInt(0))", false}
-	propPaddingLeft   = SimpleProp{"padding-left", typePadding, "values.LengthFromPx(css.NumFromInt(0))", false}
+	propPaddingTop    = SimpleProp{"padding-top", typePadding, "values.LengthFromPx(0)", false}
+	propPaddingRight  = SimpleProp{"padding-right", typePadding, "values.LengthFromPx(0)", false}
+	propPaddingBottom = SimpleProp{"padding-bottom", typePadding, "values.LengthFromPx(0)", false}
+	propPaddingLeft   = SimpleProp{"padding-left", typePadding, "values.LengthFromPx(0)", false}
 	//==========================================================================
 	// https://www.w3.org/TR/css-fonts-3/
 	//==========================================================================

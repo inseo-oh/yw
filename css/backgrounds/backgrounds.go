@@ -10,7 +10,6 @@ package backgrounds
 import (
 	"fmt"
 
-	"github.com/inseo-oh/yw/css"
 	"github.com/inseo-oh/yw/css/values"
 )
 
@@ -63,7 +62,7 @@ func (l LineStyle) String() string {
 //
 // Releavnt spec: https://www.w3.org/TR/css-backgrounds-3/#typedef-line-width
 var (
-	LineWidthThin   = values.LengthFromPx(css.NumFromInt(1)) // thin
-	LineWidthMedium = values.LengthFromPx(css.NumFromInt(3)) // medium
-	LineWidthThick  = values.LengthFromPx(css.NumFromInt(5)) // thick
+	LineWidthThin   = values.LengthFromPx(1) // thin
+	LineWidthMedium = values.LengthFromPx(3) // medium
+	LineWidthThick  = values.LengthFromPx(5) // thick
 )

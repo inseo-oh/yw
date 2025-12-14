@@ -25,7 +25,7 @@ func (ts *tokenStream) parsePadding() (res values.LengthResolvable, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: expected length or percentage", ts.errorHeader())
 	}
-	if len, ok := res.(values.Length); ok && len.Value.ToInt() < 0 {
+	if len, ok := res.(values.Length); ok && len.Value < 0 {
 		return nil, fmt.Errorf("%s: length is out of range", ts.errorHeader())
 	}
 	return res, nil

@@ -34,7 +34,7 @@ func (ts *tokenStream) parseLength(allowZeroShorthand bool) (res values.Length, 
 			if err != nil || !numTk.(numberToken).value.Equals(css.NumFromInt(0)) {
 				ts.cursor = oldCursor
 			} else {
-				return values.Length{Value: css.NumFromInt(0), Unit: values.Px}, nil
+				return values.LengthFromPx(0), nil
 			}
 		}
 		return res, fmt.Errorf("%s: expected length", ts.errorHeader())
@@ -73,7 +73,7 @@ func (ts *tokenStream) parseLength(allowZeroShorthand bool) (res values.Length, 
 	default:
 		return res, fmt.Errorf("<bad LengthUnit %s>", dim.unit)
 	}
-	return values.Length{Value: dim.value, Unit: unit}, nil
+	return values.Length{Value: dim.value.ToFloat(), Unit: unit}, nil
 }
 
 // Returns nil if not found
@@ -83,7 +83,7 @@ func (ts *tokenStream) parsePercentage() (res values.Percentage, err error) {
 		return res, err
 	}
 	per := perTk.(percentageToken)
-	return values.Percentage{Value: per.value}, nil
+	return values.Percentage{Value: per.value.ToFloat()}, nil
 }
 
 // https://www.w3.org/TR/css-values-3/#typedef-length-percentage
