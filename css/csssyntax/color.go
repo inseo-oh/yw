@@ -82,7 +82,7 @@ func (ts *tokenStream) parseColor() (res csscolor.Color, err error) {
 			if num := ts.parseNumber(); num != nil {
 				res = uint8(num.Clamp(css.NumFromInt(0), css.NumFromInt(1)).ToFloat() * 255)
 			} else if num, err := ts.parsePercentage(); err == nil {
-				aPer := css.NumFromFloat(num.Value).Clamp(css.NumFromInt(0), css.NumFromInt(100)).ToFloat()
+				aPer := css.Clamp(num.Value, 0, 100)
 				res = uint8((aPer / 100) * 255)
 			} else {
 				return res, fmt.Errorf("%s: expected number or percentage", ts.errorHeader())
@@ -112,9 +112,9 @@ func (ts *tokenStream) parseColor() (res csscolor.Color, err error) {
 			return res, err
 		} else if len(per) == 3 {
 			// Percentage value
-			rPer := css.NumFromFloat(per[0].Value).Clamp(css.NumFromInt(0), css.NumFromInt(100)).ToFloat()
-			gPer := css.NumFromFloat(per[1].Value).Clamp(css.NumFromInt(0), css.NumFromInt(100)).ToFloat()
-			bBer := css.NumFromFloat(per[2].Value).Clamp(css.NumFromInt(0), css.NumFromInt(100)).ToFloat()
+			rPer := css.Clamp(per[0].Value, 0, 100)
+			gPer := css.Clamp(per[1].Value, 0, 100)
+			bBer := css.Clamp(per[2].Value, 0, 100)
 			r = uint8((rPer / 100) * 255)
 			g = uint8((gPer / 100) * 255)
 			b = uint8((bBer / 100) * 255)
@@ -180,7 +180,7 @@ func (ts *tokenStream) parseColor() (res csscolor.Color, err error) {
 			if num := ts.parseNumber(); num != nil {
 				v = uint8(num.Clamp(css.NumFromInt(0), css.NumFromInt(255)).ToInt())
 			} else if num, err := ts.parsePercentage(); err == nil {
-				per := css.NumFromFloat(num.Value).Clamp(css.NumFromInt(0), css.NumFromInt(100)).ToFloat()
+				per := css.Clamp(num.Value, 0, 100)
 				v = uint8((per / 100) * 255)
 			} else if err := ts.consumeIdentTokenWith("none"); err == nil {
 				panic("TODO")

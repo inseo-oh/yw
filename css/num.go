@@ -69,19 +69,10 @@ func (n Num) Clamp(min, max Num) Num {
 	// Using float all the time is probably fine, but let's avoid it if we can.
 	isFloat := (n.Type == NumTypeFloat) || (min.Type == NumTypeFloat) || (max.Type == NumTypeFloat)
 	if isFloat {
-		if n.ToFloat() < min.ToFloat() {
-			return min
-		} else if max.ToFloat() < n.ToFloat() {
-			return max
-		}
+		return NumFromFloat(Clamp(n.ToFloat(), min.ToFloat(), max.ToFloat()))
 	} else {
-		if n.ToInt() < min.ToInt() {
-			return min
-		} else if max.ToInt() < n.ToInt() {
-			return max
-		}
+		return NumFromInt(Clamp(n.ToInt(), min.ToInt(), max.ToInt()))
 	}
-	return n
 }
 
 // Num represents the number in CSS form
@@ -103,4 +94,13 @@ func NumFromInt(v int64) Num {
 // Creates a new number from floating point
 func NumFromFloat(v float64) Num {
 	return Num{NumTypeFloat, v}
+}
+
+func Clamp[T int64 | float64](n, min, max T) T {
+	if n < min {
+		return min
+	} else if max < n {
+		return max
+	}
+	return n
 }
