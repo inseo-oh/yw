@@ -9,6 +9,7 @@ import (
 	"github.com/inseo-oh/yw/css/box"
 	"github.com/inseo-oh/yw/css/csscolor"
 	"github.com/inseo-oh/yw/css/display"
+	"github.com/inseo-oh/yw/css/float"
 	"github.com/inseo-oh/yw/css/fonts"
 	"github.com/inseo-oh/yw/css/sizing"
 	"github.com/inseo-oh/yw/css/text"
@@ -582,6 +583,13 @@ var DescriptorsMap = map[string]Descriptor{
 			dest.TextUnderlinePositionValue = &v
 		},
 	},
+	"float": {
+		Initial: float.None,
+		ApplyFunc: func(dest *ComputedStyleSet, value any) {
+			v := value.(float.Float)
+			dest.FloatValue = &v
+		},
+	},
 }
 
 type ComputedStyleSet struct {
@@ -637,6 +645,7 @@ type ComputedStyleSet struct {
 	TextDecorationColorValue     *csscolor.Color
 	TextDecorationShorthandValue *TextDecorationShorthand
 	TextUnderlinePositionValue   *textdecor.PositionFlags
+	FloatValue                   *float.Float
 }
 
 func (css *ComputedStyleSet) Color() csscolor.Color {
@@ -1003,6 +1012,13 @@ func (css *ComputedStyleSet) inheritTextUnderlinePositionFromParent(parentSrc Co
 	} else if parentParentSrc := parentSrc.ParentSource(); !util.IsNil(parentParentSrc) {
 		css.inheritTextUnderlinePositionFromParent(parentParentSrc)
 	}
+}
+func (css *ComputedStyleSet) Float() float.Float {
+	if css.FloatValue == nil {
+		initial := DescriptorsMap["float"].Initial.(float.Float)
+		css.FloatValue = &initial
+	}
+	return *css.FloatValue
 }
 func (css *ComputedStyleSet) InheritPropertiesFromParent(parentSrc ComputedStyleSetSource) {
 	if util.IsNil(css.ColorValue) {

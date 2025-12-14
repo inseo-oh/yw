@@ -28,6 +28,7 @@ var requiredImports = []string{
 	"github.com/inseo-oh/yw/css/display",
 	"github.com/inseo-oh/yw/css/text",
 	"github.com/inseo-oh/yw/css/textdecor",
+	"github.com/inseo-oh/yw/css/float",
 }
 
 var (

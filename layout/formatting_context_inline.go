@@ -31,14 +31,15 @@ func (ifc *inlineFormattingContext) addLineBox(lineHeight float64) {
 	} else {
 		lb.initialBlockPos = ifc.initialBlockPos
 	}
-	lb.availableWidth = ifc.initialAvailableWidth
+	lb.availableWidth = ifc.initialAvailableWidth - ifc.bcon.bfc.floatWidth(lb.initialBlockPos)
+	lb.leftOffset = ifc.bcon.bfc.leftFloatWidth(lb.initialBlockPos)
 	ifc.lineBoxes = append(ifc.lineBoxes, lb)
 }
 func (ifc *inlineFormattingContext) currentLineBox() *lineBox {
 	return &ifc.lineBoxes[len(ifc.lineBoxes)-1]
 }
 func (ifc inlineFormattingContext) naturalPos() float64 {
-	return ifc.currentLineBox().currentNaturalPos
+	return ifc.currentLineBox().currentNaturalPos + ifc.currentLineBox().leftOffset
 }
 func (ifc *inlineFormattingContext) incrementNaturalPos(pos float64) {
 	if len(ifc.lineBoxes) == 0 {
@@ -56,6 +57,7 @@ func (ifc *inlineFormattingContext) incrementNaturalPos(pos float64) {
 //
 // https://www.w3.org/TR/css-inline-3/#line-box
 type lineBox struct {
+	leftOffset        float64
 	availableWidth    float64
 	currentNaturalPos float64
 	currentLineHeight float64

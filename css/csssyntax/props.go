@@ -696,4 +696,7 @@ var parseFuncMap = map[string]func(ts *tokenStream) (res props.PropertyValue, er
 	"text-underline-position": func(ts *tokenStream) (props.PropertyValue, error) {
 		return ts.parseTextDecorationPosition()
 	},
+	"float": func(ts *tokenStream) (props.PropertyValue, error) {
+		return ts.parseFloat()
+	},
 }

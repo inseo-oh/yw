@@ -13,6 +13,7 @@ import (
 	"github.com/inseo-oh/yw/css"
 	"github.com/inseo-oh/yw/css/cssom"
 	"github.com/inseo-oh/yw/css/display"
+	"github.com/inseo-oh/yw/css/float"
 	"github.com/inseo-oh/yw/css/fonts"
 	"github.com/inseo-oh/yw/css/props"
 	"github.com/inseo-oh/yw/css/sizing"
@@ -240,7 +241,8 @@ func computeBoxRect(
 ) (boxRect logicalRect, physWidthAuto, physHeightAuto bool) {
 	styleSetSrc := cssom.ComputedStyleSetSourceOf(elem)
 	styleSet := styleSetSrc.ComputedStyleSet()
-	isInline := styleDisplay.Mode == display.OuterInnerMode && styleDisplay.OuterMode == display.Inline
+	isFloat := styleSet.Float() != float.None
+	isInline := !isFloat && styleDisplay.Mode == display.OuterInnerMode && styleDisplay.OuterMode == display.Inline
 	isInlineFlowRoot := isInline && styleDisplay.InnerMode == display.FlowRoot
 
 	// Calculate left/top position
@@ -670,6 +672,7 @@ func (tb treeBuilder) layoutElement(elem dom.Element, boxParent Box, parentFctx 
 	margin, padding := elementMarginAndPadding(elem, boxParent)
 
 	styleDisplay := styleSet.Display()
+	styleFloat := styleSet.Float()
 	switch styleDisplay.Mode {
 	case display.DisplayNone:
 		return nil
@@ -681,11 +684,12 @@ func (tb treeBuilder) layoutElement(elem dom.Element, boxParent Box, parentFctx 
 		}
 
 		boxRect, physWidthAuto, physHeightAuto := computeBoxRect(elem, bfc, ifc, boxParent, parentBcon, margin, padding, styleDisplay)
+		isFloat := styleFloat != float.None
 
 		switch styleDisplay.OuterMode {
 		case display.Block:
 			// Check if we have auto size on a block element. If so, use parent's size and unset auto.
-			if physWidthAuto {
+			if physWidthAuto && !isFloat {
 				// TODO: Support vertical writing mode
 				boxRect.logicalWidth = boxParent.boxContentRect().logicalWidth
 				physWidthAuto = false
@@ -767,29 +771,36 @@ func (tb treeBuilder) layoutElement(elem dom.Element, boxParent Box, parentFctx 
 			newInlinePos = ifc.currentLineBox().currentNaturalPos
 		}
 
-		if bcon, ok := bx.(*blockContainer); ok {
-			// Increment natural position (but only the amount that hasn't been incremented)
-			switch styleDisplay.OuterMode {
-			case display.Block:
-				logicalHeight := bcon.boxMarginRect().logicalHeight
-				posDiff := newBlockPos - oldBlockPos
-				bfc.incrementNaturalPos(logicalHeight - posDiff)
-			case display.Inline:
-				logicalWidth := bcon.boxMarginRect().logicalWidth
-				posDiff := newInlinePos - oldInlinePos
-				if len(ifc.lineBoxes) == 0 {
-					ifc.addLineBox(0)
-				}
-				ifc.incrementNaturalPos(logicalWidth - posDiff)
+		switch styleFloat {
+		case float.None:
+			if bcon, ok := bx.(*blockContainer); ok {
+				// Increment natural position (but only the amount that hasn't been incremented)
+				switch styleDisplay.OuterMode {
+				case display.Block:
+					logicalHeight := bcon.boxMarginRect().logicalHeight
+					posDiff := newBlockPos - oldBlockPos
+					bfc.incrementNaturalPos(logicalHeight - posDiff)
+				case display.Inline:
+					logicalWidth := bcon.boxMarginRect().logicalWidth
+					posDiff := newInlinePos - oldInlinePos
+					if len(ifc.lineBoxes) == 0 {
+						ifc.addLineBox(0)
+					}
+					ifc.incrementNaturalPos(logicalWidth - posDiff)
 
-				lb := ifc.currentLineBox()
-				heightDiff := bcon.boxMarginRect().toPhysicalRect().Height - lb.currentLineHeight
-				lb.currentLineHeight = max(lb.currentLineHeight, bcon.boxMarginRect().toPhysicalRect().Height)
-				if boxParent.isHeightAuto() {
-					boxParent.incrementSize(0, heightDiff)
+					lb := ifc.currentLineBox()
+					heightDiff := bcon.boxMarginRect().toPhysicalRect().Height - lb.currentLineHeight
+					lb.currentLineHeight = max(lb.currentLineHeight, bcon.boxMarginRect().toPhysicalRect().Height)
+					if boxParent.isHeightAuto() {
+						boxParent.incrementSize(0, heightDiff)
+					}
 				}
+
 			}
-
+		case float.Left:
+			bfc.leftFloatingBoxes = append(bfc.leftFloatingBoxes, bx)
+		case float.Right:
+			bfc.rightFloatingBoxes = append(bfc.rightFloatingBoxes, bx)
 		}
 		return bx
 

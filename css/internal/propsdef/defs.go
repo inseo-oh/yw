@@ -22,6 +22,7 @@ var (
 	typeTextDecorationLine     = CssType{"textdecor.LineFlags", "parseTextDecorationLine"}
 	typeTextDecorationStyle    = CssType{"textdecor.Style", "parseTextDecorationStyle"}
 	typeTextDecorationPosition = CssType{"textdecor.PositionFlags", "parseTextDecorationPosition"}
+	typeFloat                  = CssType{"float.Float", "parseFloat"}
 )
 
 // ==============================================================================
@@ -165,4 +166,9 @@ var Props = []CssProp{
 	ShorthandAnyProp{"text-decoration", []CssProp{propTextDecorationLine, propTextDecorationStyle, propTextDecorationColor}, false},
 	// https://www.w3.org/TR/css-text-decor-3/#propdef-text-underline-position
 	SimpleProp{"text-underline-position", typeTextDecorationPosition, "textdecor.PositionAuto", true},
+	//==========================================================================
+	// https://www.w3.org/TR/CSS2/visuren.html
+	//==========================================================================
+	// https://www.w3.org/TR/CSS2/visuren.html#propdef-float
+	SimpleProp{"float", typeFloat, "float.None", false},
 }
