@@ -7,6 +7,7 @@
 #ifndef YW_LAYOUT_H_
 #define YW_LAYOUT_H_
 
+typedef struct yw_inline_formatting_context yw_inline_formatting_context;
 struct yw_inline_formatting_context
 {
     char const *written_text;
@@ -17,7 +18,7 @@ struct yw_inline_formatting_context
  * Returns NULL when there's not enough memory.
  */
 char *yw_apply_whitespace_collapsing(char const *str,
-                                     struct yw_inline_formatting_context *ifc);
+                                     yw_inline_formatting_context *ifc);
 
 /*
  * CSS Text Module Level 3 - 4.1.3

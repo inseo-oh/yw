@@ -15,14 +15,14 @@
  * Testing support
  ******************************************************************************/
 
-void yw_failed_test(struct yw_testing_context *ctx)
+void yw_failed_test(yw_testing_context *ctx)
 {
     ctx->failed_counter++;
 }
 
 void yw_run_all_tests()
 {
-    struct yw_testing_context ctx;
+    yw_testing_context ctx;
     memset(&ctx, 0, sizeof(ctx));
 
 #define YW_X(_name)                                                            \
@@ -190,7 +190,7 @@ void *yw_grow_impl(int *cap_inout, int *len_inout, void *old_buf,
         return old_buf;
     }
     int new_cap = new_len * 2;
-    YW_CHAR32 *new_buf = realloc(old_buf, new_cap * item_size);
+    void *new_buf = realloc(old_buf, new_cap * item_size);
     if (new_buf == NULL)
     {
         /* If we don't have enough space for that much memory, give space for
@@ -221,7 +221,7 @@ void *yw_shrink_to_fit_impl(int *cap_inout, int len, void *old_buf,
         return old_buf;
     }
     int new_cap = len;
-    YW_CHAR32 *new_buf = realloc(old_buf, new_cap * item_size);
+    void *new_buf = realloc(old_buf, new_cap * item_size);
     if (new_buf == NULL)
     {
         return old_buf;
@@ -394,7 +394,7 @@ char const *yw_utf8_strchr(char const *s, YW_CHAR32 c)
  * yw_text_reader
  ******************************************************************************/
 
-void yw_text_reader_init(struct yw_text_reader *out, char const *source_name,
+void yw_text_reader_init(yw_text_reader *out, char const *source_name,
                          YW_CHAR32 const *chars, int chars_len)
 {
     memset(out, 0, sizeof(*out));
@@ -403,12 +403,12 @@ void yw_text_reader_init(struct yw_text_reader *out, char const *source_name,
     out->chars_len = chars_len;
 }
 
-bool yw_text_reader_is_eof(struct yw_text_reader const *tr)
+bool yw_text_reader_is_eof(yw_text_reader const *tr)
 {
     return tr->chars_len <= tr->cursor;
 }
 
-YW_CHAR32 yw_peek_char(struct yw_text_reader const *tr)
+YW_CHAR32 yw_peek_char(yw_text_reader const *tr)
 {
     if (yw_text_reader_is_eof(tr))
     {
@@ -418,7 +418,7 @@ YW_CHAR32 yw_peek_char(struct yw_text_reader const *tr)
 }
 
 YW_CHAR32
-yw_consume_any_char(struct yw_text_reader *tr)
+yw_consume_any_char(yw_text_reader *tr)
 {
     if (yw_text_reader_is_eof(tr))
     {
@@ -429,7 +429,7 @@ yw_consume_any_char(struct yw_text_reader *tr)
     return res;
 }
 
-int yw_consume_one_of_chars(struct yw_text_reader *tr, char const *chars)
+int yw_consume_one_of_chars(yw_text_reader *tr, char const *chars)
 {
     if (yw_text_reader_is_eof(tr))
     {
@@ -447,7 +447,7 @@ int yw_consume_one_of_chars(struct yw_text_reader *tr, char const *chars)
     return -1;
 }
 
-bool yw_consume_char(struct yw_text_reader *tr, YW_CHAR32 chr)
+bool yw_consume_char(yw_text_reader *tr, YW_CHAR32 chr)
 {
     if (yw_text_reader_is_eof(tr))
     {
@@ -462,8 +462,8 @@ bool yw_consume_char(struct yw_text_reader *tr, YW_CHAR32 chr)
     return false;
 }
 
-int yw_consume_one_of_strs(struct yw_text_reader *tr, char const **strs,
-                           enum yw_match_flags flags)
+int yw_consume_one_of_strs(yw_text_reader *tr, char const **strs,
+                           yw_match_flags flags)
 {
     if (yw_text_reader_is_eof(tr))
     {
@@ -510,8 +510,7 @@ int yw_consume_one_of_strs(struct yw_text_reader *tr, char const **strs,
     return match_idx;
 }
 
-bool yw_consume_str(struct yw_text_reader *tr, char const *str,
-                    enum yw_match_flags flags)
+bool yw_consume_str(yw_text_reader *tr, char const *str, yw_match_flags flags)
 {
     char const *strs[] = {str, NULL};
     int res = yw_consume_one_of_strs(tr, strs, flags);
@@ -522,7 +521,7 @@ bool yw_consume_str(struct yw_text_reader *tr, char const *str,
  * Garbage collector
  ******************************************************************************/
 
-YW_PTR_SLOT *yw_add_ptr_to_collection(struct yw_ptr_collection *coll, void *obj)
+YW_PTR_SLOT *yw_add_ptr_to_collection(yw_ptr_collection *coll, void *obj)
 {
     for (int i = 0; i < coll->slots_len; i++)
     {
@@ -541,21 +540,21 @@ YW_PTR_SLOT *yw_add_ptr_to_collection(struct yw_ptr_collection *coll, void *obj)
 /* NOTE: LSB must be zero -- It is used as "marked" flag for GC. */
 #define YW_GC_MAGIC 0x21b0fb278bf5e5ce
 
-static bool yw_gc_is_marked(struct yw_gc_object_header const *obj)
+static bool yw_gc_is_marked(yw_gc_object_header const *obj)
 {
     return (obj->magic_and_marked_flag & 0x1) != 0;
 }
-static void yw_gc_mark_object(struct yw_gc_object_header *obj)
+static void yw_gc_mark_object(yw_gc_object_header *obj)
 {
     obj->magic_and_marked_flag |= 0x1;
 }
-static void yw_gc_unmark_object(struct yw_gc_object_header *obj)
+static void yw_gc_unmark_object(yw_gc_object_header *obj)
 {
     obj->magic_and_marked_flag &= ~0x1;
 }
 void yw_gc_visit(void *obj_v)
 {
-    struct yw_gc_object_header *obj = obj_v;
+    yw_gc_object_header *obj = (yw_gc_object_header *)obj_v;
     if (obj == NULL)
     {
         return;
@@ -573,17 +572,17 @@ void yw_gc_visit(void *obj_v)
     }
 }
 
-void yw_gc_init_heap(struct yw_gc_heap *out)
+void yw_gc_init_heap(yw_gc_heap *out)
 {
     memset(out, 0, sizeof(*out));
 }
 
-void *yw_gc_alloc_impl(struct yw_gc_heap *heap, int size,
-                       struct yw_gc_callbacks const *callbacks,
-                       enum yw_gc_alloc_flags alloc_flags)
+void *yw_gc_alloc_impl(yw_gc_heap *heap, int size,
+                       yw_gc_callbacks const *callbacks,
+                       yw_gc_alloc_flags alloc_flags)
 {
     YW_PTR_SLOT *slot_all = NULL, *slot_root = NULL;
-    if (size < (int)sizeof(struct yw_gc_object_header))
+    if (size < (int)sizeof(yw_gc_object_header))
     {
         printf("%s: illegal size %d!\n", __func__, size);
         abort();
@@ -591,7 +590,7 @@ void *yw_gc_alloc_impl(struct yw_gc_heap *heap, int size,
     void *mem = malloc(size);
     memset(mem, 0, size);
 
-    struct yw_gc_object_header *mem_header = mem;
+    yw_gc_object_header *mem_header = (yw_gc_object_header *)mem;
     mem_header->magic_and_marked_flag = YW_GC_MAGIC;
     mem_header->callbacks = callbacks;
 
@@ -616,7 +615,7 @@ out:
     return mem;
 }
 
-void yw_gc(struct yw_gc_heap *heap)
+void yw_gc(yw_gc_heap *heap)
 {
     /* 1. Mark all objects ****************************************************/
     for (int i = 0; i < heap->all_objs.slots_len; i++)
@@ -625,7 +624,8 @@ void yw_gc(struct yw_gc_heap *heap)
         {
             continue;
         }
-        struct yw_gc_object_header *obj = heap->all_objs.slots[i];
+        yw_gc_object_header *obj =
+            (yw_gc_object_header *)heap->all_objs.slots[i];
         if ((obj->magic_and_marked_flag & ~0x1) != YW_GC_MAGIC)
         {
             printf("WARNING: %s: Object at %p has corrupted magic!\n", __func__,
@@ -650,7 +650,8 @@ void yw_gc(struct yw_gc_heap *heap)
         {
             continue;
         }
-        struct yw_gc_object_header *obj = heap->all_objs.slots[i];
+        yw_gc_object_header *obj =
+            (yw_gc_object_header *)heap->all_objs.slots[i];
         if ((obj->magic_and_marked_flag & ~0x1) != YW_GC_MAGIC)
         {
             printf("WARNING: %s: Object at %p has corrupted magic!\n", __func__,

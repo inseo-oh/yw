@@ -40,7 +40,7 @@ void yw_test_shrink_to_fit(struct yw_testing_context *ctx)
 {
     int len = 0;
     int cap = 0;
-    char *buf = malloc(1); /* Doesn't matter what size it is */
+    char *buf = (char *)malloc(1); /* Doesn't matter what size it is */
     if (buf == NULL)
     {
         printf("FATAL ERROR: %s: malloc() failed\n", __func__);
@@ -300,13 +300,17 @@ void yw_test_consume_one_of_strs(struct yw_testing_context *ctx)
     char const *strs1[] = {"a ", "quick ", "fox jumps ", NULL};
     char const *strs2[] = {"oVeR ", "the lazy ", "DOG", NULL};
 
-    YW_TEST_EXPECT(yw_consume_one_of_strs(&tr, strs1, 0), "%d", 0);
+    YW_TEST_EXPECT(yw_consume_one_of_strs(&tr, strs1, YW_NO_MATCH_FLAGS), "%d",
+                   0);
     YW_TEST_EXPECT(tr.cursor, "%d", 2);
-    YW_TEST_EXPECT(yw_consume_one_of_strs(&tr, strs1, 0), "%d", 1);
+    YW_TEST_EXPECT(yw_consume_one_of_strs(&tr, strs1, YW_NO_MATCH_FLAGS), "%d",
+                   1);
     YW_TEST_EXPECT(tr.cursor, "%d", 8);
-    YW_TEST_EXPECT(yw_consume_one_of_strs(&tr, strs1, 0), "%d", 2);
+    YW_TEST_EXPECT(yw_consume_one_of_strs(&tr, strs1, YW_NO_MATCH_FLAGS), "%d",
+                   2);
     YW_TEST_EXPECT(tr.cursor, "%d", 18);
-    YW_TEST_EXPECT(yw_consume_one_of_strs(&tr, strs2, 0), "%d", -1);
+    YW_TEST_EXPECT(yw_consume_one_of_strs(&tr, strs2, YW_NO_MATCH_FLAGS), "%d",
+                   -1);
     YW_TEST_EXPECT(tr.cursor, "%d", 18);
     YW_TEST_EXPECT(
         yw_consume_one_of_strs(&tr, strs2, YW_ASCII_CASE_INSENSITIVE), "%d", 0);

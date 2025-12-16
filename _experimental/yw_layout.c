@@ -36,7 +36,8 @@ char *yw_apply_segment_break_transform(char const *str)
             res_str[res_len - 1] = got;
             if (got == YW_SEGMENT_BREAK_CHAR)
             {
-                char *last_space = strrchr(next_chr, YW_SEGMENT_BREAK_CHAR);
+                char const *last_space =
+                    strrchr(next_chr, YW_SEGMENT_BREAK_CHAR);
                 if (last_space != NULL)
                 {
                     next_chr = last_space + 1;
@@ -63,7 +64,7 @@ char *yw_apply_segment_break_transform(char const *str)
 }
 
 char *yw_apply_whitespace_collapsing(char const *str,
-                                     struct yw_inline_formatting_context *ifc)
+                                     yw_inline_formatting_context *ifc)
 {
     /* https://www.w3.org/TR/css-text-3/#white-space-phase-1 */
 
@@ -212,7 +213,7 @@ char *yw_apply_whitespace_collapsing(char const *str,
             res_str[res_len - 1] = got;
             if (got == ' ')
             {
-                char *last_space = strrchr(next_chr, ' ');
+                char const *last_space = strrchr(next_chr, ' ');
                 if (last_space != NULL)
                 {
                     next_chr = last_space + 1;

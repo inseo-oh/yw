@@ -43,11 +43,11 @@ static struct yw_gc_callbacks my_object_callbacks = {
 };
 
 static YW_GC_PTR(struct my_object) my_object_alloc(
-    struct yw_gc_heap *heap, enum yw_gc_alloc_flags alloc_flags)
+    struct yw_gc_heap *heap, yw_gc_alloc_flags alloc_flags)
 {
     YW_GC_PTR(struct my_object)
     obj =
-        YW_GC_ALLOC(heap, struct my_object, &my_object_callbacks, alloc_flags);
+        YW_GC_ALLOC(struct my_object, heap, &my_object_callbacks, alloc_flags);
     obj->counter = 1;
     return obj;
 }

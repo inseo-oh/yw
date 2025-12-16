@@ -14,7 +14,7 @@
 
 typedef int32_t YW_CHAR32;
 
-#define YW_TODO()                                                                 \
+#define YW_TODO()                                                              \
     do                                                                         \
     {                                                                          \
         fprintf(stderr, "[%s:%d] %s: TODO", __FILE__, __LINE__, __func__);     \
@@ -25,6 +25,7 @@ typedef int32_t YW_CHAR32;
  * Testing support
  ******************************************************************************/
 
+typedef struct yw_testing_context yw_testing_context;
 struct yw_testing_context
 {
     int failed_counter;
@@ -45,7 +46,7 @@ struct yw_testing_context
     _x(yw_test_consume_one_of_strs)
 /* clang-format on */
 
-#define YW_X(_name) void _name(struct yw_testing_context *ctx);
+#define YW_X(_name) void _name(yw_testing_context *ctx);
 YW_ENUMERATE_TESTS(YW_X)
 #undef YW_X
 
@@ -88,7 +89,7 @@ YW_ENUMERATE_TESTS(YW_X)
         }                                                                      \
     } while (0)
 
-void yw_failed_test(struct yw_testing_context *ctx);
+void yw_failed_test(yw_testing_context *ctx);
 void yw_run_all_tests();
 
 /*******************************************************************************
@@ -137,7 +138,7 @@ void *yw_shrink_to_fit_impl(int *cap_inout, int len, void *old_buf,
     {                                                                          \
         free((_list)->items);                                                  \
     } while (0)
-#define YW_LIST_PUSH(_type, _list, _item)                                       \
+#define YW_LIST_PUSH(_type, _list, _item)                                      \
     do                                                                         \
     {                                                                          \
         (_list)->items =                                                       \
@@ -208,6 +209,7 @@ char const *yw_utf8_strchr(char const *s, YW_CHAR32 c);
  * yw_text_reader
  ******************************************************************************/
 
+typedef struct yw_text_reader yw_text_reader;
 struct yw_text_reader
 {
     char const *source_name;
@@ -216,38 +218,37 @@ struct yw_text_reader
     int cursor;
 };
 
-void yw_text_reader_init(struct yw_text_reader *out, char const *source_name,
+void yw_text_reader_init(yw_text_reader *out, char const *source_name,
                          YW_CHAR32 const *chars, int chars_len);
-bool yw_text_reader_is_eof(struct yw_text_reader const *tr);
+bool yw_text_reader_is_eof(yw_text_reader const *tr);
 
 /* Returns -1 on EOF. */
-YW_CHAR32 yw_peek_char(struct yw_text_reader const *tr);
+YW_CHAR32 yw_peek_char(yw_text_reader const *tr);
 
 /* Returns -1 on EOF. */
-YW_CHAR32
-yw_consume_any_char(struct yw_text_reader *tr);
+YW_CHAR32 yw_consume_any_char(yw_text_reader *tr);
 
 /*
  * Returns -1 on EOF or when no match was found.
  * Also note that this function can only match ASCII characters.
  */
-int yw_consume_one_of_chars(struct yw_text_reader *tr, char const *chars);
-bool yw_consume_char(struct yw_text_reader *tr, YW_CHAR32 chr);
+int yw_consume_one_of_chars(yw_text_reader *tr, char const *chars);
+bool yw_consume_char(yw_text_reader *tr, YW_CHAR32 chr);
 
-enum yw_match_flags
+typedef enum
 {
+    YW_NO_MATCH_FLAGS = 0,
     YW_ASCII_CASE_INSENSITIVE = 1 << 0
-};
+} yw_match_flags;
 
 /*
  * Returns index of matched string, or -1 if not found.
  *
  * strs must be NULL-terminated list!
  */
-int yw_consume_one_of_strs(struct yw_text_reader *tr, char const **strs,
-                           enum yw_match_flags flags);
-bool yw_consume_str(struct yw_text_reader *tr, char const *str,
-                    enum yw_match_flags flags);
+int yw_consume_one_of_strs(yw_text_reader *tr, char const **strs,
+                           yw_match_flags flags);
+bool yw_consume_str(yw_text_reader *tr, char const *str, yw_match_flags flags);
 
 /*******************************************************************************
  * Garbage collector
@@ -259,6 +260,7 @@ typedef void *YW_PTR_SLOT;
  * Each slot may store either a pointer or NULL.
  * NULL means free "slot", and new pointers can be stored there.
  */
+typedef struct yw_ptr_collection yw_ptr_collection;
 struct yw_ptr_collection
 {
     YW_PTR_SLOT *slots;
@@ -267,31 +269,34 @@ struct yw_ptr_collection
 };
 
 /* Returns pointer to the slot, or NULL if there's not enough memory. */
-YW_PTR_SLOT *yw_add_ptr_to_collection(struct yw_ptr_collection *coll,
-                                      void *obj);
+YW_PTR_SLOT *yw_add_ptr_to_collection(yw_ptr_collection *coll, void *obj);
 
+typedef struct yw_gc_callbacks yw_gc_callbacks;
 struct yw_gc_callbacks
 {
     void (*visit)(void *self);
     void (*destroy)(void *self);
 };
 
+typedef struct yw_gc_object_header yw_gc_object_header;
 struct yw_gc_object_header
 {
     uint64_t magic_and_marked_flag; /* LSB is used as marked flag. */
-    struct yw_gc_callbacks const *callbacks;
+    yw_gc_callbacks const *callbacks;
 };
 
+typedef struct yw_gc_heap yw_gc_heap;
 struct yw_gc_heap
 {
-    struct yw_ptr_collection all_objs;
-    struct yw_ptr_collection root_objs;
+    yw_ptr_collection all_objs;
+    yw_ptr_collection root_objs;
 };
 
-enum yw_gc_alloc_flags
+typedef enum
 {
+    YW_NO_GC_ALLOC_FLAGS = 0,
     YW_ADD_TO_GC_ROOT = 1 << 0
-};
+} yw_gc_alloc_flags;
 
 /* NOTE: It is safe to pass NULL pointer. */
 void yw_gc_visit(void *obj_v);
@@ -299,14 +304,14 @@ void yw_gc_visit(void *obj_v);
 #define YW_GC_TYPE(_x) _x##_GC
 #define YW_GC_PTR(_x) YW_GC_TYPE(_x) *
 
-void yw_gc_init_heap(struct yw_gc_heap *out);
-void *yw_gc_alloc_impl(struct yw_gc_heap *heap, int size,
-                       struct yw_gc_callbacks const *callbacks,
-                       enum yw_gc_alloc_flags alloc_flags);
-#define YW_GC_ALLOC(_heap, _type, _callbacks, _alloc_flags)                    \
+void yw_gc_init_heap(yw_gc_heap *out);
+void *yw_gc_alloc_impl(yw_gc_heap *heap, int size,
+                       yw_gc_callbacks const *callbacks,
+                       yw_gc_alloc_flags alloc_flags);
+#define YW_GC_ALLOC(_type, _heap, _callbacks, _alloc_flags)                    \
     (YW_GC_PTR(_type))yw_gc_alloc_impl((_heap), sizeof(YW_GC_TYPE(_type)),     \
                                        (_callbacks), (_alloc_flags))
 
-void yw_gc(struct yw_gc_heap *heap);
+void yw_gc(yw_gc_heap *heap);
 
 #endif /* #ifndef YW_COMMON_H_ */

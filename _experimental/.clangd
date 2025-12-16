@@ -1,2 +1,6 @@
 Diagnostics:
     MissingIncludes: Strict
+
+# Our code is not C++, but we want C++ diagnostics.
+CompileFlags:
+    Add: [ -xc++ ]
