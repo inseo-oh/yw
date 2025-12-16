@@ -1,6 +1,7 @@
 ---
 Language: Cpp
-BasedOnStyle:  LLVM
+BasedOnStyle: Microsoft
 IndentWidth: 4
 AccessModifierOffset: -4
-ColumnLimit: 0
+ColumnLimit: 80
+TypenameMacros: [YW_GC_TYPE, YW_GC_PTR]
