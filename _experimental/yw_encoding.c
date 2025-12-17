@@ -6,6 +6,8 @@
  */
 #include "yw_encoding.h"
 #include "yw_common.h"
+#include <cstdio>
+#include <cstdlib>
 #include <string.h>
 
 static struct
@@ -294,32 +296,133 @@ YW_EncodingType yw_encoding_from_label(char const *label)
     return YW_INVALID_ENCODING;
 }
 
-typedef YW_TextDecoder *(YW_TextDecoderFactory)();
+typedef void(YW_TextDecoderFactory)(YW_TextDecoder *out);
 
 static struct
 {
-    YW_EncodingType encoding;
-    YW_TextDecoder *decoder_factory;
+    YW_EncodingType type;
+    YW_TextDecoderFactory *decoder_factory;
 } yw_encodings[] = {};
+
+static YW_EncodingResult yw_decode_item(YW_IoQueueItem item,
+                                        YW_TextDecoder const *decoder,
+                                        YW_IoQueue *input, YW_IoQueue *output,
+                                        YW_EncodingErrorMode mode)
+{
+    if (mode == YW_ERROR_MODE_HTML)
+    {
+        fprintf(stderr, "%s: bad error mode", __func__);
+        abort();
+    }
+
+    YW_EncodingResult res =
+        decoder->callbacks->handler(decoder->data, input, item);
+    if (res == YW_ENCODING_RESULT_FINISHED)
+    {
+        yw_io_queue_push_one(output, YW_END_OF_IO_QUEUE);
+    }
+    else if (0 <= res)
+    {
+        if (yw_is_surrogate_char(res))
+        {
+            fprintf(stderr, "%s: result cannot contain surrogate char",
+                    __func__);
+            abort();
+        }
+        yw_io_queue_push_one(output, (YW_IoQueueItem)res);
+    }
+    else if (res == YW_ENCODING_RESULT_ERROR)
+    {
+        switch (mode)
+        {
+        case YW_ERROR_MODE_REPLACEMENT:
+            yw_io_queue_push_one(output, (YW_IoQueueItem)0xfffd);
+            break;
+        case YW_ERROR_MODE_HTML:
+            YW_UNREACHABLE();
+        case YW_ERROR_MODE_FATAL:
+            return res;
+        }
+    }
+    return YW_ENCODING_RESULT_CONTINUE;
+}
+
+static YW_EncodingResult yw_decode(YW_TextDecoder const *decoder,
+                                   YW_IoQueue *input, YW_IoQueue *output,
+                                   YW_EncodingErrorMode mode)
+{
+    while (1)
+    {
+        YW_IoQueueItem item = yw_io_queue_read_one(input);
+        YW_EncodingResult res =
+            yw_decode_item(item, decoder, input, output, mode);
+        if (res != YW_ENCODING_RESULT_CONTINUE)
+        {
+            return res;
+        }
+    }
+
+    YW_TODO();
+}
 
 void yw_encoding_decode(YW_IoQueue *input,
                         YW_EncodingType fallback_encoding_type,
                         YW_IoQueue *output)
 {
     /* https://encoding.spec.whatwg.org/#decode */
+    YW_EncodingType encoding_type = fallback_encoding_type;
+    YW_EncodingType bom_encoding = yw_bom_sniff(input);
+    if (bom_encoding != YW_INVALID_ENCODING)
+    {
+        encoding_type = bom_encoding;
+        if (bom_encoding == YW_UTF8)
+        {
+            int buf[3];
+            YW_IO_QUEUE_READ_TO_ARRAY(input, buf);
+        }
+        else
+        {
+            int buf[2];
+            YW_IO_QUEUE_READ_TO_ARRAY(input, buf);
+        }
+    }
 
+    YW_TextDecoder decoder;
+    for (int i = 0; i < (int)YW_SIZEOF_ARRAY(yw_encodings); i++)
+    {
+        if (yw_encodings[i].type == encoding_type)
+        {
+            yw_encodings[i].decoder_factory(&decoder);
+            return;
+        }
+    }
+    fprintf(stderr, "%s: unsupported encoding", __func__);
     YW_TODO();
 }
 
-void yw_bom_sniff(YW_IoQueue *output)
+YW_EncodingType yw_bom_sniff(YW_IoQueue const *queue)
 {
     /* https://encoding.spec.whatwg.org/#bom-sniff */
 
-    YW_TODO();
+    int bytes[3];
+    int len = YW_IO_QUEUE_PEEK_TO_ARRAY(queue, bytes);
+    if (3 <= len && bytes[0] == 0xef && bytes[1] == 0xbb && bytes[2] == 0xbf)
+    {
+        return YW_UTF8;
+    }
+    else if (2 <= len && bytes[0] == 0xfe && bytes[1] == 0xff)
+    {
+        return YW_UTF16_BE;
+    }
+    else if (2 <= len && bytes[0] == 0xff && bytes[1] == 0xfe)
+    {
+        return YW_UTF16_LE;
+    }
+    return YW_INVALID_ENCODING;
 }
 
-/* Caller owns the returned array. */
-int *yw_io_queue_items_to_array(YW_IoQueueItems const *items)
+void yw_io_queue_item_list_to_items(int **items_out, int *len_out,
+                                    YW_IoQueueItemList const *items)
 {
     int *res_buf = NULL;
     int len = 0;
@@ -331,32 +434,119 @@ int *yw_io_queue_items_to_array(YW_IoQueueItems const *items)
         res_buf[len - 1] = items->items[i];
     }
     res_buf = YW_SHRINK_TO_FIT(int, &cap, len, res_buf);
-    return res_buf;
+    *items_out = res_buf;
+    *len_out = len;
 }
 
-/* Caller owns the returned array. */
-int *yw_io_queue_to_array(YW_IoQueue const *queue)
+void yw_io_queue_to_items(int **items_out, int *len_out,
+                          YW_IoQueue const *queue)
 {
-    int *res_buf = NULL;
-    int len = 0;
-    int cap = 0;
-
-    for (int i = 0; i < queue->len; i++)
-    {
-        res_buf = YW_GROW(int, &cap, &len, res_buf);
-        res_buf[len - 1] = queue->items[i];
-    }
-    res_buf = YW_SHRINK_TO_FIT(int, &cap, len, res_buf);
-    return res_buf;
+    return yw_io_queue_item_list_to_items(items_out, len_out,
+                                          &queue->item_list);
 }
 
-void yw_io_queue_from_array(YW_IoQueue *out, int const *items, int items_len)
+void yw_io_queue_from_items(YW_IoQueue *out, int const *items, int items_len)
 {
     memset(out, 0, sizeof(*out));
     YW_LIST_INIT(out);
     for (int i = 0; i < items_len; i++)
     {
-        YW_LIST_PUSH(YW_IoQueueItem, out, (YW_IoQueueItem)items[i]);
+        YW_LIST_PUSH(YW_IoQueueItem, &out->item_list, (YW_IoQueueItem)items[i]);
     }
-    YW_LIST_PUSH(YW_IoQueueItem, out, YW_END_OF_IO_QUEUE);
+    YW_LIST_PUSH(YW_IoQueueItem, &out->item_list, YW_END_OF_IO_QUEUE);
+}
+
+YW_IoQueueItem yw_io_queue_read_one(YW_IoQueue *queue)
+{
+    /* https://encoding.spec.whatwg.org/#concept-stream-read */
+
+    if (queue->item_list.len == 0)
+    {
+        fprintf(stderr, "%s: queue is empty", __func__);
+        abort();
+    }
+    YW_IoQueueItem item = queue->item_list.items[0];
+    if (item == YW_END_OF_IO_QUEUE)
+    {
+        return item;
+    }
+    YW_LIST_REMOVE(YW_IoQueueItem, &queue->item_list, 0);
+    return item;
+}
+
+int yw_io_queue_read(YW_IoQueue *queue, int *buf, int max_len)
+{
+    /* https://encoding.spec.whatwg.org/#concept-stream-read */
+    int len = 0;
+    for (int i = 0; i < max_len; i++)
+    {
+        YW_IoQueueItem item = yw_io_queue_read_one(queue);
+        if (item == YW_END_OF_IO_QUEUE)
+        {
+            continue;
+        }
+        buf[len] = item;
+        len++;
+    }
+    return len;
+}
+
+int yw_io_queue_peek(YW_IoQueue const *queue, int *buf, int max_len)
+{
+    /* https://encoding.spec.whatwg.org/#i-o-queue-peek */
+    int len = 0;
+    for (int i = 0; i < max_len; i++)
+    {
+        YW_IoQueueItem item = queue->item_list.items[i];
+        if (item == YW_END_OF_IO_QUEUE)
+        {
+            break;
+        }
+        buf[len] = item;
+        len++;
+    }
+    return len;
+}
+
+void yw_io_queue_push_one(YW_IoQueue *queue, YW_IoQueueItem item)
+{
+    if (queue->item_list.len == 0 ||
+        queue->item_list.items[queue->item_list.len - 1] != YW_END_OF_IO_QUEUE)
+    {
+        fprintf(stderr, "%s: the last item must be end-of-queue", __func__);
+        abort();
+    }
+    if (item == YW_END_OF_IO_QUEUE)
+    {
+        return;
+    }
+    YW_LIST_INSERT(YW_IoQueueItem, &queue->item_list, queue->item_list.len - 1,
+                   item);
+}
+
+void yw_io_queue_push(YW_IoQueue *queue, YW_IoQueueItem const *items, int len)
+{
+    for (int i = 0; i < len; i++)
+    {
+        yw_io_queue_push_one(queue, items[i]);
+    }
+}
+
+void yw_io_queue_restore_one(YW_IoQueue *queue, YW_IoQueueItem item)
+{
+    if (item == YW_END_OF_IO_QUEUE)
+    {
+        fprintf(stderr, "%s: attempted to restore end-of-queue item", __func__);
+        abort();
+    }
+    YW_LIST_INSERT(YW_IoQueueItem, &queue->item_list, 0, item);
+}
+
+void yw_io_queue_restore(YW_IoQueue *queue, YW_IoQueueItem const *items,
+                         int len)
+{
+    for (int i = 0; i < len; i++)
+    {
+        yw_io_queue_restore_one(queue, items[i]);
+    }
 }

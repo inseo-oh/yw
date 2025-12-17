@@ -565,6 +565,7 @@ YW_PtrSlot *yw_add_ptr_to_collection(YW_PtrCollection *coll, void *obj)
 }
 
 /* NOTE: LSB must be zero -- It is used as "marked" flag for GC. */
+/* FIXME: 64-bit magic seems a bit overkill */
 #define YW_GC_MAGIC 0x21b0fb278bf5e5ce
 
 static bool yw_gc_is_marked(YW_GcObjectHeader const *obj)

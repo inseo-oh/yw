@@ -6,11 +6,12 @@
  */
 #ifndef YW_ENCODING_H_
 #define YW_ENCODING_H_
+#include "yw_common.h"
 
 typedef struct YW_TextDecoder YW_TextDecoder;
 typedef struct YW_TextDecoderCallbacks YW_TextDecoderCallbacks;
+typedef struct YW_IoQueueItemList YW_IoQueueItemList;
 typedef struct YW_IoQueue YW_IoQueue;
-typedef struct YW_IoQueueItems YW_IoQueueItems;
 
 typedef enum
 {
@@ -73,7 +74,8 @@ typedef enum
 
 struct YW_TextDecoderCallbacks
 {
-    YW_EncodingResult (*handler)(YW_IoQueue *queue, int byte_item);
+    YW_EncodingResult (*handler)(void *self_v, YW_IoQueue *queue,
+                                 int byte_item);
     void (*destroy)(void *self_v);
 };
 struct YW_TextDecoder
@@ -84,6 +86,16 @@ struct YW_TextDecoder
 
 typedef enum
 {
+    YW_ERROR_MODE_REPLACEMENT,
+    YW_ERROR_MODE_HTML,
+    YW_ERROR_MODE_FATAL,
+} YW_EncodingErrorMode;
+
+/* Returns YW_INVALID_ENCODING if no encoding was found */
+YW_EncodingType yw_bom_sniff(YW_IoQueue const *queue);
+
+typedef enum
+{
     /*
      * Positive values are normal byte or codepoint values, and -1 is special
      * value for "end-of-queue".
@@ -91,18 +103,38 @@ typedef enum
     YW_END_OF_IO_QUEUE = -1
 } YW_IoQueueItem;
 
-struct YW_IoQueue
+struct YW_IoQueueItemList
 {
     YW_IoQueueItem *items;
     int len, cap;
 };
-struct YW_IoQueueItems
+struct YW_IoQueue
 {
-    YW_IoQueueItem *items;
-    int len, cap;
+    YW_IoQueueItemList item_list;
 };
 
 /* Returns YW_INVALID_ENCODING if there's no corresponding encoding. */
 YW_EncodingType yw_encoding_from_label(char const *label);
+
+/* Caller owns the returned array. */
+void yw_io_queue_item_list_to_items(int **items_out, int *len_out,
+                                    YW_IoQueueItemList const *items);
+
+/* Caller owns the returned array. */
+void yw_io_queue_to_items(int **items_out, int *len_out,
+                          YW_IoQueue const *queue);
+
+YW_IoQueueItem yw_io_queue_read_one(YW_IoQueue *queue);
+int yw_io_queue_read(YW_IoQueue *queue, int *buf, int max_len);
+#define YW_IO_QUEUE_READ_TO_ARRAY(_queue, _array)                              \
+    yw_io_queue_read((_queue), (_array), YW_SIZEOF_ARRAY(_array))
+int yw_io_queue_peek(YW_IoQueue const *queue, int *buf, int max_len);
+#define YW_IO_QUEUE_PEEK_TO_ARRAY(_queue, _array)                              \
+    yw_io_queue_peek((_queue), (_array), YW_SIZEOF_ARRAY(_array))
+void yw_io_queue_push_one(YW_IoQueue *queue, YW_IoQueueItem item);
+void yw_io_queue_push(YW_IoQueue *queue, YW_IoQueueItem const *items, int len);
+void yw_io_queue_restore_one(YW_IoQueue *queue, YW_IoQueueItem item);
+void yw_io_queue_restore(YW_IoQueue *queue, YW_IoQueueItem const *items,
+                         int len);
 
 #endif /* #ifndef YW_ENCODING_H_ */

@@ -22,6 +22,14 @@ typedef int32_t YW_Char32;
         abort();                                                               \
     } while (0)
 
+#define YW_UNREACHABLE()                                                       \
+    do                                                                         \
+    {                                                                          \
+        fprintf(stderr, "[%s:%d] %s: unreachable", __FILE__, __LINE__,         \
+                __func__);                                                     \
+        abort();                                                               \
+    } while (0)
+
 typedef struct YW_TextReader YW_TextReader;
 typedef struct YW_PtrCollection YW_PtrCollection;
 typedef struct YW_GcCallbacks YW_GcCallbacks;
