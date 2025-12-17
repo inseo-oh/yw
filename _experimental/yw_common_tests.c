@@ -5,6 +5,7 @@
  * information.
  */
 #include "yw_common.h"
+#include "yw_tests.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,7 +15,7 @@
  * Memory utilities
  ******************************************************************************/
 
-void yw_test_grow(struct yw_testing_context *ctx)
+void yw_test_grow(YW_TestingContext *ctx)
 {
     int len = 0;
     int cap = 0;
@@ -36,7 +37,7 @@ void yw_test_grow(struct yw_testing_context *ctx)
     free(buf);
 }
 
-void yw_test_shrink_to_fit(struct yw_testing_context *ctx)
+void yw_test_shrink_to_fit(YW_TestingContext *ctx)
 {
     int len = 0;
     int cap = 0;
@@ -65,7 +66,7 @@ void yw_test_shrink_to_fit(struct yw_testing_context *ctx)
     free(buf);
 }
 
-void yw_test_list(struct yw_testing_context *ctx)
+void yw_test_list(YW_TestingContext *ctx)
 {
     struct my_list
     {
@@ -130,17 +131,17 @@ void yw_test_list(struct yw_testing_context *ctx)
  * UTF-8 character utility
  ******************************************************************************/
 
-void yw_test_utf8_next_char(struct yw_testing_context *ctx)
+void yw_test_utf8_next_char(YW_TestingContext *ctx)
 {
 #define YW_RUN_TEST(_name, _input, ...)                                        \
     do                                                                         \
     {                                                                          \
-        YW_CHAR32 expected[] = {__VA_ARGS__};                                  \
-        int dest_len = sizeof(expected) / sizeof(*expected);                   \
+        YW_Char32 expected[] = {__VA_ARGS__};                                  \
+        int dest_len = YW_SIZEOF_ARRAY(expected);                              \
         char const *next_str = (_input);                                       \
         for (int i = 0; i < dest_len; i++)                                     \
         {                                                                      \
-            YW_CHAR32 res = yw_utf8_next_char(&next_str);                      \
+            YW_Char32 res = yw_utf8_next_char(&next_str);                      \
             if (res != expected[i])                                            \
             {                                                                  \
                 printf(                                                        \
@@ -163,17 +164,18 @@ void yw_test_utf8_next_char(struct yw_testing_context *ctx)
 #undef YW_RUN_TEST
 }
 
-void yw_test_utf8_to_char32(struct yw_testing_context *ctx)
+void yw_test_utf8_to_char32(YW_TestingContext *ctx)
 {
-    YW_CHAR32 *chars;
+    YW_Char32 *chars;
     int chars_len;
     yw_utf8_to_char32(&chars, &chars_len, "hello");
-    YW_TEST_EXPECT_ARRAY(chars, chars_len, "U+%04X", 'h', 'e', 'l', 'l', 'o');
+    YW_TEST_EXPECT_ARRAY(YW_Char32, chars, chars_len, "U+%04X", 'h', 'e', 'l',
+                         'l', 'o');
 
     free(chars);
 }
 
-void yw_test_utf8_strlen(struct yw_testing_context *ctx)
+void yw_test_utf8_strlen(YW_TestingContext *ctx)
 {
     char const *str = "This is so "
                       /* Kanji string "Kawaii" - U+53EF U+611B U+3044 */
@@ -181,7 +183,7 @@ void yw_test_utf8_strlen(struct yw_testing_context *ctx)
     YW_TEST_EXPECT(yw_utf8_strlen(str), "%ld", 14L);
 }
 
-void yw_test_utf8_strchr(struct yw_testing_context *ctx)
+void yw_test_utf8_strchr(YW_TestingContext *ctx)
 {
     char const *str = "This is so "
                       /* Kanji string "Kawaii" - U+53EF U+611B U+3044 */
@@ -197,16 +199,16 @@ void yw_test_utf8_strchr(struct yw_testing_context *ctx)
 }
 
 /*******************************************************************************
- * yw_text_reader
+ * YW_TextReader
  ******************************************************************************/
 
-void yw_test_peek_char(struct yw_testing_context *ctx)
+void yw_test_peek_char(YW_TestingContext *ctx)
 {
-    struct yw_text_reader tr;
-    YW_CHAR32 *chars;
+    struct YW_TextReader tr;
+    YW_Char32 *chars;
     int chars_len;
     yw_utf8_to_char32(&chars, &chars_len, "hello");
-    yw_text_reader_init(&tr, __func__, chars, chars_len);
+    YW_TextReader_init(&tr, __func__, chars, chars_len);
     YW_TEST_EXPECT(yw_peek_char(&tr), "%c", 'h');
     YW_TEST_EXPECT(tr.cursor, "%d", 0);
 
@@ -231,13 +233,13 @@ void yw_test_peek_char(struct yw_testing_context *ctx)
 
     free(chars);
 }
-void yw_test_consume_any_char(struct yw_testing_context *ctx)
+void yw_test_consume_any_char(YW_TestingContext *ctx)
 {
-    struct yw_text_reader tr;
-    YW_CHAR32 *chars;
+    struct YW_TextReader tr;
+    YW_Char32 *chars;
     int chars_len;
     yw_utf8_to_char32(&chars, &chars_len, "hello");
-    yw_text_reader_init(&tr, __func__, chars, chars_len);
+    YW_TextReader_init(&tr, __func__, chars, chars_len);
 
     YW_TEST_EXPECT(yw_consume_any_char(&tr), "%c", 'h');
     YW_TEST_EXPECT(tr.cursor, "%d", 1);
@@ -258,13 +260,13 @@ void yw_test_consume_any_char(struct yw_testing_context *ctx)
 
     free(chars);
 }
-void yw_test_consume_one_of_chars(struct yw_testing_context *ctx)
+void yw_test_consume_one_of_chars(YW_TestingContext *ctx)
 {
-    struct yw_text_reader tr;
-    YW_CHAR32 *chars;
+    struct YW_TextReader tr;
+    YW_Char32 *chars;
     int chars_len;
     yw_utf8_to_char32(&chars, &chars_len, "hello");
-    yw_text_reader_init(&tr, __func__, chars, chars_len);
+    YW_TextReader_init(&tr, __func__, chars, chars_len);
 
     YW_TEST_EXPECT(yw_consume_one_of_chars(&tr, "abcdefgh"), "%c", 'h');
     YW_TEST_EXPECT(tr.cursor, "%d", 1);
@@ -288,14 +290,14 @@ void yw_test_consume_one_of_chars(struct yw_testing_context *ctx)
 
     free(chars);
 }
-void yw_test_consume_one_of_strs(struct yw_testing_context *ctx)
+void yw_test_consume_one_of_strs(YW_TestingContext *ctx)
 {
-    struct yw_text_reader tr;
-    YW_CHAR32 *chars;
+    struct YW_TextReader tr;
+    YW_Char32 *chars;
     int chars_len;
     yw_utf8_to_char32(&chars, &chars_len,
                       "a quick fox jumps OvEr THE LAZY dog");
-    yw_text_reader_init(&tr, __func__, chars, chars_len);
+    YW_TextReader_init(&tr, __func__, chars, chars_len);
 
     char const *strs1[] = {"a ", "quick ", "fox jumps ", NULL};
     char const *strs2[] = {"oVeR ", "the lazy ", "DOG", NULL};

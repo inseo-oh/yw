@@ -6,7 +6,6 @@
  */
 #include "yw_dom.h"
 #include "yw_common.h"
-#include "yw_namespaces.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,29 +15,37 @@
  * Node
  ******************************************************************************/
 
-#define YW_DOM_NODE_MAGIC 0xb1fedf1b
+#define YW_NODE_MAGIC 0xb1fedf1b
 
-static void yw_dom_node_check_magic(YW_GC_PTR(yw_dom_node) node)
-{
-    if (node == NULL)
-    {
-        return;
-    }
-    if (node->magic != YW_DOM_NODE_MAGIC)
-    {
-        fprintf(stderr, "%s: Node at %p has corrupted magic!\n", __func__,
-                (void *)node);
-        abort();
-    }
-}
+#define YW_VERIFY_NODE_MAGIC(_node)                                            \
+    do                                                                         \
+    {                                                                          \
+        if ((_node) != NULL && (_node)->magic != YW_NODE_MAGIC)                \
+        {                                                                      \
+            fprintf(stderr, "%s: %s has corrupted magic!\n", __func__,         \
+                    #_node);                                                   \
+            abort();                                                           \
+        }                                                                      \
+    } while (0)
 
-void yw_dom_node_init(YW_GC_PTR(yw_dom_node) out)
+#define YW_VERIFY_NODE_TYPE(_node, _type_flags)                                \
+    do                                                                         \
+    {                                                                          \
+        if (!yw_dom_has_type((_node), (_type_flags)))                          \
+        {                                                                      \
+            fprintf(stderr, "%s: %s's type is not %s\n", __func__, #_node,     \
+                    #_type_flags);                                             \
+            abort();                                                           \
+        }                                                                      \
+    } while (0)
+
+void yw_dom_node_init(YW_GC_PTR(YW_DomNode) out)
 {
-    out->magic = YW_DOM_NODE_MAGIC;
+    out->magic = YW_NODE_MAGIC;
 }
 void yw_dom_node_visit(void *node_v)
 {
-    YW_GC_PTR(yw_dom_node) node = (YW_GC_PTR(yw_dom_node))node_v;
+    YW_GC_PTR(YW_DomNode) node = (YW_GC_PTR(YW_DomNode))node_v;
 
     for (int i = 0; i < node->children.len; i++)
     {
@@ -49,14 +56,14 @@ void yw_dom_node_visit(void *node_v)
 }
 void yw_dom_node_destroy(void *node_v)
 {
-    YW_GC_PTR(yw_dom_node) node = (YW_GC_PTR(yw_dom_node))node_v;
+    YW_GC_PTR(YW_DomNode) node = (YW_GC_PTR(YW_DomNode))node_v;
     YW_LIST_FREE(&node->children);
 }
 
-YW_GC_PTR(yw_dom_node) yw_dom_first_child(void *node_v)
+YW_GC_PTR(YW_DomNode) yw_dom_first_child(void *node_v)
 {
-    YW_GC_PTR(yw_dom_node) node = (YW_GC_PTR(yw_dom_node))node_v;
-    yw_dom_node_check_magic(node);
+    YW_GC_PTR(YW_DomNode) node = (YW_GC_PTR(YW_DomNode))node_v;
+    YW_VERIFY_NODE_MAGIC(node);
     if (node->children.len == 0)
     {
         return NULL;
@@ -64,10 +71,10 @@ YW_GC_PTR(yw_dom_node) yw_dom_first_child(void *node_v)
     return node->children.items[0];
 }
 
-YW_GC_PTR(yw_dom_node) yw_dom_last_child(void *node_v)
+YW_GC_PTR(YW_DomNode) yw_dom_last_child(void *node_v)
 {
-    YW_GC_PTR(yw_dom_node) node = (YW_GC_PTR(yw_dom_node))node_v;
-    yw_dom_node_check_magic(node);
+    YW_GC_PTR(YW_DomNode) node = (YW_GC_PTR(YW_DomNode))node_v;
+    YW_VERIFY_NODE_MAGIC(node);
     if (node->children.len == 0)
     {
         return NULL;
@@ -75,12 +82,12 @@ YW_GC_PTR(yw_dom_node) yw_dom_last_child(void *node_v)
     return node->children.items[node->children.len - 1];
 }
 
-YW_GC_PTR(yw_dom_node) yw_dom_next_sibling(void *node_v)
+YW_GC_PTR(YW_DomNode) yw_dom_next_sibling(void *node_v)
 {
-    YW_GC_PTR(yw_dom_node) node = (YW_GC_PTR(yw_dom_node))node_v;
-    yw_dom_node_check_magic(node);
+    YW_GC_PTR(YW_DomNode) node = (YW_GC_PTR(YW_DomNode))node_v;
+    YW_VERIFY_NODE_MAGIC(node);
 
-    YW_GC_PTR(yw_dom_node) parent = node->parent;
+    YW_GC_PTR(YW_DomNode) parent = node->parent;
     if (parent == NULL)
     {
         return NULL;
@@ -93,12 +100,12 @@ YW_GC_PTR(yw_dom_node) yw_dom_next_sibling(void *node_v)
     return parent->children.items[index + 1];
 }
 
-YW_GC_PTR(yw_dom_node) yw_dom_prev_sibling(void *node_v)
+YW_GC_PTR(YW_DomNode) yw_dom_prev_sibling(void *node_v)
 {
-    YW_GC_PTR(yw_dom_node) node = (YW_GC_PTR(yw_dom_node))node_v;
-    yw_dom_node_check_magic(node);
+    YW_GC_PTR(YW_DomNode) node = (YW_GC_PTR(YW_DomNode))node_v;
+    YW_VERIFY_NODE_MAGIC(node);
 
-    YW_GC_PTR(yw_dom_node) parent = node->parent;
+    YW_GC_PTR(YW_DomNode) parent = node->parent;
     if (parent == NULL)
     {
         return NULL;
@@ -111,16 +118,16 @@ YW_GC_PTR(yw_dom_node) yw_dom_prev_sibling(void *node_v)
     return parent->children.items[index - 1];
 }
 
-YW_GC_PTR(yw_dom_node) yw_dom_root(void *node_v, yw_dom_search_flags flags)
+YW_GC_PTR(YW_DomNode) yw_dom_root(void *node_v, YW_DomSearchFlags flags)
 {
-    YW_GC_PTR(yw_dom_node) node = (YW_GC_PTR(yw_dom_node))node_v;
-    yw_dom_node_check_magic(node);
+    YW_GC_PTR(YW_DomNode) node = (YW_GC_PTR(YW_DomNode))node_v;
+    YW_VERIFY_NODE_MAGIC(node);
 
-    YW_GC_PTR(yw_dom_node) res = node;
+    YW_GC_PTR(YW_DomNode) res = node;
     while (res->parent != NULL)
     {
         if ((flags & YW_DOM_SHADOW_INCLUDING) &&
-            res->type == YW_DOM_SHADOW_ROOT_NODE)
+            (yw_dom_has_type(res, YW_DOM_SHADOW_ROOT_NODE)))
         {
             /* TODO: Support shadow root */
             YW_TODO();
@@ -132,10 +139,10 @@ YW_GC_PTR(yw_dom_node) yw_dom_root(void *node_v, yw_dom_search_flags flags)
 
 int yw_dom_index(void *node_v)
 {
-    YW_GC_PTR(yw_dom_node) node = (YW_GC_PTR(yw_dom_node))node_v;
-    yw_dom_node_check_magic(node);
+    YW_GC_PTR(YW_DomNode) node = (YW_GC_PTR(YW_DomNode))node_v;
+    YW_VERIFY_NODE_MAGIC(node);
 
-    YW_GC_PTR(yw_dom_node) parent = node->parent;
+    YW_GC_PTR(YW_DomNode) parent = node->parent;
     if (parent == NULL)
     {
         return 0;
@@ -156,7 +163,19 @@ int yw_dom_index(void *node_v)
     return idx;
 }
 
-bool yw_dom_is_in_the_same_tree_as(void *node_a_v, void *node_b_v)
+bool yw_dom_has_type(void *node_v, YW_DomNodeTypeFlags flags)
+{
+    YW_GC_PTR(YW_DomNode) node = (YW_GC_PTR(YW_DomNode))node_v;
+    YW_VERIFY_NODE_MAGIC(node);
+
+    if (node == NULL)
+    {
+        return false;
+    }
+    return (node->type_flags & flags) == flags;
+}
+
+bool yw_dom_is_in_same_tree(void *node_a_v, void *node_b_v)
 {
     return yw_dom_root(node_a_v, YW_DOM_NO_SEARCH_FLAGS) ==
            yw_dom_root(node_b_v, YW_DOM_NO_SEARCH_FLAGS);
@@ -166,52 +185,46 @@ bool yw_dom_is_connected(void *node_v)
 {
     /* https://dom.spec.whatwg.org/#connected */
 
-    YW_GC_PTR(yw_dom_node) node = (YW_GC_PTR(yw_dom_node))node_v;
-    yw_dom_node_check_magic(node);
+    YW_GC_PTR(YW_DomNode) node = (YW_GC_PTR(YW_DomNode))node_v;
+    YW_VERIFY_NODE_MAGIC(node);
 
     return yw_dom_root(node_v, YW_DOM_SHADOW_INCLUDING) ==
-           (YW_GC_PTR(yw_dom_node))node->node_document;
+           (YW_GC_PTR(YW_DomNode))node->node_document;
 }
 
 bool yw_dom_is_in_document_tree(void *node_v)
 {
-    return yw_dom_root(node_v, YW_DOM_NO_SEARCH_FLAGS)->type ==
-           YW_DOM_DOCUMENT_NODE;
+    return yw_dom_has_type(yw_dom_root(node_v, YW_DOM_NO_SEARCH_FLAGS),
+                           YW_DOM_DOCUMENT_NODE);
 }
 
 /* Caller owns the returned string. */
 char *yw_dom_child_text(void *node_v)
 {
-    YW_GC_PTR(yw_dom_node) node = (YW_GC_PTR(yw_dom_node))node_v;
-    yw_dom_node_check_magic(node);
+    YW_GC_PTR(YW_DomNode) node = (YW_GC_PTR(YW_DomNode))node_v;
+    YW_VERIFY_NODE_MAGIC(node);
 
     char *res_buf = NULL;
-    int res_cap = 0;
-    int res_len = 0;
 
     for (int i = 0; i < node->children.len; i++)
     {
-        if (node->children.items[i]->type == YW_DOM_TEXT_NODE)
+        if (yw_dom_has_type(node->children.items[i], YW_DOM_TEXT_NODE))
         {
             char *node_text =
-                ((YW_GC_PTR(yw_dom_character_data_node))node)->text;
-            int len = strlen(node_text);
-            res_buf = YW_GROW(char, &res_cap, &res_len, res_buf);
-            res_buf[0] = '\0';
-            strcat(res_buf, node_text);
+                ((YW_GC_PTR(YW_CharacterData))node->children.items[i])->text;
+            yw_append_str(&res_buf, node_text);
         }
     }
 
-    res_buf = YW_SHRINK_TO_FIT(char, &res_cap, res_len, res_buf);
     return res_buf;
 }
 
-YW_GC_PTR(yw_dom_node) yw_dom_next_descendant(yw_dom_iter *iter)
+YW_GC_PTR(YW_DomNode) yw_dom_next_descendant(YW_DomIter *iter)
 {
     /* https://dom.spec.whatwg.org/#concept-tree-inclusive-descendant */
 
-    YW_GC_PTR(yw_dom_node) curr_node = iter->last_node;
-    YW_GC_PTR(yw_dom_node) res = NULL;
+    YW_GC_PTR(YW_DomNode) curr_node = iter->last_node;
+    YW_GC_PTR(YW_DomNode) res = NULL;
 
     if (curr_node == NULL)
     {
@@ -250,7 +263,7 @@ YW_GC_PTR(yw_dom_node) yw_dom_next_descendant(yw_dom_iter *iter)
     {
         return NULL;
     }
-    if (iter->shadow_including && res->type == YW_DOM_SHADOW_ROOT_NODE)
+    if (iter->shadow_including && yw_dom_has_type(res, YW_DOM_SHADOW_ROOT_NODE))
     {
         /* TODO: Support shadow root */
         YW_TODO();
@@ -260,11 +273,11 @@ YW_GC_PTR(yw_dom_node) yw_dom_next_descendant(yw_dom_iter *iter)
     return res;
 }
 
-void yw_dom_inclusive_descendants_init(yw_dom_iter *out, void *root_node_v,
-                                       yw_dom_search_flags flags)
+void yw_dom_inclusive_descendants_init(YW_DomIter *out, void *root_node_v,
+                                       YW_DomSearchFlags flags)
 {
-    YW_GC_PTR(yw_dom_node) root_node = (YW_GC_PTR(yw_dom_node))root_node_v;
-    yw_dom_node_check_magic(root_node);
+    YW_GC_PTR(YW_DomNode) root_node = (YW_GC_PTR(YW_DomNode))root_node_v;
+    YW_VERIFY_NODE_MAGIC(root_node);
 
     memset(out, 0, sizeof(*out));
     out->root_node = root_node;
@@ -274,19 +287,19 @@ void yw_dom_inclusive_descendants_init(yw_dom_iter *out, void *root_node_v,
     }
 }
 
-void yw_dom_descendants_init(yw_dom_iter *out, void *root_node_v,
-                             yw_dom_search_flags flags)
+void yw_dom_descendants_init(YW_DomIter *out, void *root_node_v,
+                             YW_DomSearchFlags flags)
 {
     yw_dom_inclusive_descendants_init(out, root_node_v, flags);
     yw_dom_next_descendant(out);
 }
 
-YW_GC_PTR(yw_dom_node) yw_dom_next_parent(yw_dom_iter *iter)
+YW_GC_PTR(YW_DomNode) yw_dom_next_ancestor(YW_DomIter *iter)
 {
     /* https://dom.spec.whatwg.org/#concept-tree-inclusive-ancestor */
 
-    YW_GC_PTR(yw_dom_node) curr_node = iter->last_node;
-    YW_GC_PTR(yw_dom_node) res = NULL;
+    YW_GC_PTR(YW_DomNode) curr_node = iter->last_node;
+    YW_GC_PTR(YW_DomNode) res = NULL;
 
     if (curr_node == NULL)
     {
@@ -297,7 +310,7 @@ YW_GC_PTR(yw_dom_node) yw_dom_next_parent(yw_dom_iter *iter)
     {
         res = curr_node->parent;
     }
-    else if (curr_node->type == YW_DOM_SHADOW_ROOT_NODE)
+    else if (yw_dom_has_type(curr_node, YW_DOM_SHADOW_ROOT_NODE))
     {
         /* TODO: Support shadow root */
         YW_TODO();
@@ -311,11 +324,11 @@ YW_GC_PTR(yw_dom_node) yw_dom_next_parent(yw_dom_iter *iter)
     return res;
 }
 
-void yw_dom_inclusive_ancestors_init(yw_dom_iter *out, void *root_node_v,
-                                     yw_dom_search_flags flags)
+void yw_dom_inclusive_ancestors_init(YW_DomIter *out, void *root_node_v,
+                                     YW_DomSearchFlags flags)
 {
-    YW_GC_PTR(yw_dom_node) root_node = (YW_GC_PTR(yw_dom_node))root_node_v;
-    yw_dom_node_check_magic(root_node);
+    YW_GC_PTR(YW_DomNode) root_node = (YW_GC_PTR(YW_DomNode))root_node_v;
+    YW_VERIFY_NODE_MAGIC(root_node);
 
     memset(out, 0, sizeof(*out));
     out->root_node = root_node;
@@ -325,44 +338,43 @@ void yw_dom_inclusive_ancestors_init(yw_dom_iter *out, void *root_node_v,
     }
 }
 
-void yw_dom_ancestors_init(yw_dom_iter *out, void *root_node_v,
-                           yw_dom_search_flags flags)
+void yw_dom_ancestors_init(YW_DomIter *out, void *root_node_v,
+                           YW_DomSearchFlags flags)
 {
     yw_dom_inclusive_ancestors_init(out, root_node_v, flags);
     yw_dom_next_descendant(out);
 }
 
 void yw_dom_insert(void *node_v, void *parent_v, void *before_child_v,
-                   yw_dom_insert_flag flags)
+                   YW_DomInsertFlag flags)
 {
-    YW_GC_PTR(yw_dom_node) node = (YW_GC_PTR(yw_dom_node))node_v;
-    YW_GC_PTR(yw_dom_node) parent = (YW_GC_PTR(yw_dom_node))parent_v;
-    YW_GC_PTR(yw_dom_node) before_child =
-        (YW_GC_PTR(yw_dom_node))before_child_v;
-    yw_dom_node_check_magic(node);
-    yw_dom_node_check_magic(parent);
-    yw_dom_node_check_magic(parent);
+    YW_GC_PTR(YW_DomNode) node = (YW_GC_PTR(YW_DomNode))node_v;
+    YW_GC_PTR(YW_DomNode) parent = (YW_GC_PTR(YW_DomNode))parent_v;
+    YW_GC_PTR(YW_DomNode) before_child = (YW_GC_PTR(YW_DomNode))before_child_v;
+    YW_VERIFY_NODE_MAGIC(node);
+    YW_VERIFY_NODE_MAGIC(parent);
+    YW_VERIFY_NODE_MAGIC(parent);
 
-    YW_GC_PTR(yw_dom_node) prev_sibling;
+    YW_GC_PTR(YW_DomNode) prev_sibling;
 
     /* NOTE: All the step numbers(S#.) are based on spec from when this was
      * initially written(2025.11.13) */
 
     /* S1 *********************************************************************/
-    yw_dom_node_list nodes;
+    YW_DomNodeList nodes;
     YW_LIST_INIT(&nodes);
 
-    if (node->type == YW_DOM_DOCUMENT_FRAGMENT_NODE)
+    if (yw_dom_has_type(node, YW_DOM_DOCUMENT_FRAGMENT_NODE))
     {
         for (int i = 0; i < node->children.len; i++)
         {
-            YW_LIST_PUSH(YW_GC_PTR(yw_dom_node), &nodes,
+            YW_LIST_PUSH(YW_GC_PTR(YW_DomNode), &nodes,
                          node->children.items[i]);
         }
     }
     else
     {
-        YW_LIST_PUSH(YW_GC_PTR(yw_dom_node), &nodes, node);
+        YW_LIST_PUSH(YW_GC_PTR(YW_DomNode), &nodes, node);
     }
 
     /* S2 *********************************************************************/
@@ -375,7 +387,7 @@ void yw_dom_insert(void *node_v, void *parent_v, void *before_child_v,
     }
 
     /* S4 *********************************************************************/
-    if (node->type == YW_DOM_DOCUMENT_FRAGMENT_NODE)
+    if (yw_dom_has_type(node, YW_DOM_DOCUMENT_FRAGMENT_NODE))
     {
         YW_TODO();
     }
@@ -397,20 +409,20 @@ void yw_dom_insert(void *node_v, void *parent_v, void *before_child_v,
     /* S7 *********************************************************************/
     for (int i = 0; i < nodes.len; i++)
     {
-        YW_GC_PTR(yw_dom_node) node = nodes.items[i];
+        YW_GC_PTR(YW_DomNode) node = nodes.items[i];
         /* S7-1 ***************************************************************/
         yw_dom_adopt_into(node, parent->node_document);
 
         if (before_child == NULL)
         {
             /* S7-2 ***********************************************************/
-            YW_LIST_PUSH(YW_GC_PTR(yw_dom_node), &parent->children, node);
+            YW_LIST_PUSH(YW_GC_PTR(YW_DomNode), &parent->children, node);
         }
         else
         {
             /* S7-3 ***********************************************************/
             int index = yw_dom_index(before_child);
-            YW_LIST_INSERT(YW_GC_PTR(yw_dom_node), &parent->children, index,
+            YW_LIST_INSERT(YW_GC_PTR(YW_DomNode), &parent->children, index,
                            node);
         }
 
@@ -421,9 +433,9 @@ void yw_dom_insert(void *node_v, void *parent_v, void *before_child_v,
         }
 
         /* S7-5 ***************************************************************/
-        YW_GC_PTR(yw_dom_node) parent_root =
+        YW_GC_PTR(YW_DomNode) parent_root =
             yw_dom_root(parent, YW_DOM_NO_SEARCH_FLAGS);
-        if (parent_root->type == YW_DOM_SHADOW_ROOT_NODE)
+        if (yw_dom_has_type(parent_root, YW_DOM_SHADOW_ROOT_NODE))
         {
             YW_TODO();
         }
@@ -432,11 +444,11 @@ void yw_dom_insert(void *node_v, void *parent_v, void *before_child_v,
         /* TODO: Run assign slottables for a tree with node’s root. */
 
         /* S7-7 ***************************************************************/
-        yw_dom_iter dscn_iter;
+        YW_DomIter dscn_iter;
         yw_dom_descendants_init(&dscn_iter, node, YW_DOM_SHADOW_INCLUDING);
         while (1)
         {
-            YW_GC_PTR(yw_dom_node) dscn_node =
+            YW_GC_PTR(YW_DomNode) dscn_node =
                 yw_dom_next_descendant(&dscn_iter);
             if (dscn_node == NULL)
             {
@@ -444,23 +456,22 @@ void yw_dom_insert(void *node_v, void *parent_v, void *before_child_v,
             }
 
             /* S7-7-1 *********************************************************/
-            if (dscn_node->type == YW_DOM_ELEMENT_NODE)
+            if (yw_dom_has_type(dscn_node, YW_DOM_ELEMENT_NODE))
             {
-                YW_GC_PTR(yw_dom_element_node) dscn_elem =
-                    (YW_GC_PTR(yw_dom_element_node))dscn_node;
+                YW_GC_PTR(YW_Element) dscn_elem =
+                    (YW_GC_PTR(YW_Element))dscn_node;
                 /* S7-7-2 *****************************************************/
-                yw_dom_custom_element_registry *reg =
+                YW_GC_PTR(YW_CustomElementRegistry) reg =
                     dscn_elem->custom_element_registry;
                 if (reg == NULL)
                 {
-                    reg = yw_dom_lookup_custom_element_registry(
-                        dscn_node->parent);
+                    reg = yw_lookup_custom_element_registry(dscn_node->parent);
                     dscn_elem->custom_element_registry = reg;
                 }
                 else if (reg->is_scoped)
                 {
-                    YW_LIST_PUSH(YW_GC_PTR(yw_dom_document),
-                                 reg->scoped_document_set,
+                    YW_LIST_PUSH(YW_GC_PTR(YW_Document),
+                                 &reg->scoped_document_set,
                                  dscn_node->node_document);
                 }
                 else if (yw_dom_is_element_custom(dscn_node))
@@ -472,7 +483,7 @@ void yw_dom_insert(void *node_v, void *parent_v, void *before_child_v,
                     yw_dom_try_upgrade_element(dscn_node);
                 }
             }
-            else if (dscn_node->type == YW_DOM_SHADOW_ROOT_NODE)
+            else if (yw_dom_has_type(dscn_node, YW_DOM_SHADOW_ROOT_NODE))
             {
                 YW_TODO();
             }
@@ -493,32 +504,32 @@ void yw_dom_insert(void *node_v, void *parent_v, void *before_child_v,
     }
 
     /* S10 ********************************************************************/
-    yw_dom_node_list static_node_list;
+    YW_DomNodeList static_node_list;
     YW_LIST_INIT(&static_node_list);
 
     /* S11 ********************************************************************/
     for (int i = 0; i < nodes.len; i++)
     {
-        YW_GC_PTR(yw_dom_node) node = nodes.items[i];
+        YW_GC_PTR(YW_DomNode) node = nodes.items[i];
 
-        yw_dom_iter dscn_iter;
+        YW_DomIter dscn_iter;
         yw_dom_descendants_init(&dscn_iter, node, YW_DOM_SHADOW_INCLUDING);
         while (1)
         {
-            YW_GC_PTR(yw_dom_node) dscn_node =
+            YW_GC_PTR(YW_DomNode) dscn_node =
                 yw_dom_next_descendant(&dscn_iter);
             if (dscn_node == NULL)
             {
                 break;
             }
-            YW_LIST_PUSH(YW_GC_PTR(yw_dom_node), &static_node_list, dscn_node);
+            YW_LIST_PUSH(YW_GC_PTR(YW_DomNode), &static_node_list, dscn_node);
         }
     }
 
     /* S12 ********************************************************************/
     for (int i = 0; i < static_node_list.len; i++)
     {
-        YW_GC_PTR(yw_dom_node) node = static_node_list.items[i];
+        YW_GC_PTR(YW_DomNode) node = static_node_list.items[i];
 
         if (yw_dom_is_connected(node) && node->callbacks != NULL &&
             node->callbacks->run_post_connection_steps != NULL)
@@ -539,18 +550,18 @@ void yw_dom_append_child(void *node_v, void *child_v)
     yw_dom_insert(child_v, node_v, NULL, YW_DOM_NO_INSERT_FLAGS);
 }
 
-void yw_dom_adopt_into(void *node_v, YW_GC_PTR(yw_dom_document) document)
+void yw_dom_adopt_into(void *node_v, YW_GC_PTR(YW_Document) document)
 {
     /* https://dom.spec.whatwg.org/#concept-node-adopt */
 
     /* NOTE: All the step numbers(S#.) are based on spec from when this was
      * initially written(2025.11.13) */
 
-    YW_GC_PTR(yw_dom_node) node = (YW_GC_PTR(yw_dom_node))node_v;
-    yw_dom_node_check_magic(node);
+    YW_GC_PTR(YW_DomNode) node = (YW_GC_PTR(YW_DomNode))node_v;
+    YW_VERIFY_NODE_MAGIC(node);
 
     /* S1 *********************************************************************/
-    YW_GC_PTR(yw_dom_document) old_document = node->node_document;
+    YW_GC_PTR(YW_Document) old_document = node->node_document;
 
     /* S2 *********************************************************************/
     if (node->parent != NULL)
@@ -563,11 +574,11 @@ void yw_dom_adopt_into(void *node_v, YW_GC_PTR(yw_dom_document) document)
     if (document != old_document)
     {
         /* S3-1 ***************************************************************/
-        yw_dom_iter dscn_iter;
+        YW_DomIter dscn_iter;
         yw_dom_descendants_init(&dscn_iter, node, YW_DOM_SHADOW_INCLUDING);
         while (1)
         {
-            YW_GC_PTR(yw_dom_node) dscn_node =
+            YW_GC_PTR(YW_DomNode) dscn_node =
                 yw_dom_next_descendant(&dscn_iter);
             if (dscn_node == NULL)
             {
@@ -575,27 +586,26 @@ void yw_dom_adopt_into(void *node_v, YW_GC_PTR(yw_dom_document) document)
             }
             /* S3-1-1 *********************************************************/
             dscn_node->node_document = document;
-            if (dscn_node->type == YW_DOM_SHADOW_ROOT_NODE)
+            if (yw_dom_has_type(dscn_node, YW_DOM_SHADOW_ROOT_NODE))
             {
                 /* S3-1-2 *****************************************************/
                 YW_TODO();
             }
-            else if (dscn_node->type == YW_DOM_ELEMENT_NODE)
+            else if (yw_dom_has_type(dscn_node, YW_DOM_ELEMENT_NODE))
             {
                 /* S3-1-3 *****************************************************/
-                YW_GC_PTR(yw_dom_element_node) dscn_elem =
-                    (YW_GC_PTR(yw_dom_element_node))dscn_node;
+                YW_GC_PTR(YW_Element) dscn_elem =
+                    (YW_GC_PTR(YW_Element))dscn_node;
 
                 /* S3-1-3-1 ***************************************************/
                 for (int i = 0; i < dscn_elem->attrs.len; i++)
                 {
-                    YW_GC_PTR(yw_dom_attr_node) dscn_attr =
-                        dscn_elem->attrs.items[i];
+                    YW_GC_PTR(YW_Attr) dscn_attr = dscn_elem->attrs.items[i];
                     dscn_attr->_node.node_document = document;
                 }
                 /* S3-1-3-2 ***************************************************/
-                if (yw_dom_is_global_custom_element_registry(
-                        yw_dom_lookup_custom_element_registry(dscn_node)))
+                if (yw_lookup_custom_element_registry(
+                        yw_lookup_custom_element_registry(dscn_node)))
                 {
                     YW_TODO();
                 }
@@ -606,7 +616,7 @@ void yw_dom_adopt_into(void *node_v, YW_GC_PTR(yw_dom_document) document)
         yw_dom_descendants_init(&dscn_iter, node, YW_DOM_SHADOW_INCLUDING);
         while (1)
         {
-            YW_GC_PTR(yw_dom_node) dscn_node =
+            YW_GC_PTR(YW_DomNode) dscn_node =
                 yw_dom_next_descendant(&dscn_iter);
             if (dscn_node == NULL)
             {
@@ -623,7 +633,7 @@ void yw_dom_adopt_into(void *node_v, YW_GC_PTR(yw_dom_document) document)
         yw_dom_descendants_init(&dscn_iter, node, YW_DOM_SHADOW_INCLUDING);
         while (1)
         {
-            YW_GC_PTR(yw_dom_node) dscn_node =
+            YW_GC_PTR(YW_DomNode) dscn_node =
                 yw_dom_next_descendant(&dscn_iter);
             if (dscn_node == NULL)
             {
@@ -641,23 +651,20 @@ void yw_dom_adopt_into(void *node_v, YW_GC_PTR(yw_dom_document) document)
 
 void yw_dom_print_tree(FILE *dest, void *node_v, int indent_level)
 {
-    YW_GC_PTR(yw_dom_node) node = (YW_GC_PTR(yw_dom_node))node_v;
-    yw_dom_node_check_magic(node);
+    YW_GC_PTR(YW_DomNode) node = (YW_GC_PTR(YW_DomNode))node_v;
+    YW_VERIFY_NODE_MAGIC(node);
 
     /* Print indent */
     fprintf(dest, "%*s", indent_level * 4, "");
 
-    switch (node->type)
+    if (yw_dom_has_type(node, YW_DOM_TEXT_NODE))
     {
-    case YW_DOM_TEXT_NODE: {
-        YW_GC_PTR(yw_dom_character_data_node) cdata =
-            (YW_GC_PTR(yw_dom_character_data_node))node;
+        YW_GC_PTR(YW_CharacterData) cdata = (YW_GC_PTR(YW_CharacterData))node;
         fprintf(dest, "#text %s", cdata->text);
-        break;
     }
-    case YW_DOM_ELEMENT_NODE: {
-        YW_GC_PTR(yw_dom_element_node) elem =
-            (YW_GC_PTR(yw_dom_element_node))node;
+    else if (yw_dom_has_type(node, YW_DOM_ELEMENT_NODE))
+    {
+        YW_GC_PTR(YW_Element) elem = (YW_GC_PTR(YW_Element))node;
         fprintf(dest, "<%s", elem->local_name);
         for (int i = 0; i < elem->attrs.len; i++)
         {
@@ -665,14 +672,53 @@ void yw_dom_print_tree(FILE *dest, void *node_v, int indent_level)
                     elem->attrs.items[i]->value);
         }
         fprintf(dest, ">");
-        break;
     }
-    case YW_DOM_DOCUMENT_NODE:
-        YW_TODO();
-    case YW_DOM_DOCUMENT_FRAGMENT_NODE:
-        YW_TODO();
-    case YW_DOM_SHADOW_ROOT_NODE:
-        YW_TODO();
+    else if (yw_dom_has_type(node, YW_DOM_DOCUMENT_NODE))
+    {
+        YW_GC_PTR(YW_Document) doc = (YW_GC_PTR(YW_Document))node;
+
+        fprintf(dest, "#document(mode=");
+        switch (doc->mode)
+        {
+        case YW_NO_QUIRKS:
+            fprintf(dest, "no-quirks");
+            break;
+        case YW_QUIRKS:
+            fprintf(dest, "quirks");
+            break;
+        case YW_LIMITED_QUIRKS:
+            fprintf(dest, "limited-quirks");
+            break;
+        }
+        fprintf(dest, ")");
+    }
+    else if (yw_dom_has_type(node, YW_DOM_DOCUMENT_TYPE_NODE))
+    {
+        YW_GC_PTR(YW_DocumentType) doctype = (YW_GC_PTR(YW_DocumentType))node;
+
+        fprintf(dest, "<!DOCTYPE");
+        if (doctype->name != NULL)
+        {
+            fprintf(dest, " %s", doctype->name);
+        }
+        if (doctype->public_id != NULL && doctype->system_id == NULL)
+        {
+            fprintf(dest, " PUBLIC \"%s\"", doctype->public_id);
+        }
+        else if (doctype->public_id == NULL && doctype->system_id != NULL)
+        {
+            fprintf(dest, " SYSTEM \"%s\"", doctype->system_id);
+        }
+        else if (doctype->public_id != NULL && doctype->system_id != NULL)
+        {
+            fprintf(dest, " PUBLIC \"%s\" \"%s\"", doctype->public_id,
+                    doctype->system_id);
+        }
+        fprintf(dest, ">");
+    }
+    else
+    {
+        fprintf(dest, "<unknown node with type_flags=%#x>", node->type_flags);
     }
     fprintf(dest, "\n");
     for (int i = 0; i < node->children.len; i++)
@@ -681,61 +727,307 @@ void yw_dom_print_tree(FILE *dest, void *node_v, int indent_level)
     }
 }
 
-YW_GC_PTR(yw_dom_custom_element_registry)
-yw_dom_lookup_custom_element_registry(void *node_v)
+YW_GC_PTR(YW_CustomElementRegistry)
+yw_lookup_custom_element_registry(void *node_v)
 {
-    YW_GC_PTR(yw_dom_node) node = (YW_GC_PTR(yw_dom_node))node_v;
-    yw_dom_node_check_magic(node);
+    YW_GC_PTR(YW_DomNode) node = (YW_GC_PTR(YW_DomNode))node_v;
+    YW_VERIFY_NODE_MAGIC(node);
 
-    switch (node->type)
+    if (yw_dom_has_type(node, YW_DOM_ELEMENT_NODE))
     {
-    case YW_DOM_ELEMENT_NODE:
-        return ((YW_GC_PTR(yw_dom_element_node))node)->custom_element_registry;
-    case YW_DOM_DOCUMENT_NODE:
-        return ((YW_GC_PTR(yw_dom_document_node))node)->custom_element_registry;
-    case YW_DOM_SHADOW_ROOT_NODE:
+        return ((YW_GC_PTR(YW_Element))node)->custom_element_registry;
+    }
+    else if (yw_dom_has_type(node, YW_DOM_DOCUMENT_NODE))
+    {
+        return ((YW_GC_PTR(YW_Document))node)->custom_element_registry;
+    }
+    else if (yw_dom_has_type(node, YW_DOM_SHADOW_ROOT_NODE))
+    {
         YW_TODO();
     }
+    return NULL;
+}
+
+/*******************************************************************************
+ * Custom elements
+ ******************************************************************************/
+
+YW_CustomElementDefinition const *yw_dom_lookup_custom_element_definition(
+    YW_GC_PTR(YW_CustomElementRegistry) registry, char const *namespace_,
+    char const *local_name, char const *is)
+{
+    (void)registry;
+    (void)namespace_;
+    (void)local_name;
+    (void)is;
+    /* STUB */
+    return NULL;
+}
+
+bool yw_dom_is_global_custom_element_reigstry(
+    YW_GC_PTR(YW_CustomElementRegistry) registry)
+{
+    /* https://dom.spec.whatwg.org/#is-a-global-custom-element-registry */
+
+    if (registry == NULL)
+    {
+        return false;
+    }
+    return !registry->is_scoped;
+}
+
+void yw_dom_try_upgrade_element(void *node_v)
+{
+    YW_GC_PTR(YW_Element) elem = (YW_GC_PTR(YW_Element))node_v;
+    YW_VERIFY_NODE_MAGIC(&elem->_node);
+    YW_VERIFY_NODE_TYPE(elem, YW_DOM_ELEMENT_NODE);
+
+    YW_CustomElementDefinition const *definition =
+        yw_dom_lookup_custom_element_definition(elem->custom_element_registry,
+                                                elem->namespace_,
+                                                elem->local_name, elem->is);
+    if (definition != NULL)
+    {
+        YW_TODO();
+    }
+}
+
+/*******************************************************************************
+ * Document
+ ******************************************************************************/
+
+static YW_GcCallbacks yw_document_gc_callbacks = {
+    .visit = yw_document_visit,
+    .destroy = yw_document_destroy,
+};
+
+void yw_document_init(YW_GC_PTR(YW_Document) out)
+{
+    yw_dom_node_init(&out->_node);
+    out->_node.type_flags |= YW_DOM_DOCUMENT_NODE;
+
+    /* Node document of a document is itself */
+    out->_node.node_document = out;
+}
+
+YW_GC_PTR(YW_Document) yw_document_alloc(YW_GcHeap *heap,
+                                         YW_GcAllocFlags alloc_flags)
+{
+    YW_GC_PTR(YW_Document) document =
+        YW_GC_ALLOC(YW_Document, heap, &yw_document_gc_callbacks, alloc_flags);
+    yw_document_init(document);
+    return document;
+}
+void yw_document_visit(void *node_v)
+{
+    YW_GC_PTR(YW_Document) doc = (YW_GC_PTR(YW_Document))node_v;
+    YW_VERIFY_NODE_MAGIC(&doc->_node);
+    YW_VERIFY_NODE_TYPE(doc, YW_DOM_DOCUMENT_NODE);
+
+    yw_dom_node_visit(&doc->_node);
+    yw_gc_visit(doc->custom_element_registry);
+}
+void yw_document_destroy(void *node_v)
+{
+    YW_GC_PTR(YW_Document) doc = (YW_GC_PTR(YW_Document))node_v;
+    YW_VERIFY_NODE_MAGIC(&doc->_node);
+    YW_VERIFY_NODE_TYPE(doc, YW_DOM_DOCUMENT_NODE);
+
+    yw_dom_node_destroy(doc);
+}
+
+YW_GC_PTR(YW_CustomElementRegistry)
+yw_document_effective_global_custom_element_registry(void *node_v)
+{
+    /* https://dom.spec.whatwg.org/#effective-global-custom-element-registry */
+
+    YW_GC_PTR(YW_Document) doc = (YW_GC_PTR(YW_Document))node_v;
+    YW_VERIFY_NODE_MAGIC(&doc->_node);
+    YW_VERIFY_NODE_TYPE(doc, YW_DOM_DOCUMENT_NODE);
+
+    if (yw_dom_is_global_custom_element_reigstry(doc->custom_element_registry))
+    {
+        return doc->custom_element_registry;
+    }
+    return NULL;
+}
+
+/*******************************************************************************
+ * DocumentFragment
+ ******************************************************************************/
+
+static YW_GcCallbacks yw_document_fragment_gc_callbacks = {
+    .visit = yw_document_fragment_visit,
+    .destroy = yw_document_fragment_destroy,
+};
+
+void yw_document_fragment_init(YW_GC_PTR(YW_DocumentFragment) out)
+{
+    yw_dom_node_init(&out->_node);
+    out->_node.type_flags |= YW_DOM_DOCUMENT_FRAGMENT_NODE;
+}
+
+YW_GC_PTR(YW_DocumentFragment) yw_document_fragment_alloc(
+    YW_GcHeap *heap, YW_GcAllocFlags alloc_flags)
+{
+    YW_GC_PTR(YW_DocumentFragment) docfrag =
+        YW_GC_ALLOC(YW_DocumentFragment, heap,
+                    &yw_document_fragment_gc_callbacks, alloc_flags);
+    yw_document_fragment_init(docfrag);
+    return docfrag;
+}
+void yw_document_fragment_visit(void *node_v)
+{
+    YW_GC_PTR(YW_DocumentFragment) docfrag =
+        (YW_GC_PTR(YW_DocumentFragment))node_v;
+    YW_VERIFY_NODE_MAGIC(&docfrag->_node);
+    YW_VERIFY_NODE_TYPE(docfrag, YW_DOM_DOCUMENT_FRAGMENT_NODE);
+
+    yw_dom_node_visit(&docfrag->_node);
+    yw_gc_visit(docfrag->host);
+}
+void yw_document_fragment_destroy(void *node_v)
+{
+    YW_GC_PTR(YW_DocumentFragment) docfrag =
+        (YW_GC_PTR(YW_DocumentFragment))node_v;
+    YW_VERIFY_NODE_MAGIC(&docfrag->_node);
+    YW_VERIFY_NODE_TYPE(docfrag, YW_DOM_DOCUMENT_FRAGMENT_NODE);
+
+    yw_dom_node_destroy(docfrag);
+}
+
+/*******************************************************************************
+ * DocumentType
+ ******************************************************************************/
+
+static YW_GcCallbacks yw_document_type_gc_callbacks = {
+    .visit = yw_document_type_visit,
+    .destroy = yw_document_type_destroy,
+};
+
+void yw_document_type_init(YW_GC_PTR(YW_DocumentType) out)
+{
+    yw_dom_node_init(&out->_node);
+    out->_node.type_flags |= YW_DOM_DOCUMENT_TYPE_NODE;
+}
+
+YW_GC_PTR(YW_DocumentType) yw_document_type_alloc(YW_GcHeap *heap,
+                                                  YW_GcAllocFlags alloc_flags)
+{
+    YW_GC_PTR(YW_DocumentType) doctype = YW_GC_ALLOC(
+        YW_DocumentType, heap, &yw_document_type_gc_callbacks, alloc_flags);
+    yw_document_type_init(doctype);
+    return doctype;
+}
+void yw_document_type_visit(void *node_v)
+{
+    YW_GC_PTR(YW_DocumentType) doctype = (YW_GC_PTR(YW_DocumentType))node_v;
+    YW_VERIFY_NODE_MAGIC(&doctype->_node);
+    YW_VERIFY_NODE_TYPE(doctype, YW_DOM_DOCUMENT_TYPE_NODE);
+
+    yw_dom_node_visit(&doctype->_node);
+}
+void yw_document_type_destroy(void *node_v)
+{
+    YW_GC_PTR(YW_DocumentType) doctype = (YW_GC_PTR(YW_DocumentType))node_v;
+    YW_VERIFY_NODE_MAGIC(&doctype->_node);
+    YW_VERIFY_NODE_TYPE(doctype, YW_DOM_DOCUMENT_TYPE_NODE);
+
+    yw_dom_node_destroy(doctype);
+    free(doctype->name);
+    free(doctype->public_id);
+    free(doctype->system_id);
+}
+
+/*******************************************************************************
+ * Attr
+ ******************************************************************************/
+
+static YW_GcCallbacks yw_attr_gc_callbacks = {
+    .visit = yw_attr_visit,
+    .destroy = yw_attr_destroy,
+};
+
+void yw_attr_init(YW_GC_PTR(YW_Attr) out)
+{
+    yw_dom_node_init(&out->_node);
+    out->_node.type_flags |= YW_DOM_ATTR_NODE;
+}
+
+YW_GC_PTR(YW_Attr) yw_attr_alloc(YW_GcHeap *heap, YW_GcAllocFlags alloc_flags)
+{
+    YW_GC_PTR(YW_Attr) attr =
+        YW_GC_ALLOC(YW_Attr, heap, &yw_attr_gc_callbacks, alloc_flags);
+    yw_attr_init(attr);
+    return attr;
+}
+void yw_attr_visit(void *node_v)
+{
+    YW_GC_PTR(YW_Attr) attr = (YW_GC_PTR(YW_Attr))node_v;
+    YW_VERIFY_NODE_MAGIC(&attr->_node);
+    YW_VERIFY_NODE_TYPE(attr, YW_DOM_ATTR_NODE);
+
+    yw_dom_node_visit(&attr->_node);
+    yw_gc_visit(attr->element);
+}
+void yw_attr_destroy(void *node_v)
+{
+    YW_GC_PTR(YW_Attr) attr = (YW_GC_PTR(YW_Attr))node_v;
+    YW_VERIFY_NODE_MAGIC(&attr->_node);
+    YW_VERIFY_NODE_TYPE(attr, YW_DOM_ATTR_NODE);
+
+    yw_dom_node_destroy(attr);
 }
 
 /*******************************************************************************
  * Element
  ******************************************************************************/
 
-static yw_gc_callbacks yw_dom_element_gc_callbacks = {
-    .visit = yw_dom_element_visit,
+static YW_GcCallbacks yw_element_gc_callbacks = {
+    .visit = yw_element_visit,
+    .destroy = yw_element_destroy,
 };
 
-void yw_dom_element_init(YW_GC_PTR(yw_dom_element_node) out)
+void yw_element_init(YW_GC_PTR(YW_Element) out)
 {
     yw_dom_node_init(&out->_node);
+    out->_node.type_flags |= YW_DOM_ELEMENT_NODE;
 }
-YW_GC_PTR(yw_dom_element_node) yw_dom_element_alloc(
-    yw_gc_heap *heap, yw_gc_alloc_flags alloc_flags)
+
+YW_GC_PTR(YW_Element) yw_element_alloc(YW_GcHeap *heap,
+                                       YW_GcAllocFlags alloc_flags)
 {
-    YW_GC_PTR(yw_dom_element_node) elem = YW_GC_ALLOC(
-        yw_dom_element_node, heap, &yw_dom_element_gc_callbacks, alloc_flags);
-    yw_dom_element_init(elem);
+    YW_GC_PTR(YW_Element) elem =
+        YW_GC_ALLOC(YW_Element, heap, &yw_element_gc_callbacks, alloc_flags);
+    yw_element_init(elem);
     return elem;
 }
-void yw_dom_element_visit(void *node_v)
+void yw_element_visit(void *node_v)
 {
-    YW_GC_PTR(yw_dom_element_node) elem =
-        (YW_GC_PTR(yw_dom_element_node))node_v;
-    yw_dom_node_check_magic(&elem->_node);
-    if (elem->_node.type != YW_DOM_ELEMENT_NODE)
-    {
-        fprintf(stderr, "%s: non-element node found\n", __func__);
-        abort();
-    }
+    YW_GC_PTR(YW_Element) elem = (YW_GC_PTR(YW_Element))node_v;
+    YW_VERIFY_NODE_MAGIC(&elem->_node);
+    YW_VERIFY_NODE_TYPE(elem, YW_DOM_ELEMENT_NODE);
+
     yw_dom_node_visit(&elem->_node);
+    yw_gc_visit(elem->shadow_root);
+    yw_gc_visit(elem->custom_element_registry);
 }
+void yw_element_destroy(void *node_v)
+{
+    YW_GC_PTR(YW_Element) elem = (YW_GC_PTR(YW_Element))node_v;
+    YW_VERIFY_NODE_MAGIC(&elem->_node);
+    YW_VERIFY_NODE_TYPE(elem, YW_DOM_ELEMENT_NODE);
+
+    yw_dom_node_destroy(elem);
+    YW_LIST_FREE(&elem->attrs);
+}
+
 bool yw_dom_is_shadow_host(void *node_v)
 {
-    YW_GC_PTR(yw_dom_element_node) elem =
-        (YW_GC_PTR(yw_dom_element_node))node_v;
-    yw_dom_node_check_magic(&elem->_node);
-    if (elem->_node.type != YW_DOM_ELEMENT_NODE)
+    YW_GC_PTR(YW_Element) elem = (YW_GC_PTR(YW_Element))node_v;
+    YW_VERIFY_NODE_MAGIC(&elem->_node);
+
+    if (!yw_dom_has_type(elem, YW_DOM_ELEMENT_NODE))
     {
         return false;
     }
@@ -744,53 +1036,50 @@ bool yw_dom_is_shadow_host(void *node_v)
 
 bool yw_dom_is_element_defined(void *node_v)
 {
-    YW_GC_PTR(yw_dom_element_node) elem =
-        (YW_GC_PTR(yw_dom_element_node))node_v;
-    yw_dom_node_check_magic(&elem->_node);
+    YW_GC_PTR(YW_Element) elem = (YW_GC_PTR(YW_Element))node_v;
+    YW_VERIFY_NODE_MAGIC(&elem->_node);
 
-    if (elem->_node.type != YW_DOM_ELEMENT_NODE)
+    if (!yw_dom_has_type(elem, YW_DOM_ELEMENT_NODE))
     {
         return false;
     }
     /* https://dom.spec.whatwg.org/#concept-element-defined */
-    return elem->custom_element_state == YW_DOM_CUSTOM_ELEMENT_UNCUSTOMIZED ||
-           elem->custom_element_state == YW_DOM_CUSTOM_ELEMENT_CUSTOM;
+    return elem->custom_element_state == YW_CUSTOM_ELEMENT_UNCUSTOMIZED ||
+           elem->custom_element_state == YW_CUSTOM_ELEMENT_CUSTOM;
 }
 
 bool yw_dom_is_element_custom(void *node_v)
 {
-    YW_GC_PTR(yw_dom_element_node) elem =
-        (YW_GC_PTR(yw_dom_element_node))node_v;
-    yw_dom_node_check_magic(&elem->_node);
+    YW_GC_PTR(YW_Element) elem = (YW_GC_PTR(YW_Element))node_v;
+    YW_VERIFY_NODE_MAGIC(&elem->_node);
 
-    if (elem->_node.type != YW_DOM_ELEMENT_NODE)
+    if (!yw_dom_has_type(elem, YW_DOM_ELEMENT_NODE))
     {
         return false;
     }
     /* https://dom.spec.whatwg.org/#concept-element-custom */
-    return elem->custom_element_state == YW_DOM_CUSTOM_ELEMENT_CUSTOM;
+    return elem->custom_element_state == YW_CUSTOM_ELEMENT_CUSTOM;
 }
 
 bool yw_dom_is_element_inside(void *node_v, char const *namespace_,
                               char const *local_name)
 {
-    YW_GC_PTR(yw_dom_element_node) elem =
-        (YW_GC_PTR(yw_dom_element_node))node_v;
-    yw_dom_node_check_magic(&elem->_node);
+    YW_GC_PTR(YW_Element) elem = (YW_GC_PTR(YW_Element))node_v;
+    YW_VERIFY_NODE_MAGIC(&elem->_node);
 
-    if (elem->_node.type != YW_DOM_ELEMENT_NODE)
+    if (!yw_dom_has_type(elem, YW_DOM_ELEMENT_NODE))
     {
         return false;
     }
 
-    YW_GC_PTR(yw_dom_element_node) current = elem;
+    YW_GC_PTR(YW_DomNode) current = elem->_node.parent;
     while (current != NULL)
     {
         if (yw_dom_is_element(current, namespace_, local_name))
         {
             return true;
         }
-        current = (YW_GC_PTR(yw_dom_element_node))current->_node.parent;
+        current = current->parent;
     }
     return false;
 }
@@ -798,11 +1087,10 @@ bool yw_dom_is_element_inside(void *node_v, char const *namespace_,
 bool yw_dom_is_element(void *node_v, char const *namespace_,
                        char const *local_name)
 {
-    YW_GC_PTR(yw_dom_element_node) elem =
-        (YW_GC_PTR(yw_dom_element_node))node_v;
-    yw_dom_node_check_magic(&elem->_node);
+    YW_GC_PTR(YW_Element) elem = (YW_GC_PTR(YW_Element))node_v;
+    YW_VERIFY_NODE_MAGIC(&elem->_node);
 
-    if (elem->_node.type != YW_DOM_ELEMENT_NODE)
+    if (!yw_dom_has_type(elem, YW_DOM_ELEMENT_NODE))
     {
         return false;
     }
@@ -812,54 +1100,42 @@ bool yw_dom_is_element(void *node_v, char const *namespace_,
 }
 bool yw_dom_is_html_element(void *node_v, char const *local_name)
 {
-    yw_dom_is_element(node_v, YW_HTML_NAMESPACE, local_name);
+    return yw_dom_is_element(node_v, YW_HTML_NAMESPACE, local_name);
 }
 bool yw_dom_is_mathml_element(void *node_v, char const *local_name)
 {
-    yw_dom_is_element(node_v, YW_MATHML_NAMESPACE, local_name);
+    return yw_dom_is_element(node_v, YW_MATHML_NAMESPACE, local_name);
 }
 bool yw_dom_is_svg_element(void *node_v, char const *local_name)
 {
-    yw_dom_is_element(node_v, YW_SVG_NAMESPACE, local_name);
+    return yw_dom_is_element(node_v, YW_SVG_NAMESPACE, local_name);
 }
-void yw_dom_append_attr(void *node_v, yw_gc_heap *heap,
-                        yw_dom_attr_data const *data)
+void yw_dom_append_attr(void *node_v, YW_GcHeap *heap, YW_AttrData const *data)
 {
-    YW_GC_PTR(yw_dom_element_node) elem =
-        (YW_GC_PTR(yw_dom_element_node))node_v;
-    yw_dom_node_check_magic(&elem->_node);
+    YW_GC_PTR(YW_Element) elem = (YW_GC_PTR(YW_Element))node_v;
+    YW_VERIFY_NODE_MAGIC(&elem->_node);
+    YW_VERIFY_NODE_TYPE(elem, YW_DOM_ELEMENT_NODE);
 
-    if (elem->_node.type != YW_DOM_ELEMENT_NODE)
-    {
-        fprintf(stderr, "%s: non-element node found\n", __func__);
-        abort();
-    }
-
-    YW_GC_PTR(yw_dom_attr_node) attr =
-        yw_dom_attr_alloc(heap, YW_NO_GC_ALLOC_FLAGS);
-    attr->local_name = data->local_name;
-    attr->value = data->value;
-    attr->namespace_ = data->namespace_;
-    attr->namespace_prefix = data->namespace_prefix;
+    YW_GC_PTR(YW_Attr) attr = yw_attr_alloc(heap, YW_NO_GC_ALLOC_FLAGS);
+    attr->local_name = yw_duplicate_str(data->local_name);
+    attr->value = yw_duplicate_str(data->value);
+    attr->namespace_ = yw_duplicate_str(data->namespace_);
+    attr->namespace_prefix = yw_duplicate_str(data->namespace_prefix);
     attr->element = elem;
+    attr->_node.parent = &elem->_node;
+    YW_LIST_PUSH(YW_GC_PTR(YW_Attr), &elem->attrs, attr);
 }
 
-char const *yw_dom_attr(void *node_v, char const *namespace_,
-                        char const *local_name)
+char const *yw_attr(void *node_v, char const *namespace_,
+                    char const *local_name)
 {
-    YW_GC_PTR(yw_dom_element_node) elem =
-        (YW_GC_PTR(yw_dom_element_node))node_v;
-    yw_dom_node_check_magic(&elem->_node);
-
-    if (elem->_node.type != YW_DOM_ELEMENT_NODE)
-    {
-        fprintf(stderr, "%s: non-element node found\n", __func__);
-        abort();
-    }
+    YW_GC_PTR(YW_Element) elem = (YW_GC_PTR(YW_Element))node_v;
+    YW_VERIFY_NODE_MAGIC(&elem->_node);
+    YW_VERIFY_NODE_TYPE(elem, YW_DOM_ELEMENT_NODE);
 
     for (int i = 0; i < elem->attrs.len; i++)
     {
-        YW_GC_PTR(yw_dom_attr_node) attr = elem->attrs.items[i];
+        YW_GC_PTR(YW_Attr) attr = elem->attrs.items[i];
         bool ns_match = ((namespace_ == NULL && attr->namespace_ == NULL) ||
                          (namespace_ != NULL && attr->namespace_ != NULL &&
                           strcmp(attr->namespace_, namespace_) == 0));
@@ -871,4 +1147,46 @@ char const *yw_dom_attr(void *node_v, char const *namespace_,
     }
 
     return NULL;
+}
+
+/*******************************************************************************
+ * CharacterData
+ ******************************************************************************/
+
+void yw_dom_character_data_visit(void *node_v)
+{
+    YW_GC_PTR(YW_CharacterData) text = (YW_GC_PTR(YW_CharacterData))node_v;
+    YW_VERIFY_NODE_MAGIC(&text->_node);
+    YW_VERIFY_NODE_TYPE(text, YW_DOM_TEXT_NODE);
+
+    yw_dom_node_visit(&text->_node);
+}
+void yw_dom_character_data_destroy(void *node_v)
+{
+    YW_GC_PTR(YW_CharacterData) text = (YW_GC_PTR(YW_CharacterData))node_v;
+    YW_VERIFY_NODE_MAGIC(&text->_node);
+    YW_VERIFY_NODE_TYPE(text, YW_DOM_DOCUMENT_TYPE_NODE);
+
+    yw_dom_node_destroy(text);
+    free(text->text);
+}
+
+static YW_GcCallbacks yw_character_data_gc_callbacks = {
+    .visit = yw_dom_character_data_visit,
+    .destroy = yw_dom_character_data_destroy,
+};
+
+void yw_dom_text_init(YW_GC_PTR(YW_CharacterData) out)
+{
+    yw_dom_node_init(&out->_node);
+    out->_node.type_flags |= YW_DOM_TEXT_NODE;
+}
+
+YW_GC_PTR(YW_CharacterData) yw_text_alloc(YW_GcHeap *heap,
+                                          YW_GcAllocFlags alloc_flags)
+{
+    YW_GC_PTR(YW_CharacterData) text = YW_GC_ALLOC(
+        YW_CharacterData, heap, &yw_character_data_gc_callbacks, alloc_flags);
+    yw_dom_text_init(text);
+    return text;
 }

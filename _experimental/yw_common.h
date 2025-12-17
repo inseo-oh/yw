@@ -10,9 +10,10 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
-typedef int32_t YW_CHAR32;
+typedef int32_t YW_Char32;
 
 #define YW_TODO()                                                              \
     do                                                                         \
@@ -21,102 +22,50 @@ typedef int32_t YW_CHAR32;
         abort();                                                               \
     } while (0)
 
+typedef struct YW_TextReader YW_TextReader;
+typedef struct YW_PtrCollection YW_PtrCollection;
+typedef struct YW_GcCallbacks YW_GcCallbacks;
+typedef struct YW_GcObjectHeader YW_GcObjectHeader;
+typedef struct YW_GcHeap YW_GcHeap;
+
 /*******************************************************************************
- * Testing support
+ * Namespaces
  ******************************************************************************/
 
-typedef struct yw_testing_context yw_testing_context;
-struct yw_testing_context
-{
-    int failed_counter;
-};
-
-/* clang-format off */
-#define YW_ENUMERATE_TESTS(_x)                                                 \
-    _x(yw_test_grow)                                                           \
-    _x(yw_test_shrink_to_fit)                                                  \
-    _x(yw_test_list)                                                           \
-    _x(yw_test_utf8_next_char)                                                 \
-    _x(yw_test_utf8_strlen)                                                    \
-    _x(yw_test_utf8_strchr)                                                    \
-    _x(yw_test_utf8_to_char32)                                                 \
-    _x(yw_test_peek_char)                                                      \
-    _x(yw_test_consume_any_char)                                               \
-    _x(yw_test_consume_one_of_chars)                                           \
-    _x(yw_test_consume_one_of_strs)
-/* clang-format on */
-
-#define YW_X(_name) void _name(yw_testing_context *ctx);
-YW_ENUMERATE_TESTS(YW_X)
-#undef YW_X
-
-/* NOTE: _got will be re-evaulated multiple times! */
-#define YW_TEST_EXPECT(_got, _item_fmt, _expected)                             \
-    do                                                                         \
-    {                                                                          \
-        if ((_got) != (_expected))                                             \
-        {                                                                      \
-            printf("FAIL: %s: %s: expected " _item_fmt ", got " _item_fmt      \
-                   "\n",                                                       \
-                   __func__, #_got, (_expected), (_got));                      \
-            yw_failed_test(ctx);                                               \
-        }                                                                      \
-    } while (0)
-
-/* NOTE: _got_array will be re-evaulated multiple times! */
-#define YW_TEST_EXPECT_ARRAY(_got_array, _got_len, _item_fmt, ...)             \
-    do                                                                         \
-    {                                                                          \
-        YW_CHAR32 expected[] = {__VA_ARGS__};                                  \
-        int expected_len = sizeof(expected) / sizeof(*expected);               \
-        if (expected_len != (_got_len))                                        \
-        {                                                                      \
-            printf("FAIL: %s: %s: expected %d items, got %d\n", __func__,      \
-                   #_got_array, expected_len, (_got_len));                     \
-            yw_failed_test(ctx);                                               \
-        }                                                                      \
-        for (int i = 0; i < expected_len; i++)                                 \
-        {                                                                      \
-            if ((_got_array)[i] != expected[i])                                \
-            {                                                                  \
-                printf("FAIL: %s: %s: expected " _item_fmt                     \
-                       " at index %d, got " _item_fmt "\n",                    \
-                       __func__, #_got_array, expected[i], i,                  \
-                       (_got_array)[i]);                                       \
-                yw_failed_test(ctx);                                           \
-                break;                                                         \
-            }                                                                  \
-        }                                                                      \
-    } while (0)
-
-void yw_failed_test(yw_testing_context *ctx);
-void yw_run_all_tests();
+#define YW_HTML_NAMESPACE "http://www.w3.org/1999/xhtml"
+#define YW_MATHML_NAMESPACE "http://www.w3.org/1998/Math/MathML"
+#define YW_SVG_NAMESPACE "http://www.w3.org/2000/svg"
+#define YW_XLINK_NAMESPACE "http://www.w3.org/1999/xlink"
+#define YW_XML_NAMESPACE "http://www.w3.org/XML/1998/namespace"
+#define YW_XMLNS_NAMESPACE "http://www.w3.org/2000/xmlns/"
 
 /*******************************************************************************
  * ASCII character conversion & testing
  ******************************************************************************/
 
-bool yw_is_leading_surrogate_char(YW_CHAR32 c);
-bool yw_is_trailing_surrogate_char(YW_CHAR32 c);
-bool yw_is_surrogate_char(YW_CHAR32 c);
-bool yw_is_c0_control_char(YW_CHAR32 c);
-bool yw_is_control_char(YW_CHAR32 c);
-bool yw_is_ascii_digit(YW_CHAR32 c);
-bool yw_is_ascii_uppercase(YW_CHAR32 c);
-bool yw_is_ascii_lowercase(YW_CHAR32 c);
-bool yw_is_ascii_alpha(YW_CHAR32 c);
-bool yw_is_ascii_alphanumeric(YW_CHAR32 c);
-bool yw_is_ascii_uppercase_hex_digit(YW_CHAR32 c);
-bool yw_is_ascii_lowercase_hex_digit(YW_CHAR32 c);
-bool yw_is_ascii_hex_digit(YW_CHAR32 c);
-bool yw_is_ascii_whitespace(YW_CHAR32 c);
-bool yw_is_noncharacter(YW_CHAR32 c);
-YW_CHAR32 yw_to_ascii_lowercase(YW_CHAR32 c);
-YW_CHAR32 yw_to_ascii_uppercase(YW_CHAR32 c);
+bool yw_is_leading_surrogate_char(YW_Char32 c);
+bool yw_is_trailing_surrogate_char(YW_Char32 c);
+bool yw_is_surrogate_char(YW_Char32 c);
+bool yw_is_c0_control_char(YW_Char32 c);
+bool yw_is_control_char(YW_Char32 c);
+bool yw_is_ascii_digit(YW_Char32 c);
+bool yw_is_ascii_uppercase(YW_Char32 c);
+bool yw_is_ascii_lowercase(YW_Char32 c);
+bool yw_is_ascii_alpha(YW_Char32 c);
+bool yw_is_ascii_alphanumeric(YW_Char32 c);
+bool yw_is_ascii_uppercase_hex_digit(YW_Char32 c);
+bool yw_is_ascii_lowercase_hex_digit(YW_Char32 c);
+bool yw_is_ascii_hex_digit(YW_Char32 c);
+bool yw_is_ascii_whitespace(YW_Char32 c);
+bool yw_is_noncharacter(YW_Char32 c);
+YW_Char32 yw_to_ascii_lowercase(YW_Char32 c);
+YW_Char32 yw_to_ascii_uppercase(YW_Char32 c);
 
 /*******************************************************************************
  * Memory utilities
  ******************************************************************************/
+
+#define YW_SIZEOF_ARRAY(_x) (sizeof((_x)) / sizeof(*(_x)))
 
 void *yw_grow_impl(int *cap_inout, int *len_inout, void *old_buf,
                    size_t item_size);
@@ -127,6 +76,10 @@ void *yw_shrink_to_fit_impl(int *cap_inout, int len, void *old_buf,
 #define YW_SHRINK_TO_FIT(_type, _cap_inout, _len, _old_buf)                    \
     (_type *)yw_shrink_to_fit_impl((_cap_inout), (_len), (_old_buf),           \
                                    sizeof(_type))
+/* if another is NULL, this function doesn't do anything */
+void yw_append_str(char **dest, char const *another);
+/* if s is NULL, this function returns NULL */
+char *yw_duplicate_str(char const *s);
 
 #define YW_LIST_INIT(_list)                                                    \
     do                                                                         \
@@ -188,10 +141,10 @@ void *yw_shrink_to_fit_impl(int *cap_inout, int len, void *old_buf,
  * Returns resulting codepoint, or 0 if end was reached.
  * If an error was encountered, U+FFFD is returned instead.
  */
-YW_CHAR32 yw_utf8_next_char(char const **str);
+YW_Char32 yw_utf8_next_char(char const **str);
 
 /* Caller owns the returned array. */
-void yw_utf8_to_char32(YW_CHAR32 **chars_out, int *chars_len_out,
+void yw_utf8_to_char32(YW_Char32 **chars_out, int *chars_len_out,
                        char const *str);
 
 /* UTF-8-aware version of strlen(). */
@@ -203,100 +156,98 @@ size_t yw_utf8_strlen(char const *s);
  * NOTE: For searching non-unicode character, using normal strchr() is OK.
  *       (And may even be faster)
  */
-char const *yw_utf8_strchr(char const *s, YW_CHAR32 c);
+char const *yw_utf8_strchr(char const *s, YW_Char32 c);
 
 /*******************************************************************************
- * yw_text_reader
+ * YW_TextReader
  ******************************************************************************/
 
-typedef struct yw_text_reader yw_text_reader;
-struct yw_text_reader
+struct YW_TextReader
 {
     char const *source_name;
-    YW_CHAR32 const *chars;
+    YW_Char32 const *chars;
     int chars_len;
     int cursor;
 };
 
-void yw_text_reader_init(yw_text_reader *out, char const *source_name,
-                         YW_CHAR32 const *chars, int chars_len);
-bool yw_text_reader_is_eof(yw_text_reader const *tr);
+void YW_TextReader_init(YW_TextReader *out, char const *source_name,
+                        YW_Char32 const *chars, int chars_len);
+bool YW_TextReader_is_eof(YW_TextReader const *tr);
 
 /* Returns -1 on EOF. */
-YW_CHAR32 yw_peek_char(yw_text_reader const *tr);
+YW_Char32 yw_peek_char(YW_TextReader const *tr);
 
 /* Returns -1 on EOF. */
-YW_CHAR32 yw_consume_any_char(yw_text_reader *tr);
+YW_Char32 yw_consume_any_char(YW_TextReader *tr);
 
 /*
  * Returns -1 on EOF or when no match was found.
  * Also note that this function can only match ASCII characters.
  */
-int yw_consume_one_of_chars(yw_text_reader *tr, char const *chars);
-bool yw_consume_char(yw_text_reader *tr, YW_CHAR32 chr);
+int yw_consume_one_of_chars(YW_TextReader *tr, char const *chars);
+bool yw_consume_char(YW_TextReader *tr, YW_Char32 chr);
 
 typedef enum
 {
     YW_NO_MATCH_FLAGS = 0,
     YW_ASCII_CASE_INSENSITIVE = 1 << 0
-} yw_match_flags;
+} YW_MatchFlags;
 
 /*
  * Returns index of matched string, or -1 if not found.
  *
  * strs must be NULL-terminated list!
  */
-int yw_consume_one_of_strs(yw_text_reader *tr, char const **strs,
-                           yw_match_flags flags);
-bool yw_consume_str(yw_text_reader *tr, char const *str, yw_match_flags flags);
+int yw_consume_one_of_strs(YW_TextReader *tr, char const **strs,
+                           YW_MatchFlags flags);
+bool yw_consume_str(YW_TextReader *tr, char const *str, YW_MatchFlags flags);
 
 /*******************************************************************************
  * Garbage collector
  ******************************************************************************/
 
-typedef void *YW_PTR_SLOT;
+typedef void *YW_PtrSlot;
 
 /*
  * Each slot may store either a pointer or NULL.
  * NULL means free "slot", and new pointers can be stored there.
  */
-typedef struct yw_ptr_collection yw_ptr_collection;
-struct yw_ptr_collection
+struct YW_PtrCollection
 {
-    YW_PTR_SLOT *slots;
+    YW_PtrSlot *slots;
     int slots_len;
     int slots_cap;
 };
 
-/* Returns pointer to the slot, or NULL if there's not enough memory. */
-YW_PTR_SLOT *yw_add_ptr_to_collection(yw_ptr_collection *coll, void *obj);
+void YW_PtrCollection_init(YW_PtrCollection *out);
+void YW_PtrCollection_deinit(YW_PtrCollection *coll);
 
-typedef struct yw_gc_callbacks yw_gc_callbacks;
-struct yw_gc_callbacks
+/* Returns pointer to the slot */
+YW_PtrSlot *yw_add_ptr_to_collection(YW_PtrCollection *coll, void *obj);
+
+struct YW_GcCallbacks
 {
     void (*visit)(void *self);
     void (*destroy)(void *self);
 };
 
-typedef struct yw_gc_object_header yw_gc_object_header;
-struct yw_gc_object_header
+struct YW_GcObjectHeader
 {
     uint64_t magic_and_marked_flag; /* LSB is used as marked flag. */
-    yw_gc_callbacks const *callbacks;
+    YW_GcCallbacks const *callbacks;
 };
 
-typedef struct yw_gc_heap yw_gc_heap;
-struct yw_gc_heap
+struct YW_GcHeap
 {
-    yw_ptr_collection all_objs;
-    yw_ptr_collection root_objs;
+    YW_PtrCollection all_objs;
+    YW_PtrCollection root_objs;
 };
 
 typedef enum
 {
     YW_NO_GC_ALLOC_FLAGS = 0,
-    YW_ADD_TO_GC_ROOT = 1 << 0
-} yw_gc_alloc_flags;
+    YW_GC_ROOT_OBJECT = 1 << 0
+} YW_GcAllocFlags;
 
 /* NOTE: It is safe to pass NULL pointer. */
 void yw_gc_visit(void *obj_v);
@@ -304,14 +255,15 @@ void yw_gc_visit(void *obj_v);
 #define YW_GC_TYPE(_x) _x##_GC
 #define YW_GC_PTR(_x) YW_GC_TYPE(_x) *
 
-void yw_gc_init_heap(yw_gc_heap *out);
-void *yw_gc_alloc_impl(yw_gc_heap *heap, int size,
-                       yw_gc_callbacks const *callbacks,
-                       yw_gc_alloc_flags alloc_flags);
+void yw_gc_heap_init(YW_GcHeap *out);
+void yw_gc_heap_deinit(YW_GcHeap *heap);
+void *yw_gc_alloc_impl(YW_GcHeap *heap, int size,
+                       YW_GcCallbacks const *callbacks,
+                       YW_GcAllocFlags alloc_flags);
 #define YW_GC_ALLOC(_type, _heap, _callbacks, _alloc_flags)                    \
     (YW_GC_PTR(_type))yw_gc_alloc_impl((_heap), sizeof(YW_GC_TYPE(_type)),     \
                                        (_callbacks), (_alloc_flags))
 
-void yw_gc(yw_gc_heap *heap);
+void yw_gc(YW_GcHeap *heap);
 
 #endif /* #ifndef YW_COMMON_H_ */

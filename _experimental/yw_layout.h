@@ -7,23 +7,18 @@
 #ifndef YW_LAYOUT_H_
 #define YW_LAYOUT_H_
 
-typedef struct yw_inline_formatting_context yw_inline_formatting_context;
-struct yw_inline_formatting_context
+typedef struct YW_InlineFormattingContext YW_InlineFormattingContext;
+
+struct YW_InlineFormattingContext
 {
     char const *written_text;
 };
 
-/*
- * CSS Text Module Level 3 - 4.1.1
- * Returns NULL when there's not enough memory.
- */
+/* CSS Text Module Level 3 - 4.1.1 */
 char *yw_apply_whitespace_collapsing(char const *str,
-                                     yw_inline_formatting_context *ifc);
+                                     YW_InlineFormattingContext *ifc);
 
-/*
- * CSS Text Module Level 3 - 4.1.3
- * Returns NULL when there's not enough memory.
- */
+/* CSS Text Module Level 3 - 4.1.3 */
 char *yw_apply_segment_break_transform(char const *str);
 
 #endif /* #ifndef YW_LAYOUT_H_ */

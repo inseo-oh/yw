@@ -1,22 +1,41 @@
 
 PROJECTDIR := $(CURDIR)
-OUTDIR      = $(PROJECTDIR)/out
-OBJDIR      = $(OUTDIR)/obj
 
+################################################################################
+# Platform configuration (such as target name, initial CFLAFGS, etc...)
+################################################################################
+
+ifdef WASM
+CC      = emcc
+OUTDIR  = $(PROJECTDIR)/out_wasm
+TARGET  = $(OUTDIR)/yw.html
+else
+CFLAGS += -fsanitize=undefined -g
+OUTDIR  = $(PROJECTDIR)/out_nix
+TARGET  = $(OUTDIR)/yw
+endif
+
+################################################################################
+# Set up source/object file list and rest of CFLAGS
+################################################################################
+
+OBJDIR     = $(OUTDIR)/obj
 SRCS      := $(shell find . -name '*.c')
 OBJ_NAMES  = $(patsubst %.c, %.o, $(SRCS))
-TARGET     = $(OUTDIR)/yw
 
 OBJS      = $(addprefix $(OBJDIR)/, $(OBJ_NAMES))
 DEPS      = $(patsubst %.o, %.d, $(OBJS))
 OBJDIRS   = $(sort $(dir $(OBJS)))
 
-CFLAGS  = -std=c99
+CFLAGS += -std=c99
 CFLAGS += -Wall -Wextra -Werror -pedantic
 CFLAGS += -I$(PROJECTDIR)/include
-CFLAGS += -Wno-error=unused-function -Wno-error=unused-const-variable -g 
-CFLAGS += -fsanitize=undefined
+CFLAGS += -Wno-error=unused-function -Wno-error=unused-const-variable
 CFLAGS += -O3
+
+################################################################################
+# Build rules
+################################################################################
 
 all: $(TARGET)
 

@@ -5,6 +5,7 @@
  * information.
  */
 #include "yw_common.h"
+#include <limits.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -12,94 +13,63 @@
 #include <string.h>
 
 /*******************************************************************************
- * Testing support
- ******************************************************************************/
-
-void yw_failed_test(yw_testing_context *ctx)
-{
-    ctx->failed_counter++;
-}
-
-void yw_run_all_tests()
-{
-    yw_testing_context ctx;
-    memset(&ctx, 0, sizeof(ctx));
-
-#define YW_X(_name)                                                            \
-    printf("Running test: %s\n", #_name);                                      \
-    _name(&ctx);
-
-    YW_ENUMERATE_TESTS(YW_X);
-#undef YW_X
-
-    if (ctx.failed_counter != 0)
-    {
-        printf("%d failed tests\n", ctx.failed_counter);
-    }
-    else
-    {
-        printf("ALL TESTS PASSED\n");
-    }
-}
-
-/*******************************************************************************
  * ASCII character conversion & testing
  ******************************************************************************/
 
-bool yw_is_leading_surrogate_char(YW_CHAR32 c)
+bool yw_is_leading_surrogate_char(YW_Char32 c)
 {
     return 0xd800 <= c && c <= 0xdbff;
 }
-bool yw_is_trailing_surrogate_char(YW_CHAR32 c)
+bool yw_is_trailing_surrogate_char(YW_Char32 c)
 {
     return 0xdc00 <= c && c <= 0xdfff;
 }
-bool yw_is_surrogate_char(YW_CHAR32 c)
+bool yw_is_surrogate_char(YW_Char32 c)
 {
     return yw_is_leading_surrogate_char(c) || yw_is_trailing_surrogate_char(c);
 }
-bool yw_is_c0_control_char(YW_CHAR32 c)
+bool yw_is_c0_control_char(YW_Char32 c)
 {
     return 0x0000 <= c && c <= 0x001f;
 }
-bool yw_is_control_char(YW_CHAR32 c)
+bool yw_is_control_char(YW_Char32 c)
 {
     return yw_is_c0_control_char(c) || (0x007f <= c && c <= 0x009f);
 }
-bool yw_is_ascii_digit(YW_CHAR32 c)
+bool yw_is_ascii_digit(YW_Char32 c)
 {
     return '0' <= c && c <= '9';
 }
-bool yw_is_ascii_uppercase(YW_CHAR32 c)
+bool yw_is_ascii_uppercase(YW_Char32 c)
 {
     return 'A' <= c && c <= 'Z';
 }
-bool yw_is_ascii_lowercase(YW_CHAR32 c)
+bool yw_is_ascii_lowercase(YW_Char32 c)
 {
     return 'a' <= c && c <= 'z';
 }
-bool yw_is_ascii_alpha(YW_CHAR32 c)
+bool yw_is_ascii_alpha(YW_Char32 c)
 {
     return yw_is_ascii_uppercase(c) || yw_is_ascii_lowercase(c);
 }
-bool yw_is_ascii_alphanumeric(YW_CHAR32 c)
+bool yw_is_ascii_alphanumeric(YW_Char32 c)
 {
     return yw_is_ascii_alpha(c) || yw_is_ascii_digit(c);
 }
-bool yw_is_ascii_uppercase_hex_digit(YW_CHAR32 c)
+bool yw_is_ascii_uppercase_hex_digit(YW_Char32 c)
 {
     return 'A' <= c && c <= 'F';
 }
-bool yw_is_ascii_lowercase_hex_digit(YW_CHAR32 c)
+bool yw_is_ascii_lowercase_hex_digit(YW_Char32 c)
 {
     return 'a' <= c && c <= 'f';
 }
-bool yw_is_ascii_hex_digit(YW_CHAR32 c)
+bool yw_is_ascii_hex_digit(YW_Char32 c)
 {
     return yw_is_ascii_uppercase_hex_digit(c) ||
            yw_is_ascii_lowercase_hex_digit(c) || yw_is_ascii_digit(c);
 }
-bool yw_is_ascii_whitespace(YW_CHAR32 c)
+bool yw_is_ascii_whitespace(YW_Char32 c)
 {
     switch (c)
     {
@@ -111,7 +81,7 @@ bool yw_is_ascii_whitespace(YW_CHAR32 c)
     }
     return false;
 }
-bool yw_is_noncharacter(YW_CHAR32 c)
+bool yw_is_noncharacter(YW_Char32 c)
 {
     switch (c)
     {
@@ -153,7 +123,7 @@ bool yw_is_noncharacter(YW_CHAR32 c)
     }
     return false;
 }
-YW_CHAR32 yw_to_ascii_lowercase(YW_CHAR32 c)
+YW_Char32 yw_to_ascii_lowercase(YW_Char32 c)
 {
     if (!yw_is_ascii_uppercase(c))
     {
@@ -161,7 +131,7 @@ YW_CHAR32 yw_to_ascii_lowercase(YW_CHAR32 c)
     }
     return c - 'A' + 'a';
 }
-YW_CHAR32 yw_to_ascii_uppercase(YW_CHAR32 c)
+YW_Char32 yw_to_ascii_uppercase(YW_Char32 c)
 {
     if (!yw_is_ascii_lowercase(c))
     {
@@ -230,11 +200,58 @@ void *yw_shrink_to_fit_impl(int *cap_inout, int len, void *old_buf,
     return new_buf;
 }
 
+void yw_append_str(char **dest, char const *another)
+{
+    bool was_dest_null = false;
+    if (another == NULL)
+    {
+        return;
+    }
+    int len = 0;
+    if (*dest != NULL)
+    {
+        len = strlen(*dest) + 1;
+    }
+    else
+    {
+        len = 1;
+        was_dest_null = true;
+    }
+    int cap = len;
+    int a_len = len - 1;
+    size_t b_len = strlen(another);
+    if (INT_MAX < b_len)
+    {
+        fprintf(stderr, "%s: String is too long", __func__);
+        abort();
+    }
+    while (len < a_len + (int)b_len + 1)
+    {
+        *dest = YW_GROW(char, &cap, &len, *dest);
+    }
+    if (was_dest_null)
+    {
+        (*dest)[0] = '\0';
+    }
+    strcat(*dest, another);
+}
+
+char *yw_duplicate_str(char const *s)
+{
+    if (s == NULL)
+    {
+        return NULL;
+    }
+    char *res = NULL;
+    yw_append_str(&res, s);
+    return res;
+}
+
 /*******************************************************************************
  * UTF-8 character utility
  ******************************************************************************/
 
-YW_CHAR32 yw_utf8_next_char(char const **s)
+YW_Char32 yw_utf8_next_char(char const **s)
 {
     uint8_t bytes_seen = 0;
     uint8_t bytes_needed = 0;
@@ -332,25 +349,25 @@ YW_CHAR32 yw_utf8_next_char(char const **s)
     return codepoint;
 }
 
-void yw_utf8_to_char32(YW_CHAR32 **chars_out, int *chars_len_out,
+void yw_utf8_to_char32(YW_Char32 **chars_out, int *chars_len_out,
                        char const *str)
 {
-    YW_CHAR32 *res_buf = NULL;
+    YW_Char32 *res_buf = NULL;
     int res_len = 0;
     int res_cap = 0;
     char const *next_str = str;
 
     while (1)
     {
-        YW_CHAR32 chr = yw_utf8_next_char(&next_str);
+        YW_Char32 chr = yw_utf8_next_char(&next_str);
         if (chr == 0)
         {
             break;
         }
-        res_buf = YW_GROW(YW_CHAR32, &res_cap, &res_len, res_buf);
+        res_buf = YW_GROW(YW_Char32, &res_cap, &res_len, res_buf);
         res_buf[res_len - 1] = chr;
     }
-    res_buf = YW_SHRINK_TO_FIT(YW_CHAR32, &res_cap, res_len, res_buf);
+    res_buf = YW_SHRINK_TO_FIT(YW_Char32, &res_cap, res_len, res_buf);
     *chars_out = res_buf;
     *chars_len_out = res_len;
 }
@@ -361,7 +378,7 @@ size_t yw_utf8_strlen(char const *s)
     size_t len = 0;
     while (1)
     {
-        YW_CHAR32 got = yw_utf8_next_char(&next_str);
+        YW_Char32 got = yw_utf8_next_char(&next_str);
         if (got == 0)
         {
             break;
@@ -371,13 +388,13 @@ size_t yw_utf8_strlen(char const *s)
     return len;
 }
 
-char const *yw_utf8_strchr(char const *s, YW_CHAR32 c)
+char const *yw_utf8_strchr(char const *s, YW_Char32 c)
 {
     char const *next_str = s;
     while (1)
     {
         char const *res_str = next_str;
-        YW_CHAR32 got = yw_utf8_next_char(&next_str);
+        YW_Char32 got = yw_utf8_next_char(&next_str);
         if (got == 0 && c != '\0')
         {
             return NULL;
@@ -391,11 +408,11 @@ char const *yw_utf8_strchr(char const *s, YW_CHAR32 c)
 }
 
 /*******************************************************************************
- * yw_text_reader
+ * YW_TextReader
  ******************************************************************************/
 
-void yw_text_reader_init(yw_text_reader *out, char const *source_name,
-                         YW_CHAR32 const *chars, int chars_len)
+void YW_TextReader_init(YW_TextReader *out, char const *source_name,
+                         YW_Char32 const *chars, int chars_len)
 {
     memset(out, 0, sizeof(*out));
     out->source_name = source_name;
@@ -403,39 +420,39 @@ void yw_text_reader_init(yw_text_reader *out, char const *source_name,
     out->chars_len = chars_len;
 }
 
-bool yw_text_reader_is_eof(yw_text_reader const *tr)
+bool YW_TextReader_is_eof(YW_TextReader const *tr)
 {
     return tr->chars_len <= tr->cursor;
 }
 
-YW_CHAR32 yw_peek_char(yw_text_reader const *tr)
+YW_Char32 yw_peek_char(YW_TextReader const *tr)
 {
-    if (yw_text_reader_is_eof(tr))
+    if (YW_TextReader_is_eof(tr))
     {
         return -1;
     }
     return tr->chars[tr->cursor];
 }
 
-YW_CHAR32
-yw_consume_any_char(yw_text_reader *tr)
+YW_Char32
+yw_consume_any_char(YW_TextReader *tr)
 {
-    if (yw_text_reader_is_eof(tr))
+    if (YW_TextReader_is_eof(tr))
     {
         return -1;
     }
-    YW_CHAR32 res = yw_peek_char(tr);
+    YW_Char32 res = yw_peek_char(tr);
     tr->cursor++;
     return res;
 }
 
-int yw_consume_one_of_chars(yw_text_reader *tr, char const *chars)
+int yw_consume_one_of_chars(YW_TextReader *tr, char const *chars)
 {
-    if (yw_text_reader_is_eof(tr))
+    if (YW_TextReader_is_eof(tr))
     {
         return -1;
     }
-    YW_CHAR32 got = yw_peek_char(tr);
+    YW_Char32 got = yw_peek_char(tr);
     for (char const *char_src = chars; *char_src != 0; char_src++)
     {
         if (*char_src == got)
@@ -447,13 +464,13 @@ int yw_consume_one_of_chars(yw_text_reader *tr, char const *chars)
     return -1;
 }
 
-bool yw_consume_char(yw_text_reader *tr, YW_CHAR32 chr)
+bool yw_consume_char(YW_TextReader *tr, YW_Char32 chr)
 {
-    if (yw_text_reader_is_eof(tr))
+    if (YW_TextReader_is_eof(tr))
     {
         return false;
     }
-    YW_CHAR32 got = yw_peek_char(tr);
+    YW_Char32 got = yw_peek_char(tr);
     if (got == chr)
     {
         yw_consume_any_char(tr);
@@ -462,10 +479,10 @@ bool yw_consume_char(yw_text_reader *tr, YW_CHAR32 chr)
     return false;
 }
 
-int yw_consume_one_of_strs(yw_text_reader *tr, char const **strs,
-                           yw_match_flags flags)
+int yw_consume_one_of_strs(YW_TextReader *tr, char const **strs,
+                           YW_MatchFlags flags)
 {
-    if (yw_text_reader_is_eof(tr))
+    if (YW_TextReader_is_eof(tr))
     {
         return -1;
     }
@@ -510,7 +527,7 @@ int yw_consume_one_of_strs(yw_text_reader *tr, char const **strs,
     return match_idx;
 }
 
-bool yw_consume_str(yw_text_reader *tr, char const *str, yw_match_flags flags)
+bool yw_consume_str(YW_TextReader *tr, char const *str, YW_MatchFlags flags)
 {
     char const *strs[] = {str, NULL};
     int res = yw_consume_one_of_strs(tr, strs, flags);
@@ -521,7 +538,17 @@ bool yw_consume_str(yw_text_reader *tr, char const *str, yw_match_flags flags)
  * Garbage collector
  ******************************************************************************/
 
-YW_PTR_SLOT *yw_add_ptr_to_collection(yw_ptr_collection *coll, void *obj)
+void YW_PtrCollection_init(YW_PtrCollection *out)
+{
+    memset(out, 0, sizeof(*out));
+}
+
+void YW_PtrCollection_deinit(YW_PtrCollection *coll)
+{
+    free(coll->slots);
+}
+
+YW_PtrSlot *yw_add_ptr_to_collection(YW_PtrCollection *coll, void *obj)
 {
     for (int i = 0; i < coll->slots_len; i++)
     {
@@ -532,7 +559,7 @@ YW_PTR_SLOT *yw_add_ptr_to_collection(yw_ptr_collection *coll, void *obj)
         }
     }
     coll->slots =
-        YW_GROW(YW_PTR_SLOT, &coll->slots_cap, &coll->slots_len, coll->slots);
+        YW_GROW(YW_PtrSlot, &coll->slots_cap, &coll->slots_len, coll->slots);
     coll->slots[coll->slots_len - 1] = obj;
     return &coll->slots[coll->slots_len - 1];
 }
@@ -540,21 +567,21 @@ YW_PTR_SLOT *yw_add_ptr_to_collection(yw_ptr_collection *coll, void *obj)
 /* NOTE: LSB must be zero -- It is used as "marked" flag for GC. */
 #define YW_GC_MAGIC 0x21b0fb278bf5e5ce
 
-static bool yw_gc_is_marked(yw_gc_object_header const *obj)
+static bool yw_gc_is_marked(YW_GcObjectHeader const *obj)
 {
     return (obj->magic_and_marked_flag & 0x1) != 0;
 }
-static void yw_gc_mark_object(yw_gc_object_header *obj)
+static void yw_gc_mark_object(YW_GcObjectHeader *obj)
 {
     obj->magic_and_marked_flag |= 0x1;
 }
-static void yw_gc_unmark_object(yw_gc_object_header *obj)
+static void yw_gc_unmark_object(YW_GcObjectHeader *obj)
 {
     obj->magic_and_marked_flag &= ~0x1;
 }
 void yw_gc_visit(void *obj_v)
 {
-    yw_gc_object_header *obj = (yw_gc_object_header *)obj_v;
+    YW_GcObjectHeader *obj = (YW_GcObjectHeader *)obj_v;
     if (obj == NULL)
     {
         return;
@@ -572,17 +599,23 @@ void yw_gc_visit(void *obj_v)
     }
 }
 
-void yw_gc_init_heap(yw_gc_heap *out)
+void yw_gc_heap_init(YW_GcHeap *out)
 {
     memset(out, 0, sizeof(*out));
+    YW_PtrCollection_init(&out->all_objs);
+    YW_PtrCollection_init(&out->root_objs);
+}
+void yw_gc_heap_deinit(YW_GcHeap *heap)
+{
+    YW_PtrCollection_deinit(&heap->root_objs);
+    YW_PtrCollection_deinit(&heap->all_objs);
 }
 
-void *yw_gc_alloc_impl(yw_gc_heap *heap, int size,
-                       yw_gc_callbacks const *callbacks,
-                       yw_gc_alloc_flags alloc_flags)
+void *yw_gc_alloc_impl(YW_GcHeap *heap, int size,
+                       YW_GcCallbacks const *callbacks,
+                       YW_GcAllocFlags alloc_flags)
 {
-    YW_PTR_SLOT *slot_all = NULL, *slot_root = NULL;
-    if (size < (int)sizeof(yw_gc_object_header))
+    if (size < (int)sizeof(YW_GcObjectHeader))
     {
         printf("%s: illegal size %d!\n", __func__, size);
         abort();
@@ -590,32 +623,19 @@ void *yw_gc_alloc_impl(yw_gc_heap *heap, int size,
     void *mem = malloc(size);
     memset(mem, 0, size);
 
-    yw_gc_object_header *mem_header = (yw_gc_object_header *)mem;
+    YW_GcObjectHeader *mem_header = (YW_GcObjectHeader *)mem;
     mem_header->magic_and_marked_flag = YW_GC_MAGIC;
     mem_header->callbacks = callbacks;
 
-    slot_all = yw_add_ptr_to_collection(&heap->all_objs, mem);
-    if (alloc_flags & YW_ADD_TO_GC_ROOT)
+    yw_add_ptr_to_collection(&heap->all_objs, mem);
+    if (alloc_flags & YW_GC_ROOT_OBJECT)
     {
-        slot_root = yw_add_ptr_to_collection(&heap->root_objs, mem);
+        yw_add_ptr_to_collection(&heap->root_objs, mem);
     }
-    goto out;
-fail:
-    if (slot_all != NULL)
-    {
-        *slot_all = NULL;
-    }
-    if (slot_root != NULL)
-    {
-        *slot_root = NULL;
-    }
-    free(mem);
-    mem = NULL;
-out:
     return mem;
 }
 
-void yw_gc(yw_gc_heap *heap)
+void yw_gc(YW_GcHeap *heap)
 {
     /* 1. Mark all objects ****************************************************/
     for (int i = 0; i < heap->all_objs.slots_len; i++)
@@ -624,8 +644,7 @@ void yw_gc(yw_gc_heap *heap)
         {
             continue;
         }
-        yw_gc_object_header *obj =
-            (yw_gc_object_header *)heap->all_objs.slots[i];
+        YW_GcObjectHeader *obj = (YW_GcObjectHeader *)heap->all_objs.slots[i];
         if ((obj->magic_and_marked_flag & ~0x1) != YW_GC_MAGIC)
         {
             printf("WARNING: %s: Object at %p has corrupted magic!\n", __func__,
@@ -650,8 +669,7 @@ void yw_gc(yw_gc_heap *heap)
         {
             continue;
         }
-        yw_gc_object_header *obj =
-            (yw_gc_object_header *)heap->all_objs.slots[i];
+        YW_GcObjectHeader *obj = (YW_GcObjectHeader *)heap->all_objs.slots[i];
         if ((obj->magic_and_marked_flag & ~0x1) != YW_GC_MAGIC)
         {
             printf("WARNING: %s: Object at %p has corrupted magic!\n", __func__,

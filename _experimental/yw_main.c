@@ -5,15 +5,16 @@
  * information.
  */
 #include "yw_common.h"
+#include "yw_tests.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-static void gc_test();
+static void gc_test(void);
 
-int main()
+int main(void)
 {
     printf("hello, world!\n");
     yw_run_all_tests();
@@ -23,7 +24,7 @@ int main()
 
 YW_GC_TYPE(struct my_object)
 {
-    struct yw_gc_object_header gc_header;
+    struct YW_GcObjectHeader gc_header;
     struct my_object *another;
     int counter;
 };
@@ -37,13 +38,13 @@ static void my_object_destroy(void *self_v)
 {
     printf("%p destroy\n", self_v);
 }
-static struct yw_gc_callbacks my_object_callbacks = {
+static struct YW_GcCallbacks my_object_callbacks = {
     .visit = my_object_visit,
     .destroy = my_object_destroy,
 };
 
 static YW_GC_PTR(struct my_object) my_object_alloc(
-    struct yw_gc_heap *heap, yw_gc_alloc_flags alloc_flags)
+    struct YW_GcHeap *heap, YW_GcAllocFlags alloc_flags)
 {
     YW_GC_PTR(struct my_object)
     obj =
@@ -52,10 +53,10 @@ static YW_GC_PTR(struct my_object) my_object_alloc(
     return obj;
 }
 
-static void gc_test()
+static void gc_test(void)
 {
-    struct yw_gc_heap heap;
-    yw_gc_init_heap(&heap);
+    struct YW_GcHeap heap;
+    yw_gc_heap_init(&heap);
     printf("heap init\n");
 
     YW_GC_PTR(struct my_object) objs[10];
@@ -63,7 +64,7 @@ static void gc_test()
     for (int i = 0; i < 10; i++)
     {
         YW_GC_PTR(struct my_object)
-        obj = my_object_alloc(&heap, YW_ADD_TO_GC_ROOT);
+        obj = my_object_alloc(&heap, YW_GC_ROOT_OBJECT);
         printf("my object[%d] allocated @ %p\n", i, (void *)obj);
         obj->counter = i + 1;
         // obj->another = my_object_alloc(&heap, false);

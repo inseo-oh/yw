@@ -64,7 +64,7 @@ char *yw_apply_segment_break_transform(char const *str)
 }
 
 char *yw_apply_whitespace_collapsing(char const *str,
-                                     yw_inline_formatting_context *ifc)
+                                     YW_InlineFormattingContext *ifc)
 {
     /* https://www.w3.org/TR/css-text-3/#white-space-phase-1 */
 
