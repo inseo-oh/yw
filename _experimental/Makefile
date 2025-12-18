@@ -5,13 +5,13 @@ PROJECTDIR := $(CURDIR)
 # Platform configuration (such as target name, initial CFLAFGS, etc...)
 ################################################################################
 
-ifdef WASM
+ifeq ($(PLATFORM),wasm)
 CC      = emcc
 OUTDIR  = $(PROJECTDIR)/out_wasm
 TARGET  = $(OUTDIR)/yw.html
 else
 CFLAGS += -fsanitize=undefined -g
-OUTDIR  = $(PROJECTDIR)/out_nix
+OUTDIR  = $(PROJECTDIR)/out_linux
 TARGET  = $(OUTDIR)/yw
 endif
 
@@ -38,6 +38,10 @@ CFLAGS += -O3
 ################################################################################
 
 all: $(TARGET)
+
+all-platforms:
+	make all
+	make all PLATFORM=wasm
 
 clean:
 	@rm -f $(OBJS) $(DEPS) $(TARGET)

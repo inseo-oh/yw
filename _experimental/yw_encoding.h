@@ -80,7 +80,7 @@ struct YW_TextDecoderCallbacks
 };
 struct YW_TextDecoder
 {
-    void *data;
+    void *state; /* Decoder state -- will be free()d after use */
     YW_TextDecoderCallbacks const *callbacks;
 };
 
@@ -118,23 +118,34 @@ YW_EncodingType yw_encoding_from_label(char const *label);
 
 /* Caller owns the returned array. */
 void yw_io_queue_item_list_to_items(int **items_out, int *len_out,
-                                    YW_IoQueueItemList const *items);
+                                    YW_IoQueueItemList const *list);
 
 /* Caller owns the returned array. */
 void yw_io_queue_to_items(int **items_out, int *len_out,
                           YW_IoQueue const *queue);
 
+void yw_io_queue_init(YW_IoQueue *out);
+void yw_io_queue_init_with_items(YW_IoQueue *out, int const *items,
+                                 int items_len);
+void yw_io_queue_deinit(YW_IoQueue *queue);
 YW_IoQueueItem yw_io_queue_read_one(YW_IoQueue *queue);
 int yw_io_queue_read(YW_IoQueue *queue, int *buf, int max_len);
-#define YW_IO_QUEUE_READ_TO_ARRAY(_queue, _array)                              \
-    yw_io_queue_read((_queue), (_array), YW_SIZEOF_ARRAY(_array))
 int yw_io_queue_peek(YW_IoQueue const *queue, int *buf, int max_len);
-#define YW_IO_QUEUE_PEEK_TO_ARRAY(_queue, _array)                              \
-    yw_io_queue_peek((_queue), (_array), YW_SIZEOF_ARRAY(_array))
 void yw_io_queue_push_one(YW_IoQueue *queue, YW_IoQueueItem item);
 void yw_io_queue_push(YW_IoQueue *queue, YW_IoQueueItem const *items, int len);
 void yw_io_queue_restore_one(YW_IoQueue *queue, YW_IoQueueItem item);
 void yw_io_queue_restore(YW_IoQueue *queue, YW_IoQueueItem const *items,
                          int len);
+
+#define YW_IO_QUEUE_INIT_FROM_ARRAY(_out, _array)                              \
+    yw_io_queue_init_with_items((_out), (_array), YW_SIZEOF_ARRAY(_array))
+#define YW_IO_QUEUE_READ_TO_ARRAY(_queue, _array)                              \
+    yw_io_queue_read((_queue), (_array), YW_SIZEOF_ARRAY(_array))
+#define YW_IO_QUEUE_PEEK_TO_ARRAY(_queue, _array)                              \
+    yw_io_queue_peek((_queue), (_array), YW_SIZEOF_ARRAY(_array))
+#define YW_IO_QUEUE_PUSH_FROM_ARRAY(_queue, _array)                            \
+    yw_io_queue_push((_queue), (_array), YW_SIZEOF_ARRAY(_array))
+#define YW_IO_QUEUE_RESTORE_FROM_ARRAY(_queue, _array)                         \
+    yw_io_queue_restore((_queue), (_array), YW_SIZEOF_ARRAY(_array))
 
 #endif /* #ifndef YW_ENCODING_H_ */

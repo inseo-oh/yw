@@ -6,8 +6,8 @@
  */
 #include "yw_encoding.h"
 #include "yw_common.h"
-#include <cstdio>
-#include <cstdlib>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 static struct
@@ -302,7 +302,9 @@ static struct
 {
     YW_EncodingType type;
     YW_TextDecoderFactory *decoder_factory;
-} yw_encodings[] = {};
+} yw_encodings[] = {
+
+};
 
 static YW_EncodingResult yw_decode_item(YW_IoQueueItem item,
                                         YW_TextDecoder const *decoder,
@@ -316,7 +318,7 @@ static YW_EncodingResult yw_decode_item(YW_IoQueueItem item,
     }
 
     YW_EncodingResult res =
-        decoder->callbacks->handler(decoder->data, input, item);
+        decoder->callbacks->handler(decoder->state, input, item);
     if (res == YW_ENCODING_RESULT_FINISHED)
     {
         yw_io_queue_push_one(output, YW_END_OF_IO_QUEUE);
@@ -393,6 +395,20 @@ void yw_encoding_decode(YW_IoQueue *input,
         if (yw_encodings[i].type == encoding_type)
         {
             yw_encodings[i].decoder_factory(&decoder);
+            if (decoder.callbacks == NULL || decoder.callbacks->handler != NULL)
+            {
+                fprintf(stderr,
+                        "%s: BUG: returned decoder must have callbacks set, "
+                        "with non-NULL handler callback",
+                        __func__);
+                abort();
+            }
+            yw_decode(&decoder, input, output, YW_ERROR_MODE_REPLACEMENT);
+            if (decoder.callbacks->destroy != NULL)
+            {
+                decoder.callbacks->destroy(decoder.state);
+            }
+            free(decoder.state);
             return;
         }
     }
@@ -422,16 +438,20 @@ YW_EncodingType yw_bom_sniff(YW_IoQueue const *queue)
 }
 
 void yw_io_queue_item_list_to_items(int **items_out, int *len_out,
-                                    YW_IoQueueItemList const *items)
+                                    YW_IoQueueItemList const *list)
 {
     int *res_buf = NULL;
     int len = 0;
     int cap = 0;
 
-    for (int i = 0; i < items->len; i++)
+    for (int i = 0; i < list->len; i++)
     {
+        if (list->items[i] == YW_END_OF_IO_QUEUE)
+        {
+            break;
+        }
         res_buf = YW_GROW(int, &cap, &len, res_buf);
-        res_buf[len - 1] = items->items[i];
+        res_buf[len - 1] = list->items[i];
     }
     res_buf = YW_SHRINK_TO_FIT(int, &cap, len, res_buf);
     *items_out = res_buf;
@@ -441,19 +461,29 @@ void yw_io_queue_item_list_to_items(int **items_out, int *len_out,
 void yw_io_queue_to_items(int **items_out, int *len_out,
                           YW_IoQueue const *queue)
 {
-    return yw_io_queue_item_list_to_items(items_out, len_out,
-                                          &queue->item_list);
+    yw_io_queue_item_list_to_items(items_out, len_out, &queue->item_list);
 }
 
-void yw_io_queue_from_items(YW_IoQueue *out, int const *items, int items_len)
+void yw_io_queue_init(YW_IoQueue *out)
+{
+    yw_io_queue_init_with_items(out, NULL, 0);
+}
+
+void yw_io_queue_init_with_items(YW_IoQueue *out, int const *items,
+                                 int items_len)
 {
     memset(out, 0, sizeof(*out));
-    YW_LIST_INIT(out);
+    YW_LIST_INIT(&out->item_list);
     for (int i = 0; i < items_len; i++)
     {
         YW_LIST_PUSH(YW_IoQueueItem, &out->item_list, (YW_IoQueueItem)items[i]);
     }
     YW_LIST_PUSH(YW_IoQueueItem, &out->item_list, YW_END_OF_IO_QUEUE);
+}
+
+void yw_io_queue_deinit(YW_IoQueue *queue)
+{
+    YW_LIST_FREE(&queue->item_list);
 }
 
 YW_IoQueueItem yw_io_queue_read_one(YW_IoQueue *queue)

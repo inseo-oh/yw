@@ -39,7 +39,10 @@
     _x(yw_test_dom_is_element_inside)                                          \
     _x(yw_test_dom_is_element)                                                 \
     _x(yw_test_dom_append_attr)                                                \
-    _x(yw_test_dom_attr)
+    _x(yw_test_dom_attr)                                                       \
+    /* yw_dom_tests */                                                         \
+    _x(yw_test_encoding_from_label)                                            \
+    _x(yw_test_io_queue_item_list_to_items)
 /* clang-format on */
 
 typedef struct YW_TestingContext YW_TestingContext;

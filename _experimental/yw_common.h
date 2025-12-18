@@ -79,11 +79,13 @@ void *yw_grow_impl(int *cap_inout, int *len_inout, void *old_buf,
                    size_t item_size);
 void *yw_shrink_to_fit_impl(int *cap_inout, int len, void *old_buf,
                             size_t item_size);
+
 #define YW_GROW(_type, _cap_inout, _len_inout, _old_buf)                       \
     (_type *)yw_grow_impl((_cap_inout), (_len_inout), (_old_buf), sizeof(_type))
 #define YW_SHRINK_TO_FIT(_type, _cap_inout, _len, _old_buf)                    \
     (_type *)yw_shrink_to_fit_impl((_cap_inout), (_len), (_old_buf),           \
                                    sizeof(_type))
+
 /* if another is NULL, this function doesn't do anything */
 void yw_append_str(char **dest, char const *another);
 /* if s is NULL, this function returns NULL */
@@ -265,6 +267,7 @@ void yw_gc_visit(void *obj_v);
 
 void yw_gc_heap_init(YW_GcHeap *out);
 void yw_gc_heap_deinit(YW_GcHeap *heap);
+
 void *yw_gc_alloc_impl(YW_GcHeap *heap, int size,
                        YW_GcCallbacks const *callbacks,
                        YW_GcAllocFlags alloc_flags);
