@@ -7,6 +7,7 @@
 #include "yw_common.h"
 #include <limits.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,8 +67,7 @@ bool yw_is_ascii_lowercase_hex_digit(YW_Char32 c)
 }
 bool yw_is_ascii_hex_digit(YW_Char32 c)
 {
-    return yw_is_ascii_uppercase_hex_digit(c) ||
-           yw_is_ascii_lowercase_hex_digit(c) || yw_is_ascii_digit(c);
+    return yw_is_ascii_uppercase_hex_digit(c) || yw_is_ascii_lowercase_hex_digit(c) || yw_is_ascii_digit(c);
 }
 bool yw_is_ascii_whitespace(YW_Char32 c)
 {
@@ -140,50 +140,80 @@ YW_Char32 yw_to_ascii_uppercase(YW_Char32 c)
     return c - 'a' + 'A';
 }
 
+int yw_strcmp_ascii_case_insensitive(char const *a, char const *b)
+{
+    char const *src_a = a;
+    char const *src_b = b;
+    while (1)
+    {
+        int diff = *src_a - *src_b;
+        if (diff != 0)
+        {
+            return diff;
+        }
+        else if (*src_a == '\0')
+        {
+            break;
+        }
+        src_a++;
+        src_b++;
+    }
+    return 0;
+}
+
 /*******************************************************************************
  * Memory utilities
  ******************************************************************************/
 
-void *yw_grow_impl(int *cap_inout, int *len_inout, void *old_buf,
-                   size_t item_size)
+void *yw_grow_impl(int *cap_inout, int *len_inout, void *old_buf, size_t item_size, int add_len)
 {
-    if (*cap_inout < 0 || *len_inout < 0 || item_size == 0)
+    void *new_buf;
+    int new_cap, new_len;
+
+    if (*cap_inout < 0 || *len_inout < 0 || item_size == 0 || INT_MAX < item_size || INT_MAX - *len_inout < add_len)
     {
-        fprintf(stderr, "%s: Illegal item size, length or capacity detected",
-                __func__);
-        abort();
+        goto fail;
     }
-    int new_len = *len_inout + 1;
+    new_len = *len_inout + add_len;
     if (new_len <= *cap_inout)
     {
         *len_inout = new_len;
         return old_buf;
     }
-    int new_cap = new_len * 2;
-    void *new_buf = realloc(old_buf, new_cap * item_size);
+    {
+        bool will_overflow = (INT_MAX / 2 / (int)item_size) < new_len;
+        new_cap = will_overflow ? new_len : new_len * 2;
+    }
+    new_buf = realloc(old_buf, new_cap * item_size);
     if (new_buf == NULL)
     {
-        /* If we don't have enough space for that much memory, give space for
-         * at least one new item. */
         new_cap = new_len;
         new_buf = realloc(old_buf, new_cap * item_size);
     }
     if (new_buf == NULL)
     {
-        fprintf(stderr, "%s: out of memory", __func__);
-        abort();
+        goto fail;
     }
     *len_inout = new_len;
     *cap_inout = new_cap;
     return new_buf;
+fail:
+    fprintf(stderr, "%s: memory allocation failed\n", __func__);
+    abort();
 }
-void *yw_shrink_to_fit_impl(int *cap_inout, int len, void *old_buf,
-                            size_t item_size)
+void *yw_alloc_impl(size_t item_size, int count)
+{
+    int cap = 0;
+    int len = 0;
+    void *mem = yw_grow_impl(&cap, &len, NULL, item_size, count);
+    memset(mem, 0, item_size * count);
+    return mem;
+}
+void *yw_shrink_to_fit_impl(int *cap_inout, int len, void *old_buf, size_t item_size)
 {
     if (*cap_inout < 0 || len < 0 || item_size == 0)
     {
-        fprintf(stderr, "%s: Illegal item size, length or capacity detected",
-                __func__);
+        fprintf(stderr, "%s: Illegal item size, length or capacity detected", __func__);
         abort();
     }
     if (len == *cap_inout)
@@ -218,17 +248,16 @@ void yw_append_str(char **dest, char const *another)
         was_dest_null = true;
     }
     int cap = len;
-    int a_len = len - 1;
-    size_t b_len = strlen(another);
-    if (INT_MAX < b_len)
+    int a_str_len = len - 1;
+    size_t b_str_len = strlen(another);
+    if (INT_MAX < b_str_len)
     {
         fprintf(stderr, "%s: String is too long", __func__);
         abort();
     }
-    while (len < a_len + (int)b_len + 1)
-    {
-        *dest = YW_GROW(char, &cap, &len, *dest);
-    }
+    int new_total_len = a_str_len + (int)b_str_len + 1;
+    int add_total_len = new_total_len - len;
+    YW_GROW(char, &cap, &len, dest, add_total_len);
     if (was_dest_null)
     {
         (*dest)[0] = '\0';
@@ -349,8 +378,7 @@ YW_Char32 yw_utf8_next_char(char const **s)
     return codepoint;
 }
 
-void yw_utf8_to_char32(YW_Char32 **chars_out, int *chars_len_out,
-                       char const *str)
+void yw_utf8_to_char32(YW_Char32 **chars_out, int *chars_len_out, char const *str)
 {
     YW_Char32 *res_buf = NULL;
     int res_len = 0;
@@ -364,10 +392,9 @@ void yw_utf8_to_char32(YW_Char32 **chars_out, int *chars_len_out,
         {
             break;
         }
-        res_buf = YW_GROW(YW_Char32, &res_cap, &res_len, res_buf);
-        res_buf[res_len - 1] = chr;
+        YW_PUSH(YW_Char32, &res_cap, &res_len, &res_buf, chr);
     }
-    res_buf = YW_SHRINK_TO_FIT(YW_Char32, &res_cap, res_len, res_buf);
+    YW_SHRINK_TO_FIT(YW_Char32, &res_cap, res_len, &res_buf);
     *chars_out = res_buf;
     *chars_len_out = res_len;
 }
@@ -411,8 +438,7 @@ char const *yw_utf8_strchr(char const *s, YW_Char32 c)
  * YW_TextReader
  ******************************************************************************/
 
-void YW_TextReader_init(YW_TextReader *out, char const *source_name,
-                         YW_Char32 const *chars, int chars_len)
+void yw_text_reader_init(YW_TextReader *out, char const *source_name, YW_Char32 const *chars, int chars_len)
 {
     memset(out, 0, sizeof(*out));
     out->source_name = source_name;
@@ -420,24 +446,23 @@ void YW_TextReader_init(YW_TextReader *out, char const *source_name,
     out->chars_len = chars_len;
 }
 
-bool YW_TextReader_is_eof(YW_TextReader const *tr)
+bool yw_text_reader_is_eof(YW_TextReader const *tr)
 {
     return tr->chars_len <= tr->cursor;
 }
 
 YW_Char32 yw_peek_char(YW_TextReader const *tr)
 {
-    if (YW_TextReader_is_eof(tr))
+    if (yw_text_reader_is_eof(tr))
     {
         return -1;
     }
     return tr->chars[tr->cursor];
 }
 
-YW_Char32
-yw_consume_any_char(YW_TextReader *tr)
+YW_Char32 yw_consume_any_char(YW_TextReader *tr)
 {
-    if (YW_TextReader_is_eof(tr))
+    if (yw_text_reader_is_eof(tr))
     {
         return -1;
     }
@@ -448,7 +473,7 @@ yw_consume_any_char(YW_TextReader *tr)
 
 int yw_consume_one_of_chars(YW_TextReader *tr, char const *chars)
 {
-    if (YW_TextReader_is_eof(tr))
+    if (yw_text_reader_is_eof(tr))
     {
         return -1;
     }
@@ -466,7 +491,7 @@ int yw_consume_one_of_chars(YW_TextReader *tr, char const *chars)
 
 bool yw_consume_char(YW_TextReader *tr, YW_Char32 chr)
 {
-    if (YW_TextReader_is_eof(tr))
+    if (yw_text_reader_is_eof(tr))
     {
         return false;
     }
@@ -479,10 +504,9 @@ bool yw_consume_char(YW_TextReader *tr, YW_Char32 chr)
     return false;
 }
 
-int yw_consume_one_of_strs(YW_TextReader *tr, char const **strs,
-                           YW_MatchFlags flags)
+int yw_consume_one_of_strs(YW_TextReader *tr, char const **strs, YW_MatchFlags flags)
 {
-    if (YW_TextReader_is_eof(tr))
+    if (yw_text_reader_is_eof(tr))
     {
         return -1;
     }
@@ -558,15 +582,13 @@ YW_PtrSlot *yw_add_ptr_to_collection(YW_PtrCollection *coll, void *obj)
             return &coll->slots[i];
         }
     }
-    coll->slots =
-        YW_GROW(YW_PtrSlot, &coll->slots_cap, &coll->slots_len, coll->slots);
-    coll->slots[coll->slots_len - 1] = obj;
+    YW_PUSH(YW_PtrSlot, &coll->slots_cap, &coll->slots_len, &coll->slots, obj);
     return &coll->slots[coll->slots_len - 1];
 }
 
 /* NOTE: LSB must be zero -- It is used as "marked" flag for GC. */
 /* FIXME: 64-bit magic seems a bit overkill */
-#define YW_GC_MAGIC 0x21b0fb278bf5e5ce
+#define YW_GC_MAGIC 0x21b0fb26
 
 static bool yw_gc_is_marked(YW_GcObjectHeader const *obj)
 {
@@ -589,8 +611,7 @@ void yw_gc_visit(void *obj_v)
     }
     if ((obj->magic_and_marked_flag & ~0x1) != YW_GC_MAGIC)
     {
-        fprintf(stderr, "%s: Object at %p has corrupted magic!\n", __func__,
-                (void *)obj);
+        fprintf(stderr, "%s: Object at %p has corrupted magic!\n", __func__, (void *)obj);
         abort();
     }
     yw_gc_unmark_object(obj);
@@ -608,20 +629,22 @@ void yw_gc_heap_init(YW_GcHeap *out)
 }
 void yw_gc_heap_deinit(YW_GcHeap *heap)
 {
+    /* Clear root objects and run GC */
     YW_PtrCollection_deinit(&heap->root_objs);
+    YW_PtrCollection_init(&heap->root_objs);
+    yw_gc(heap);
+
     YW_PtrCollection_deinit(&heap->all_objs);
 }
 
-void *yw_gc_alloc_impl(YW_GcHeap *heap, int size,
-                       YW_GcCallbacks const *callbacks,
-                       YW_GcAllocFlags alloc_flags)
+void *yw_gc_alloc_impl(YW_GcHeap *heap, int size, YW_GcCallbacks const *callbacks, YW_GcAllocFlags alloc_flags)
 {
     if (size < (int)sizeof(YW_GcObjectHeader))
     {
         printf("%s: illegal size %d!\n", __func__, size);
         abort();
     }
-    void *mem = malloc(size);
+    void *mem = YW_ALLOC(char, size);
     memset(mem, 0, size);
 
     YW_GcObjectHeader *mem_header = (YW_GcObjectHeader *)mem;
@@ -648,8 +671,7 @@ void yw_gc(YW_GcHeap *heap)
         YW_GcObjectHeader *obj = (YW_GcObjectHeader *)heap->all_objs.slots[i];
         if ((obj->magic_and_marked_flag & ~0x1) != YW_GC_MAGIC)
         {
-            printf("WARNING: %s: Object at %p has corrupted magic!\n", __func__,
-                   (void *)obj);
+            printf("WARNING: %s: Object at %p has corrupted magic!\n", __func__, (void *)obj);
             continue;
         }
         yw_gc_mark_object(obj);
@@ -673,8 +695,7 @@ void yw_gc(YW_GcHeap *heap)
         YW_GcObjectHeader *obj = (YW_GcObjectHeader *)heap->all_objs.slots[i];
         if ((obj->magic_and_marked_flag & ~0x1) != YW_GC_MAGIC)
         {
-            printf("WARNING: %s: Object at %p has corrupted magic!\n", __func__,
-                   (void *)obj);
+            printf("WARNING: %s: Object at %p has corrupted magic!\n", __func__, (void *)obj);
             continue;
         }
         if (yw_gc_is_marked(obj))

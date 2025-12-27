@@ -7,11 +7,7 @@
 #ifndef YW_ENCODING_H_
 #define YW_ENCODING_H_
 #include "yw_common.h"
-
-typedef struct YW_TextDecoder YW_TextDecoder;
-typedef struct YW_TextDecoderCallbacks YW_TextDecoderCallbacks;
-typedef struct YW_IoQueueItemList YW_IoQueueItemList;
-typedef struct YW_IoQueue YW_IoQueue;
+#include <stdint.h>
 
 typedef enum
 {
@@ -58,6 +54,51 @@ typedef enum
     YW_X_USER_DEFINED, /* https://encoding.spec.whatwg.org/#x-user-defined */
 } YW_EncodingType;
 
+/*
+ * Positive values are normal byte or codepoint values, and -1 is special
+ * value for "end-of-queue".
+ */
+typedef int YW_IOQueueItem;
+#define YW_END_OF_IO_QUEUE -1
+
+typedef struct YW_IOQueueItemList
+{
+    YW_IOQueueItem *items;
+    int len, cap;
+} YW_IOQueueItemList;
+typedef struct YW_IOQueue
+{
+    YW_IOQueueItemList item_list;
+} YW_IOQueue;
+
+/* Returns YW_INVALID_ENCODING if there's no corresponding encoding. */
+YW_EncodingType yw_encoding_from_label(char const *label);
+
+void yw_encoding_decode(YW_IOQueue *input, YW_EncodingType fallback_encoding_type, YW_IOQueue *output);
+
+/* Caller owns the returned array. */
+void yw_io_queue_item_list_to_items(int **items_out, int *len_out, YW_IOQueueItemList const *list);
+
+/* Caller owns the returned array. */
+void yw_io_queue_to_items(int **items_out, int *len_out, YW_IOQueue const *queue);
+
+void yw_io_queue_init(YW_IOQueue *out);
+void yw_io_queue_init_with_items(YW_IOQueue *out, int const *items, int items_len);
+void yw_io_queue_deinit(YW_IOQueue *queue);
+YW_IOQueueItem yw_io_queue_read_one(YW_IOQueue *queue);
+int yw_io_queue_read(YW_IOQueue *queue, int *buf, int max_len);
+int yw_io_queue_peek(YW_IOQueue const *queue, int *buf, int max_len);
+void yw_io_queue_push_one(YW_IOQueue *queue, YW_IOQueueItem item);
+void yw_io_queue_push(YW_IOQueue *queue, YW_IOQueueItem const *items, int len);
+void yw_io_queue_restore_one(YW_IOQueue *queue, YW_IOQueueItem item);
+void yw_io_queue_restore(YW_IOQueue *queue, YW_IOQueueItem const *items, int len);
+
+#define YW_IO_QUEUE_INIT_FROM_ARRAY(_out, _array) yw_io_queue_init_with_items((_out), (_array), YW_SIZEOF_ARRAY(_array))
+#define YW_IO_QUEUE_READ_TO_ARRAY(_queue, _array) yw_io_queue_read((_queue), (_array), YW_SIZEOF_ARRAY(_array))
+#define YW_IO_QUEUE_PEEK_TO_ARRAY(_queue, _array) yw_io_queue_peek((_queue), (_array), YW_SIZEOF_ARRAY(_array))
+#define YW_IO_QUEUE_PUSH_FROM_ARRAY(_queue, _array) yw_io_queue_push((_queue), (_array), YW_SIZEOF_ARRAY(_array))
+#define YW_IO_QUEUE_RESTORE_FROM_ARRAY(_queue, _array) yw_io_queue_restore((_queue), (_array), YW_SIZEOF_ARRAY(_array))
+
 typedef enum
 {
     /*
@@ -72,17 +113,16 @@ typedef enum
     YW_ENCODING_RESULT_CONTINUE,
 } YW_EncodingResult;
 
-struct YW_TextDecoderCallbacks
+typedef struct YW_TextDecoderCallbacks
 {
-    YW_EncodingResult (*handler)(void *self_v, YW_IoQueue *queue,
-                                 int byte_item);
+    YW_EncodingResult (*handler)(void *self_v, YW_IOQueue *queue, int byte_item);
     void (*destroy)(void *self_v);
-};
-struct YW_TextDecoder
+} YW_TextDecoderCallbacks;
+typedef struct YW_TextDecoder
 {
     void *state; /* Decoder state -- will be free()d after use */
     YW_TextDecoderCallbacks const *callbacks;
-};
+} YW_TextDecoder;
 
 typedef enum
 {
@@ -92,60 +132,19 @@ typedef enum
 } YW_EncodingErrorMode;
 
 /* Returns YW_INVALID_ENCODING if no encoding was found */
-YW_EncodingType yw_bom_sniff(YW_IoQueue const *queue);
+YW_EncodingType yw_bom_sniff(YW_IOQueue const *queue);
 
-typedef enum
-{
-    /*
-     * Positive values are normal byte or codepoint values, and -1 is special
-     * value for "end-of-queue".
-     */
-    YW_END_OF_IO_QUEUE = -1
-} YW_IoQueueItem;
+/*******************************************************************************
+ * Encoding implementations
+ ******************************************************************************/
 
-struct YW_IoQueueItemList
-{
-    YW_IoQueueItem *items;
-    int len, cap;
-};
-struct YW_IoQueue
-{
-    YW_IoQueueItemList item_list;
-};
+/* clang-format off */
+#define YW_ENUMERATE_ENCODINGS(_x)                                              \
+    _x(YW_UTF8, yw_init_utf8_decoder)
+/* clang-format on */
 
-/* Returns YW_INVALID_ENCODING if there's no corresponding encoding. */
-YW_EncodingType yw_encoding_from_label(char const *label);
-
-/* Caller owns the returned array. */
-void yw_io_queue_item_list_to_items(int **items_out, int *len_out,
-                                    YW_IoQueueItemList const *list);
-
-/* Caller owns the returned array. */
-void yw_io_queue_to_items(int **items_out, int *len_out,
-                          YW_IoQueue const *queue);
-
-void yw_io_queue_init(YW_IoQueue *out);
-void yw_io_queue_init_with_items(YW_IoQueue *out, int const *items,
-                                 int items_len);
-void yw_io_queue_deinit(YW_IoQueue *queue);
-YW_IoQueueItem yw_io_queue_read_one(YW_IoQueue *queue);
-int yw_io_queue_read(YW_IoQueue *queue, int *buf, int max_len);
-int yw_io_queue_peek(YW_IoQueue const *queue, int *buf, int max_len);
-void yw_io_queue_push_one(YW_IoQueue *queue, YW_IoQueueItem item);
-void yw_io_queue_push(YW_IoQueue *queue, YW_IoQueueItem const *items, int len);
-void yw_io_queue_restore_one(YW_IoQueue *queue, YW_IoQueueItem item);
-void yw_io_queue_restore(YW_IoQueue *queue, YW_IoQueueItem const *items,
-                         int len);
-
-#define YW_IO_QUEUE_INIT_FROM_ARRAY(_out, _array)                              \
-    yw_io_queue_init_with_items((_out), (_array), YW_SIZEOF_ARRAY(_array))
-#define YW_IO_QUEUE_READ_TO_ARRAY(_queue, _array)                              \
-    yw_io_queue_read((_queue), (_array), YW_SIZEOF_ARRAY(_array))
-#define YW_IO_QUEUE_PEEK_TO_ARRAY(_queue, _array)                              \
-    yw_io_queue_peek((_queue), (_array), YW_SIZEOF_ARRAY(_array))
-#define YW_IO_QUEUE_PUSH_FROM_ARRAY(_queue, _array)                            \
-    yw_io_queue_push((_queue), (_array), YW_SIZEOF_ARRAY(_array))
-#define YW_IO_QUEUE_RESTORE_FROM_ARRAY(_queue, _array)                         \
-    yw_io_queue_restore((_queue), (_array), YW_SIZEOF_ARRAY(_array))
+#define YW_X(_name, _decoder) void _decoder(YW_TextDecoder *out);
+YW_ENUMERATE_ENCODINGS(YW_X)
+#undef YW_X
 
 #endif /* #ifndef YW_ENCODING_H_ */

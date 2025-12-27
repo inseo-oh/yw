@@ -3,5 +3,5 @@ Language: Cpp
 BasedOnStyle: Microsoft
 IndentWidth: 4
 AccessModifierOffset: -4
-ColumnLimit: 80
+ColumnLimit: 0
 TypenameMacros: [YW_GC_TYPE, YW_GC_PTR]

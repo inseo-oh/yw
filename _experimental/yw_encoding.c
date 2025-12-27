@@ -6,6 +6,7 @@
  */
 #include "yw_encoding.h"
 #include "yw_common.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -303,42 +304,40 @@ static struct
     YW_EncodingType type;
     YW_TextDecoderFactory *decoder_factory;
 } yw_encodings[] = {
-
+#define YW_X(_name, _decoder) {_name, yw_init_utf8_decoder},
+    YW_ENUMERATE_ENCODINGS(YW_X)
+#undef YW_X
 };
 
-static YW_EncodingResult yw_decode_item(YW_IoQueueItem item,
-                                        YW_TextDecoder const *decoder,
-                                        YW_IoQueue *input, YW_IoQueue *output,
-                                        YW_EncodingErrorMode mode)
+static YW_EncodingResult yw_decode_item(YW_IOQueueItem item, YW_TextDecoder const *decoder, YW_IOQueue *input, YW_IOQueue *output, YW_EncodingErrorMode mode)
 {
     if (mode == YW_ERROR_MODE_HTML)
     {
-        fprintf(stderr, "%s: bad error mode", __func__);
+        fprintf(stderr, "%s: bad error mode\n", __func__);
         abort();
     }
 
-    YW_EncodingResult res =
-        decoder->callbacks->handler(decoder->state, input, item);
+    YW_EncodingResult res = decoder->callbacks->handler(decoder->state, input, item);
     if (res == YW_ENCODING_RESULT_FINISHED)
     {
         yw_io_queue_push_one(output, YW_END_OF_IO_QUEUE);
+        return res;
     }
     else if (0 <= res)
     {
         if (yw_is_surrogate_char(res))
         {
-            fprintf(stderr, "%s: result cannot contain surrogate char",
-                    __func__);
+            fprintf(stderr, "%s: result cannot contain surrogate char\n", __func__);
             abort();
         }
-        yw_io_queue_push_one(output, (YW_IoQueueItem)res);
+        yw_io_queue_push_one(output, res);
     }
     else if (res == YW_ENCODING_RESULT_ERROR)
     {
         switch (mode)
         {
         case YW_ERROR_MODE_REPLACEMENT:
-            yw_io_queue_push_one(output, (YW_IoQueueItem)0xfffd);
+            yw_io_queue_push_one(output, 0xfffd);
             break;
         case YW_ERROR_MODE_HTML:
             YW_UNREACHABLE();
@@ -349,15 +348,12 @@ static YW_EncodingResult yw_decode_item(YW_IoQueueItem item,
     return YW_ENCODING_RESULT_CONTINUE;
 }
 
-static YW_EncodingResult yw_decode(YW_TextDecoder const *decoder,
-                                   YW_IoQueue *input, YW_IoQueue *output,
-                                   YW_EncodingErrorMode mode)
+static YW_EncodingResult yw_decode(YW_TextDecoder const *decoder, YW_IOQueue *input, YW_IOQueue *output, YW_EncodingErrorMode mode)
 {
     while (1)
     {
-        YW_IoQueueItem item = yw_io_queue_read_one(input);
-        YW_EncodingResult res =
-            yw_decode_item(item, decoder, input, output, mode);
+        YW_IOQueueItem item = yw_io_queue_read_one(input);
+        YW_EncodingResult res = yw_decode_item(item, decoder, input, output, mode);
         if (res != YW_ENCODING_RESULT_CONTINUE)
         {
             return res;
@@ -367,9 +363,7 @@ static YW_EncodingResult yw_decode(YW_TextDecoder const *decoder,
     YW_TODO();
 }
 
-void yw_encoding_decode(YW_IoQueue *input,
-                        YW_EncodingType fallback_encoding_type,
-                        YW_IoQueue *output)
+void yw_encoding_decode(YW_IOQueue *input, YW_EncodingType fallback_encoding_type, YW_IOQueue *output)
 {
     /* https://encoding.spec.whatwg.org/#decode */
     YW_EncodingType encoding_type = fallback_encoding_type;
@@ -395,11 +389,11 @@ void yw_encoding_decode(YW_IoQueue *input,
         if (yw_encodings[i].type == encoding_type)
         {
             yw_encodings[i].decoder_factory(&decoder);
-            if (decoder.callbacks == NULL || decoder.callbacks->handler != NULL)
+            if (decoder.callbacks == NULL || decoder.callbacks->handler == NULL)
             {
                 fprintf(stderr,
                         "%s: BUG: returned decoder must have callbacks set, "
-                        "with non-NULL handler callback",
+                        "with non-NULL handler callback\n",
                         __func__);
                 abort();
             }
@@ -412,11 +406,11 @@ void yw_encoding_decode(YW_IoQueue *input,
             return;
         }
     }
-    fprintf(stderr, "%s: unsupported encoding", __func__);
+    fprintf(stderr, "%s: unsupported encoding\n", __func__);
     YW_TODO();
 }
 
-YW_EncodingType yw_bom_sniff(YW_IoQueue const *queue)
+YW_EncodingType yw_bom_sniff(YW_IOQueue const *queue)
 {
     /* https://encoding.spec.whatwg.org/#bom-sniff */
 
@@ -437,8 +431,7 @@ YW_EncodingType yw_bom_sniff(YW_IoQueue const *queue)
     return YW_INVALID_ENCODING;
 }
 
-void yw_io_queue_item_list_to_items(int **items_out, int *len_out,
-                                    YW_IoQueueItemList const *list)
+void yw_io_queue_item_list_to_items(int **items_out, int *len_out, YW_IOQueueItemList const *list)
 {
     int *res_buf = NULL;
     int len = 0;
@@ -450,67 +443,64 @@ void yw_io_queue_item_list_to_items(int **items_out, int *len_out,
         {
             break;
         }
-        res_buf = YW_GROW(int, &cap, &len, res_buf);
-        res_buf[len - 1] = list->items[i];
+        YW_PUSH(int, &cap, &len, &res_buf, list->items[i]);
     }
-    res_buf = YW_SHRINK_TO_FIT(int, &cap, len, res_buf);
+    YW_SHRINK_TO_FIT(int, &cap, len, &res_buf);
     *items_out = res_buf;
     *len_out = len;
 }
 
-void yw_io_queue_to_items(int **items_out, int *len_out,
-                          YW_IoQueue const *queue)
+void yw_io_queue_to_items(int **items_out, int *len_out, YW_IOQueue const *queue)
 {
     yw_io_queue_item_list_to_items(items_out, len_out, &queue->item_list);
 }
 
-void yw_io_queue_init(YW_IoQueue *out)
+void yw_io_queue_init(YW_IOQueue *out)
 {
     yw_io_queue_init_with_items(out, NULL, 0);
 }
 
-void yw_io_queue_init_with_items(YW_IoQueue *out, int const *items,
-                                 int items_len)
+void yw_io_queue_init_with_items(YW_IOQueue *out, int const *items, int items_len)
 {
     memset(out, 0, sizeof(*out));
     YW_LIST_INIT(&out->item_list);
     for (int i = 0; i < items_len; i++)
     {
-        YW_LIST_PUSH(YW_IoQueueItem, &out->item_list, (YW_IoQueueItem)items[i]);
+        YW_LIST_PUSH(YW_IOQueueItem, &out->item_list, items[i]);
     }
-    YW_LIST_PUSH(YW_IoQueueItem, &out->item_list, YW_END_OF_IO_QUEUE);
+    YW_LIST_PUSH(YW_IOQueueItem, &out->item_list, YW_END_OF_IO_QUEUE);
 }
 
-void yw_io_queue_deinit(YW_IoQueue *queue)
+void yw_io_queue_deinit(YW_IOQueue *queue)
 {
     YW_LIST_FREE(&queue->item_list);
 }
 
-YW_IoQueueItem yw_io_queue_read_one(YW_IoQueue *queue)
+YW_IOQueueItem yw_io_queue_read_one(YW_IOQueue *queue)
 {
     /* https://encoding.spec.whatwg.org/#concept-stream-read */
 
     if (queue->item_list.len == 0)
     {
-        fprintf(stderr, "%s: queue is empty", __func__);
+        fprintf(stderr, "%s: queue is empty\n", __func__);
         abort();
     }
-    YW_IoQueueItem item = queue->item_list.items[0];
+    YW_IOQueueItem item = queue->item_list.items[0];
     if (item == YW_END_OF_IO_QUEUE)
     {
         return item;
     }
-    YW_LIST_REMOVE(YW_IoQueueItem, &queue->item_list, 0);
+    YW_LIST_REMOVE(YW_IOQueueItem, &queue->item_list, 0);
     return item;
 }
 
-int yw_io_queue_read(YW_IoQueue *queue, int *buf, int max_len)
+int yw_io_queue_read(YW_IOQueue *queue, int *buf, int max_len)
 {
     /* https://encoding.spec.whatwg.org/#concept-stream-read */
     int len = 0;
     for (int i = 0; i < max_len; i++)
     {
-        YW_IoQueueItem item = yw_io_queue_read_one(queue);
+        YW_IOQueueItem item = yw_io_queue_read_one(queue);
         if (item == YW_END_OF_IO_QUEUE)
         {
             continue;
@@ -521,13 +511,13 @@ int yw_io_queue_read(YW_IoQueue *queue, int *buf, int max_len)
     return len;
 }
 
-int yw_io_queue_peek(YW_IoQueue const *queue, int *buf, int max_len)
+int yw_io_queue_peek(YW_IOQueue const *queue, int *buf, int max_len)
 {
     /* https://encoding.spec.whatwg.org/#i-o-queue-peek */
     int len = 0;
     for (int i = 0; i < max_len; i++)
     {
-        YW_IoQueueItem item = queue->item_list.items[i];
+        YW_IOQueueItem item = queue->item_list.items[i];
         if (item == YW_END_OF_IO_QUEUE)
         {
             break;
@@ -538,23 +528,21 @@ int yw_io_queue_peek(YW_IoQueue const *queue, int *buf, int max_len)
     return len;
 }
 
-void yw_io_queue_push_one(YW_IoQueue *queue, YW_IoQueueItem item)
+void yw_io_queue_push_one(YW_IOQueue *queue, YW_IOQueueItem item)
 {
-    if (queue->item_list.len == 0 ||
-        queue->item_list.items[queue->item_list.len - 1] != YW_END_OF_IO_QUEUE)
+    if (queue->item_list.len == 0 || queue->item_list.items[queue->item_list.len - 1] != YW_END_OF_IO_QUEUE)
     {
-        fprintf(stderr, "%s: the last item must be end-of-queue", __func__);
+        fprintf(stderr, "%s: the last item must be end-of-queue\n", __func__);
         abort();
     }
     if (item == YW_END_OF_IO_QUEUE)
     {
         return;
     }
-    YW_LIST_INSERT(YW_IoQueueItem, &queue->item_list, queue->item_list.len - 1,
-                   item);
+    YW_LIST_INSERT(YW_IOQueueItem, &queue->item_list, queue->item_list.len - 1, item);
 }
 
-void yw_io_queue_push(YW_IoQueue *queue, YW_IoQueueItem const *items, int len)
+void yw_io_queue_push(YW_IOQueue *queue, YW_IOQueueItem const *items, int len)
 {
     for (int i = 0; i < len; i++)
     {
@@ -562,21 +550,140 @@ void yw_io_queue_push(YW_IoQueue *queue, YW_IoQueueItem const *items, int len)
     }
 }
 
-void yw_io_queue_restore_one(YW_IoQueue *queue, YW_IoQueueItem item)
+void yw_io_queue_restore_one(YW_IOQueue *queue, YW_IOQueueItem item)
 {
     if (item == YW_END_OF_IO_QUEUE)
     {
-        fprintf(stderr, "%s: attempted to restore end-of-queue item", __func__);
+        fprintf(stderr, "%s: attempted to restore end-of-queue item\n", __func__);
         abort();
     }
-    YW_LIST_INSERT(YW_IoQueueItem, &queue->item_list, 0, item);
+    YW_LIST_INSERT(YW_IOQueueItem, &queue->item_list, 0, item);
 }
 
-void yw_io_queue_restore(YW_IoQueue *queue, YW_IoQueueItem const *items,
-                         int len)
+void yw_io_queue_restore(YW_IOQueue *queue, YW_IOQueueItem const *items, int len)
 {
     for (int i = 0; i < len; i++)
     {
         yw_io_queue_restore_one(queue, items[i]);
     }
+}
+
+/*******************************************************************************
+ * Encoding implementations
+ ******************************************************************************/
+
+typedef struct YW_Utf8DecoderContext
+{
+    uint32_t codepoint;
+    int bytes_seen;
+    int bytes_needed;
+    uint8_t lower_boundary;
+    uint8_t upper_boundary;
+} YW_Utf8DecoderContext;
+
+static YW_EncodingResult yw_utf8_decoder_handler(void *self_v, YW_IOQueue *queue, int byte_item)
+{
+    YW_Utf8DecoderContext *ctx = (YW_Utf8DecoderContext *)self_v;
+
+    if (byte_item == YW_END_OF_IO_QUEUE)
+    {
+        if (ctx->bytes_needed != 0)
+        {
+            ctx->bytes_needed = 0;
+            return YW_ENCODING_RESULT_ERROR;
+        }
+        return YW_ENCODING_RESULT_FINISHED;
+    }
+    if (ctx->bytes_needed == 0)
+    {
+        if (byte_item <= 0x7f)
+        {
+            return (YW_EncodingResult)byte_item;
+        }
+        else if (0xc2 <= byte_item && byte_item <= 0xdf)
+        {
+            ctx->bytes_needed = 1;
+            ctx->codepoint = byte_item & 0x1f;
+        }
+        else if (0xe0 <= byte_item && byte_item <= 0xef)
+        {
+            switch (byte_item)
+            {
+            case 0xe0:
+                ctx->lower_boundary = 0xa0;
+                break;
+            case 0xed:
+                ctx->upper_boundary = 0x9f;
+                break;
+            }
+            ctx->bytes_needed = 2;
+            ctx->codepoint = byte_item & 0xf;
+        }
+        else if (0xf0 <= byte_item && byte_item <= 0xf4)
+        {
+            switch (byte_item)
+            {
+            case 0xf0:
+                ctx->lower_boundary = 0x90;
+                break;
+            case 0xf4:
+                ctx->upper_boundary = 0x8f;
+                break;
+            }
+            ctx->bytes_needed = 3;
+            ctx->codepoint = byte_item & 0x7;
+        }
+        else
+        {
+            return YW_ENCODING_RESULT_ERROR;
+        }
+        return YW_ENCODING_RESULT_CONTINUE;
+    }
+    if (byte_item < ctx->lower_boundary || ctx->upper_boundary < byte_item)
+    {
+        ctx->codepoint = 0;
+        ctx->bytes_needed = 0;
+        ctx->bytes_seen = 0;
+        ctx->lower_boundary = 0x80;
+        ctx->upper_boundary = 0xbf;
+        yw_io_queue_restore_one(queue, byte_item);
+        return YW_ENCODING_RESULT_ERROR;
+    }
+    ctx->lower_boundary = 0x80;
+    ctx->upper_boundary = 0xbf;
+    ctx->codepoint = (ctx->codepoint << 6) | (byte_item & 0x3f);
+    ctx->bytes_seen++;
+    if (ctx->bytes_seen != ctx->bytes_needed)
+    {
+        return YW_ENCODING_RESULT_CONTINUE;
+    }
+    if (INT32_MAX < ctx->codepoint)
+    {
+        fprintf(stderr, "%s: codepoint %#x out of range\n", __func__, ctx->codepoint);
+        abort();
+    }
+    uint32_t cp = ctx->codepoint;
+    ctx->codepoint = 0;
+    ctx->bytes_needed = 0;
+    ctx->bytes_seen = 0;
+    return (YW_EncodingResult)cp;
+}
+
+static YW_TextDecoderCallbacks yw_utf8_decoder_callbacks = {
+    .handler = yw_utf8_decoder_handler,
+};
+
+void yw_init_utf8_decoder(YW_TextDecoder *out)
+{
+    YW_Utf8DecoderContext *state = YW_ALLOC(YW_Utf8DecoderContext, 1);
+    if (state == NULL)
+    {
+        fprintf(stderr, "%s: out of memory\n", __func__);
+        abort();
+    }
+    memset(state, 0, sizeof(YW_Utf8DecoderContext));
+    state->lower_boundary = 0x80;
+    state->upper_boundary = 0xbf;
+    out->state = state;
+    out->callbacks = &yw_utf8_decoder_callbacks;
 }

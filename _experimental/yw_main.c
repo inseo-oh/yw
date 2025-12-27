@@ -10,7 +10,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 static void gc_test(void);
 
@@ -43,12 +42,10 @@ static struct YW_GcCallbacks my_object_callbacks = {
     .destroy = my_object_destroy,
 };
 
-static YW_GC_PTR(struct my_object) my_object_alloc(
-    struct YW_GcHeap *heap, YW_GcAllocFlags alloc_flags)
+static YW_GC_PTR(struct my_object) my_object_alloc(struct YW_GcHeap *heap, YW_GcAllocFlags alloc_flags)
 {
     YW_GC_PTR(struct my_object)
-    obj =
-        YW_GC_ALLOC(struct my_object, heap, &my_object_callbacks, alloc_flags);
+    obj = YW_GC_ALLOC(struct my_object, heap, &my_object_callbacks, alloc_flags);
     obj->counter = 1;
     return obj;
 }

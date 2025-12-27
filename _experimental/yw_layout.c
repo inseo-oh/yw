@@ -7,6 +7,7 @@
 #include "yw_layout.h"
 #include "yw_common.h"
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,21 +31,19 @@ char *yw_apply_segment_break_transform(char const *str)
         char const *next_chr = str;
         while (*next_chr != '\0')
         {
-            res_str = YW_GROW(char, &res_cap, &res_len, res_str);
             char got = *next_chr;
             next_chr++;
-            res_str[res_len - 1] = got;
+            YW_PUSH(char, &res_cap, &res_len, &res_str, got);
             if (got == YW_SEGMENT_BREAK_CHAR)
             {
-                char const *last_space =
-                    strrchr(next_chr, YW_SEGMENT_BREAK_CHAR);
+                char const *last_space = strrchr(next_chr, YW_SEGMENT_BREAK_CHAR);
                 if (last_space != NULL)
                 {
                     next_chr = last_space + 1;
                 }
             }
         }
-        YW_SHRINK_TO_FIT(char, &res_cap, res_len, res_str);
+        YW_SHRINK_TO_FIT(char, &res_cap, res_len, &res_str);
     }
 
     /***************************************************************************
@@ -63,8 +62,7 @@ char *yw_apply_segment_break_transform(char const *str)
     return res_str;
 }
 
-char *yw_apply_whitespace_collapsing(char const *str,
-                                     YW_InlineFormattingContext *ifc)
+char *yw_apply_whitespace_collapsing(char const *str, YW_InlineFormattingContext *ifc)
 {
     /* https://www.w3.org/TR/css-text-3/#white-space-phase-1 */
 
@@ -123,8 +121,7 @@ char *yw_apply_whitespace_collapsing(char const *str,
                     continue;
                 }
             }
-            res_str = YW_GROW(char, &res_cap, &res_len, res_str);
-            res_str[res_len - 1] = chr;
+            YW_PUSH(char, &res_cap, &res_len, &res_str, chr);
 
             if (chr == YW_SEGMENT_BREAK_CHAR)
             {
@@ -156,7 +153,7 @@ char *yw_apply_whitespace_collapsing(char const *str,
             }
         }
 
-        YW_SHRINK_TO_FIT(char, &res_cap, res_len, res_str);
+        YW_SHRINK_TO_FIT(char, &res_cap, res_len, &res_str);
     }
     /***************************************************************************
      * Transform segment breaks according to segment break transform rules.
@@ -190,8 +187,7 @@ char *yw_apply_whitespace_collapsing(char const *str,
      * TODO: CSS says these extra sapces don't have zero-advance width, and thus
      *       invisible, but still retains its soft wrap opportunity, if any.
      **************************************************************************/
-    if (ifc->written_text != NULL && ifc->written_text[0] != '\0' &&
-        ifc->written_text[strlen(ifc->written_text) - 1] == ' ')
+    if (ifc->written_text != NULL && ifc->written_text[0] != '\0' && ifc->written_text[strlen(ifc->written_text) - 1] == ' ')
     {
         while (res_str[0] == ' ')
         {
@@ -207,10 +203,9 @@ char *yw_apply_whitespace_collapsing(char const *str,
         char const *next_chr = old_res_str;
         while (*next_chr != '\0')
         {
-            res_str = YW_GROW(char, &res_cap, &res_len, res_str);
             char got = *next_chr;
             next_chr++;
-            res_str[res_len - 1] = got;
+            YW_PUSH(char, &res_cap, &res_len, &res_str, got);
             if (got == ' ')
             {
                 char const *last_space = strrchr(next_chr, ' ');
@@ -220,7 +215,7 @@ char *yw_apply_whitespace_collapsing(char const *str,
                 }
             }
         }
-        YW_SHRINK_TO_FIT(char, &res_cap, res_len, res_str);
+        YW_SHRINK_TO_FIT(char, &res_cap, res_len, &res_str);
     }
     return res_str;
 }

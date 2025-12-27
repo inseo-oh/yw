@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 
-void yw_failed_test(YW_TestingContext *ctx)
+void yw_failed_test_impl(YW_TestingContext *ctx)
 {
     ctx->failed_counter++;
 }
@@ -19,8 +19,8 @@ void yw_run_all_tests(void)
     YW_TestingContext ctx;
     memset(&ctx, 0, sizeof(ctx));
 
-#define YW_X(_name)                                                            \
-    printf("Running test: %s\n", #_name);                                      \
+#define YW_X(_name)                       \
+    printf("Running test: %s\n", #_name); \
     _name(&ctx);
 
     YW_ENUMERATE_TESTS(YW_X);
