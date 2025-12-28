@@ -15,13 +15,13 @@ else ifeq ($(PLATFORM),aos68k)
 CC     := vc
 OUTDIR := $(PROJECTDIR)/out_aos68k
 TARGET := $(OUTDIR)/yw
-CFLAGS += +aos68k -lauto -c99
+CFLAGS += +aos68k -lauto -c99 -lmieee
 else ifeq ($(PLATFORM),aosppc)
 # AmigaOS PowerPC ##############################################################
 CC     := vc
 OUTDIR := $(PROJECTDIR)/out_aosppc
 TARGET := $(OUTDIR)/yw
-CFLAGS += +aosppc -lauto -c99
+CFLAGS += +aosppc -lauto -c99 -lm
 else
 # Linux ########################################################################
 CFLAGS += -fsanitize=address -g
@@ -45,6 +45,8 @@ ifneq ($(CC),vc)
 CFLAGS += -std=c99
 CFLAGS += -Wall -Wextra -Werror -pedantic
 CFLAGS += -Wno-error=unused-function -Wno-error=unused-const-variable
+else
+CFLAGS += -dontwarn=214 # Turn off warning 214(suspicious format string) -- seems to have some false positives.
 endif
 CFLAGS += -O3
 CFLAGS += -I$(PROJECTDIR)/include
@@ -91,4 +93,4 @@ $(TARGET): prepare $(OBJS)
 
 -include $(DEPS)
 
-.PHONY: all prepare clean cleandep
+.PHONY: all all-platforms clean clean-all-platforms prepare cleandep

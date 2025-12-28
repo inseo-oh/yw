@@ -897,6 +897,14 @@ void yw_document_type_destroy(void *node_v)
  * Attr
  ******************************************************************************/
 
+void yw_dom_attr_data_deinit(YW_DOMAttrData *data)
+{
+    free(data->local_name);
+    free(data->value);
+    free(data->namespace_);
+    free(data->namespace_prefix);
+}
+
 static YW_GcCallbacks yw_attr_gc_callbacks = {
     .visit = yw_attr_visit,
     .destroy = yw_attr_destroy,

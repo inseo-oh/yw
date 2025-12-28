@@ -58,7 +58,7 @@ end:
     return res;
 }
 
-void yw_token_deinit(YW_CSSToken *tk)
+void yw_css_token_deinit(YW_CSSToken *tk)
 {
     switch (tk->common.type)
     {
@@ -104,14 +104,14 @@ void yw_token_deinit(YW_CSSToken *tk)
     case YW_CSS_TOKEN_AST_SIMPLE_BLOCK:
         for (int i = 0; i < tk->ast_simple_block_tk.tokens_len; i++)
         {
-            yw_token_deinit(&tk->ast_simple_block_tk.tokens[i]);
+            yw_css_token_deinit(&tk->ast_simple_block_tk.tokens[i]);
         }
         free(tk->ast_simple_block_tk.tokens);
         break;
     case YW_CSS_TOKEN_AST_FUNC:
         for (int i = 0; i < tk->ast_func_tk.tokens_len; i++)
         {
-            yw_token_deinit(&tk->ast_func_tk.tokens[i]);
+            yw_css_token_deinit(&tk->ast_func_tk.tokens[i]);
         }
         free(tk->ast_func_tk.tokens);
         free(tk->ast_func_tk.name);
@@ -119,11 +119,11 @@ void yw_token_deinit(YW_CSSToken *tk)
     case YW_CSS_TOKEN_AST_QUALIFIED_RULE:
         for (int i = 0; i < tk->ast_qualified_rule_tk.prelude_tokens_len; i++)
         {
-            yw_token_deinit(&tk->ast_qualified_rule_tk.prelude_tokens[i]);
+            yw_css_token_deinit(&tk->ast_qualified_rule_tk.prelude_tokens[i]);
         }
         for (int i = 0; i < tk->ast_qualified_rule_tk.body_tokens_len; i++)
         {
-            yw_token_deinit(&tk->ast_qualified_rule_tk.body_tokens[i]);
+            yw_css_token_deinit(&tk->ast_qualified_rule_tk.body_tokens[i]);
         }
         free(tk->ast_qualified_rule_tk.prelude_tokens);
         free(tk->ast_qualified_rule_tk.body_tokens);
@@ -131,11 +131,11 @@ void yw_token_deinit(YW_CSSToken *tk)
     case YW_CSS_TOKEN_AST_AT_RULE:
         for (int i = 0; i < tk->ast_at_rule_tk.prelude_tokens_len; i++)
         {
-            yw_token_deinit(&tk->ast_at_rule_tk.prelude_tokens[i]);
+            yw_css_token_deinit(&tk->ast_at_rule_tk.prelude_tokens[i]);
         }
         for (int i = 0; i < tk->ast_at_rule_tk.body_tokens_len; i++)
         {
-            yw_token_deinit(&tk->ast_at_rule_tk.body_tokens[i]);
+            yw_css_token_deinit(&tk->ast_at_rule_tk.body_tokens[i]);
         }
         free(tk->ast_at_rule_tk.prelude_tokens);
         free(tk->ast_at_rule_tk.body_tokens);
@@ -144,7 +144,7 @@ void yw_token_deinit(YW_CSSToken *tk)
     case YW_CSS_TOKEN_AST_DECLARATION:
         for (int i = 0; i < tk->ast_declaration_tk.value_tokens_len; i++)
         {
-            yw_token_deinit(&tk->ast_declaration_tk.value_tokens[i]);
+            yw_css_token_deinit(&tk->ast_declaration_tk.value_tokens[i]);
         }
         free(tk->ast_declaration_tk.value_tokens);
         free(tk->ast_declaration_tk.name);
@@ -287,7 +287,7 @@ static void yw_consume_comments(YW_Tokenizer *tkr)
 
 static bool yw_consume_number(double *out, YW_Tokenizer *tkr)
 {
-    int start_cursor = tkr->tr.cursor;
+    YW_TextCursor start_cursor = tkr->tr.cursor;
     bool have_integer_part = false;
     bool have_fractional_part = false;
 
@@ -321,7 +321,7 @@ static bool yw_consume_number(double *out, YW_Tokenizer *tkr)
     /***************************************************************************
      * Decimal point
      **************************************************************************/
-    int old_cursor = tkr->tr.cursor;
+    YW_TextCursor old_cursor = tkr->tr.cursor;
 
     if (yw_consume_char(&tkr->tr, '.'))
     {
@@ -393,7 +393,7 @@ static bool yw_consume_number(double *out, YW_Tokenizer *tkr)
         }
     }
 
-    int end_cursor = tkr->tr.cursor;
+    YW_TextCursor end_cursor = tkr->tr.cursor;
 
     /***************************************************************************
      * Now we parse the number
@@ -419,7 +419,7 @@ static bool yw_consume_number(double *out, YW_Tokenizer *tkr)
 
 static bool yw_consume_escaped_codepoint(YW_Char32 *out, YW_Tokenizer *tkr)
 {
-    int old_cursor = tkr->tr.cursor;
+    YW_TextCursor old_cursor = tkr->tr.cursor;
     if (!yw_consume_char(&tkr->tr, '\\'))
     {
         return false;
@@ -484,7 +484,7 @@ static bool yw_consume_ident_sequence(char **str_out, YW_Tokenizer *tkr, bool mu
     int res_cap = 0;
     while (!yw_text_reader_is_eof(&tkr->tr))
     {
-        int old_cursor = tkr->tr.cursor;
+        YW_TextCursor old_cursor = tkr->tr.cursor;
 
         YW_Char32 result_chr;
         if (!yw_consume_escaped_codepoint(&result_chr, tkr))
@@ -522,7 +522,6 @@ fail:
 
 static bool yw_consume_whitespace_token(YW_CSSToken *out, YW_Tokenizer *tkr)
 {
-    int cursor_from = tkr->tr.cursor;
     bool found = false;
     while (!yw_text_reader_is_eof(&tkr->tr))
     {
@@ -537,17 +536,12 @@ static bool yw_consume_whitespace_token(YW_CSSToken *out, YW_Tokenizer *tkr)
         return false;
     }
     out->common.type = YW_CSS_TOKEN_WHITESPACE;
-    out->common.cursor_from = cursor_from;
-    out->common.cursor_to = tkr->tr.cursor;
     return true;
 }
 
 static bool yw_consume_simple_token(YW_CSSToken *out, YW_Tokenizer *tkr)
 {
-    int cursor_from = tkr->tr.cursor;
-    out->common.cursor_from = cursor_from;
     int res = yw_consume_one_of_chars(&tkr->tr, "(),:;[]{}");
-    out->common.cursor_to = tkr->tr.cursor;
     switch (res)
     {
     case '(':
@@ -584,7 +578,6 @@ static bool yw_consume_simple_token(YW_CSSToken *out, YW_Tokenizer *tkr)
     }
     char const *strs[] = {"<!--", "-->", NULL};
     res = yw_consume_one_of_strs(&tkr->tr, strs, YW_NO_MATCH_FLAGS);
-    out->common.cursor_to = tkr->tr.cursor;
     switch (res)
     {
     case 0:
@@ -603,7 +596,6 @@ static bool yw_consume_simple_token(YW_CSSToken *out, YW_Tokenizer *tkr)
 
 static bool yw_consume_string_token(YW_CSSToken *out, YW_Tokenizer *tkr)
 {
-    int cursor_from = tkr->tr.cursor;
     char ending_char;
     char *res = NULL;
     int res_len = 0;
@@ -623,6 +615,7 @@ static bool yw_consume_string_token(YW_CSSToken *out, YW_Tokenizer *tkr)
 
     while (!yw_text_reader_is_eof(&tkr->tr))
     {
+        YW_TextCursor cursor_before_chr = tkr->tr.cursor;
         char chars[] = {ending_char, '\n', 0};
         int chr = yw_consume_one_of_chars(&tkr->tr, chars);
         if (chr == ending_char)
@@ -632,7 +625,7 @@ static bool yw_consume_string_token(YW_CSSToken *out, YW_Tokenizer *tkr)
         else if (chr == '\n')
         {
             /* PARSE ERROR: Unexpected newline*/
-            tkr->tr.cursor--;
+            tkr->tr.cursor = cursor_before_chr;
             break;
         }
         else if (yw_text_reader_is_eof(&tkr->tr))
@@ -659,15 +652,13 @@ static bool yw_consume_string_token(YW_CSSToken *out, YW_Tokenizer *tkr)
     YW_PUSH(char, &res_cap, &res_len, &res, '\0');
     YW_SHRINK_TO_FIT(char, &res_cap, res_len, &res);
     out->common.type = YW_CSS_TOKEN_STRING;
-    out->common.cursor_from = cursor_from;
-    out->common.cursor_to = tkr->tr.cursor;
     out->string_tk.value = res;
     return true;
 }
 
 static bool yw_consume_hash_token(YW_CSSToken *out, YW_Tokenizer *tkr)
 {
-    int cursor_from = tkr->tr.cursor;
+    YW_TextCursor cursor_from = tkr->tr.cursor;
     char *hash_str = NULL;
     if (!yw_consume_char(&tkr->tr, '#'))
     {
@@ -682,8 +673,6 @@ static bool yw_consume_hash_token(YW_CSSToken *out, YW_Tokenizer *tkr)
         goto fail;
     }
     out->common.type = YW_CSS_TOKEN_HASH;
-    out->common.cursor_from = cursor_from;
-    out->common.cursor_to = tkr->tr.cursor;
     out->hash_tk.value = hash_str;
     out->hash_tk.type = yw_is_valid_ident_start_sequence(hash_str) ? YW_HASH_ID : YW_HASH_UNRESTRICTED;
     return true;
@@ -695,7 +684,7 @@ fail:
 
 static bool yw_consume_at_token(YW_CSSToken *out, YW_Tokenizer *tkr)
 {
-    int cursor_from = tkr->tr.cursor;
+    YW_TextCursor cursor_from = tkr->tr.cursor;
     char *at_str = NULL;
     if (!yw_consume_char(&tkr->tr, '@'))
     {
@@ -710,8 +699,6 @@ static bool yw_consume_at_token(YW_CSSToken *out, YW_Tokenizer *tkr)
         goto fail;
     }
     out->common.type = YW_CSS_TOKEN_AT_KEYWORD;
-    out->common.cursor_from = cursor_from;
-    out->common.cursor_to = tkr->tr.cursor;
     out->at_keyword_tk.value = at_str;
     return true;
 fail:
@@ -722,8 +709,8 @@ fail:
 
 static bool yw_consume_numeric_token(YW_CSSToken *out, YW_Tokenizer *tkr)
 {
-    int cursor_from = tkr->tr.cursor;
-    int cursor_before_ident;
+    YW_TextCursor cursor_from = tkr->tr.cursor;
+    YW_TextCursor cursor_before_ident;
     char *ident = NULL;
     double value;
     if (!yw_consume_number(&value, tkr))
@@ -736,8 +723,6 @@ static bool yw_consume_numeric_token(YW_CSSToken *out, YW_Tokenizer *tkr)
         if (yw_is_valid_ident_start_sequence(ident))
         {
             out->common.type = YW_CSS_TOKEN_DIMENSION;
-            out->common.cursor_from = cursor_from;
-            out->common.cursor_to = tkr->tr.cursor;
             out->dimension_tk.unit = ident;
             out->dimension_tk.value = value;
             return true;
@@ -751,14 +736,10 @@ static bool yw_consume_numeric_token(YW_CSSToken *out, YW_Tokenizer *tkr)
     if (yw_consume_char(&tkr->tr, '%'))
     {
         out->common.type = YW_CSS_TOKEN_PERCENTAGE;
-        out->common.cursor_from = cursor_from;
-        out->common.cursor_to = tkr->tr.cursor;
         out->percentage_tk.value = value;
         return true;
     }
     out->common.type = YW_CSS_TOKEN_NUMBER;
-    out->common.cursor_from = cursor_from;
-    out->common.cursor_to = tkr->tr.cursor;
     out->number_tk.value = value;
     return true;
 fail:
@@ -785,8 +766,8 @@ static void yw_consume_remnants_of_bad_url(YW_Tokenizer *tkr)
 
 static bool yw_consume_ident_like_token(YW_CSSToken *out, YW_Tokenizer *tkr)
 {
-    int cursor_from = tkr->tr.cursor;
-    int cursor_after_ident;
+    YW_TextCursor cursor_from = tkr->tr.cursor;
+    YW_TextCursor cursor_after_ident;
     char *ident = NULL;
     char *url = NULL;
     if (!yw_consume_ident_sequence(&ident, tkr, true))
@@ -800,14 +781,12 @@ static bool yw_consume_ident_like_token(YW_CSSToken *out, YW_Tokenizer *tkr)
         while (yw_consume_str(&tkr->tr, "  ", YW_NO_MATCH_FLAGS))
         {
         }
-        int old_cursor = tkr->tr.cursor;
+        YW_TextCursor old_cursor = tkr->tr.cursor;
         if (yw_consume_one_of_chars(&tkr->tr, "\"'") || yw_consume_str(&tkr->tr, " \"", YW_NO_MATCH_FLAGS) || yw_consume_str(&tkr->tr, " '", YW_NO_MATCH_FLAGS))
         {
             /* Function token *************************************************/
             tkr->tr.cursor = old_cursor;
             out->common.type = YW_CSS_TOKEN_FUNC_KEYWORD;
-            out->common.cursor_from = cursor_from;
-            out->common.cursor_to = tkr->tr.cursor;
             out->func_keyword_tk.value = ident;
             return true;
         }
@@ -838,8 +817,6 @@ static bool yw_consume_ident_like_token(YW_CSSToken *out, YW_Tokenizer *tkr)
                     /* PARSE ERROR: Unexpected character */
                     yw_consume_remnants_of_bad_url(tkr);
                     out->common.type = YW_CSS_TOKEN_BAD_URL;
-                    out->common.cursor_from = cursor_from;
-                    out->common.cursor_to = tkr->tr.cursor;
                     return true;
                 default: {
                     YW_Char32 escaped_chr;
@@ -853,8 +830,6 @@ static bool yw_consume_ident_like_token(YW_CSSToken *out, YW_Tokenizer *tkr)
                         /* PARSE ERROR: Unexpected character after \ */
                         yw_consume_remnants_of_bad_url(tkr);
                         out->common.type = YW_CSS_TOKEN_BAD_URL;
-                        out->common.cursor_from = cursor_from;
-                        out->common.cursor_to = tkr->tr.cursor;
                         return true;
                     }
                     else
@@ -873,8 +848,6 @@ static bool yw_consume_ident_like_token(YW_CSSToken *out, YW_Tokenizer *tkr)
         done:
             YW_SHRINK_TO_FIT(char, &url_cap, url_len, &url);
             out->common.type = YW_CSS_TOKEN_URL;
-            out->common.cursor_from = cursor_from;
-            out->common.cursor_to = tkr->tr.cursor;
             out->url_tk.value = url;
             return true;
         }
@@ -884,15 +857,11 @@ static bool yw_consume_ident_like_token(YW_CSSToken *out, YW_Tokenizer *tkr)
     if (yw_consume_char(&tkr->tr, '('))
     {
         out->common.type = YW_CSS_TOKEN_FUNC_KEYWORD;
-        out->common.cursor_from = cursor_from;
-        out->common.cursor_to = tkr->tr.cursor;
         out->func_keyword_tk.value = ident;
         return true;
     }
 
     out->common.type = YW_CSS_TOKEN_IDENT;
-    out->common.cursor_from = cursor_from;
-    out->common.cursor_to = tkr->tr.cursor;
     out->ident_tk.value = ident;
     return true;
 fail:
@@ -904,8 +873,6 @@ fail:
 
 static bool yw_consume_any_token(YW_CSSToken *out, YW_Tokenizer *tkr)
 {
-    int cursor_from = tkr->tr.cursor;
-
     typedef bool(TokenFunc)(YW_CSSToken * out, YW_Tokenizer * tkr);
     static TokenFunc *funcs[] = {
         yw_consume_whitespace_token,
@@ -930,8 +897,6 @@ static bool yw_consume_any_token(YW_CSSToken *out, YW_Tokenizer *tkr)
         return false;
     }
     out->common.type = YW_CSS_TOKEN_DELIM;
-    out->common.cursor_from = cursor_from;
-    out->common.cursor_to = tkr->tr.cursor;
     out->delim_tk.value = yw_consume_any_char(&tkr->tr);
     return true;
 }
@@ -984,7 +949,7 @@ static YW_EncodingType yw_css_determine_fallback_encoding(uint8_t const *bytes, 
 }
 
 /* Caller owns the returned array */
-static void yw_css_decode_bytes(YW_Char32 **buf_out, int *len_out, uint8_t const *bytes, int bytes_len)
+static void yw_css_decode_bytes(uint8_t **buf_out, int *len_out, uint8_t const *bytes, int bytes_len)
 {
     YW_IOQueue input, output;
     YW_EncodingType fallback = yw_css_determine_fallback_encoding(bytes, bytes_len);
@@ -995,16 +960,17 @@ static void yw_css_decode_bytes(YW_Char32 **buf_out, int *len_out, uint8_t const
         yw_io_queue_push_one(&input, bytes[i]);
     }
     yw_encoding_decode(&input, fallback, &output);
-    yw_io_queue_to_items(buf_out, len_out, &output);
+
+    yw_io_queue_to_utf8(buf_out, len_out, &output);
     yw_io_queue_deinit(&input);
     yw_io_queue_deinit(&output);
 }
 
 /* Caller owns the returned array */
-static void yw_css_filter_codepoints(YW_Char32 **buf_out, int *len_out, YW_Char32 const *in, int in_len)
+static void yw_css_filter_codepoints(uint8_t **buf_out, int *len_out, uint8_t const *in, int in_len)
 {
     /* https://www.w3.org/TR/-syntax-3/#-filter-code-points */
-    YW_Char32 *res = NULL;
+    uint8_t *res = NULL;
     int res_len = 0;
     int res_cap = 0;
     for (int i = 0; i < in_len; i++)
@@ -1016,27 +982,30 @@ static void yw_css_filter_codepoints(YW_Char32 **buf_out, int *len_out, YW_Char3
         }
         else if (in[i] == '\r' || in[i] == '\x0c')
         {
-            YW_PUSH(YW_Char32, &res_cap, &res_len, &res, '\n');
+            YW_PUSH(uint8_t, &res_cap, &res_len, &res, '\n');
         }
         else if (in[i] == '\x00' || yw_is_surrogate_char(in[i]))
         {
-            YW_PUSH(YW_Char32, &res_cap, &res_len, &res, 0xfffd);
+            /* Push U+FFFD in UTF-8 form */
+            YW_PUSH(uint8_t, &res_cap, &res_len, &res, 0xef);
+            YW_PUSH(uint8_t, &res_cap, &res_len, &res, 0xbf);
+            YW_PUSH(uint8_t, &res_cap, &res_len, &res, 0xbd);
         }
         else
         {
-            YW_PUSH(YW_Char32, &res_cap, &res_len, &res, in[i]);
+            YW_PUSH(uint8_t, &res_cap, &res_len, &res, in[i]);
         }
     }
-    YW_SHRINK_TO_FIT(YW_Char32, &res_cap, res_len, &res);
+    YW_SHRINK_TO_FIT(uint8_t, &res_cap, res_len, &res);
     *buf_out = res;
     *len_out = res_len;
 }
 
 static void yw_parse_list_of_component_values(YW_CSSToken **tokens_out, int *len_out, YW_CSSTokenStream *ts);
 
-bool yw_css_tokenize(YW_CSSTokenStream *out, uint8_t const *bytes, int bytes_len, const char *source_name)
+bool yw_css_tokenize(YW_CSSTokenStream *out, uint8_t const *bytes, int bytes_len)
 {
-    YW_Char32 *src;
+    uint8_t *src;
     int src_len;
     YW_Tokenizer tkr;
     YW_CSSTokenStream temp_ts;
@@ -1048,7 +1017,7 @@ bool yw_css_tokenize(YW_CSSTokenStream *out, uint8_t const *bytes, int bytes_len
     /* Decode bytes and filter codepoints *************************************/
     yw_css_decode_bytes(&src, &src_len, bytes, bytes_len);
     {
-        YW_Char32 *new_src;
+        uint8_t *new_src;
         int new_src_len;
         yw_css_filter_codepoints(&new_src, &new_src_len, src, src_len);
         free(src);
@@ -1056,7 +1025,7 @@ bool yw_css_tokenize(YW_CSSTokenStream *out, uint8_t const *bytes, int bytes_len
         src_len = new_src_len;
     }
     /* Consume tokens *********************************************************/
-    yw_text_reader_init(&tkr.tr, source_name, src, src_len);
+    yw_text_reader_init(&tkr.tr, src, src_len);
     YW_CSSToken tk;
     while (yw_consume_any_token(&tk, &tkr))
     {
@@ -1079,7 +1048,7 @@ bool yw_css_tokenize(YW_CSSTokenStream *out, uint8_t const *bytes, int bytes_len
     /* Clear old tokens *******************************************************/
     for (int i = 0; i < res_len; i++)
     {
-        yw_token_deinit(&res[i]);
+        yw_css_token_deinit(&res[i]);
     }
     free(res);
     /* Prepare output and exit ************************************************/
@@ -1090,12 +1059,12 @@ bool yw_css_tokenize(YW_CSSTokenStream *out, uint8_t const *bytes, int bytes_len
 fail:
     for (int i = 0; i < res_len; i++)
     {
-        yw_token_deinit(&res[i]);
+        yw_css_token_deinit(&res[i]);
     }
     free(res);
     for (int i = 0; i < new_res_len; i++)
     {
-        yw_token_deinit(&new_res[i]);
+        yw_css_token_deinit(&new_res[i]);
     }
     free(new_res);
     return false;
@@ -1284,8 +1253,6 @@ static bool yw_consume_simple_block(YW_AstSimpleBlockToken *out, YW_CSSTokenStre
         goto fail;
     }
     out->common.type = YW_CSS_TOKEN_AST_SIMPLE_BLOCK;
-    out->common.cursor_from = open_token->common.cursor_from;
-    out->common.cursor_to = open_token->common.cursor_to;
     out->type = type;
     out->tokens = res;
     out->tokens_len = res_len;
@@ -1340,8 +1307,6 @@ static bool yw_consume_func(YW_AstFunctionToken *out, YW_CSSTokenStream *ts)
         goto fail;
     }
     out->common.type = YW_CSS_TOKEN_AST_FUNC;
-    out->common.cursor_from = func_token->common.cursor_from;
-    out->common.cursor_to = func_token->common.cursor_to;
     out->name = yw_duplicate_str(func_token->func_keyword_tk.value);
     out->tokens = res;
     out->tokens_len = res_len;
@@ -1372,8 +1337,6 @@ static bool yw_consume_qualified_rule(YW_AstQualifiedRuleToken *out, YW_CSSToken
         if (yw_consume_curly_block(&temp_block, ts))
         {
             out->common.type = YW_CSS_TOKEN_AST_QUALIFIED_RULE;
-            out->common.cursor_from = old_cursor;
-            out->common.cursor_to = temp_block.common.cursor_to;
             out->body_tokens = temp_block.tokens;
             out->body_tokens_len = temp_block.tokens_len;
             out->prelude_tokens = prelude_tokens;
@@ -1381,7 +1344,7 @@ static bool yw_consume_qualified_rule(YW_AstQualifiedRuleToken *out, YW_CSSToken
 
             temp_block.tokens = NULL;
             temp_block.tokens_len = 0;
-            yw_token_deinit((YW_CSSToken *)&temp_block);
+            yw_css_token_deinit((YW_CSSToken *)&temp_block);
             return true;
         }
         YW_CSSToken temp_prelude;
@@ -1395,7 +1358,7 @@ static bool yw_consume_qualified_rule(YW_AstQualifiedRuleToken *out, YW_CSSToken
 fail:
     for (int i = 0; i < prelude_tokens_len; i++)
     {
-        yw_token_deinit(&prelude_tokens[i]);
+        yw_css_token_deinit(&prelude_tokens[i]);
     }
     free(prelude_tokens);
     ts->cursor = old_cursor;
@@ -1415,8 +1378,6 @@ static bool yw_consume_at_rule(YW_AstAtRuleToken *out, YW_CSSTokenStream *ts)
         if (yw_consume_curly_block(&temp_block, ts))
         {
             out->common.type = YW_CSS_TOKEN_AST_AT_RULE;
-            out->common.cursor_from = old_cursor;
-            out->common.cursor_to = temp_block.common.cursor_to;
             out->name = yw_duplicate_str(kwd_token->at_keyword_tk.value);
             out->body_tokens = temp_block.tokens;
             out->body_tokens_len = temp_block.tokens_len;
@@ -1425,7 +1386,7 @@ static bool yw_consume_at_rule(YW_AstAtRuleToken *out, YW_CSSTokenStream *ts)
 
             temp_block.tokens = NULL;
             temp_block.tokens_len = 0;
-            yw_token_deinit((YW_CSSToken *)&temp_block);
+            yw_css_token_deinit((YW_CSSToken *)&temp_block);
             return true;
         }
         YW_CSSToken temp_prelude;
@@ -1438,7 +1399,7 @@ static bool yw_consume_at_rule(YW_AstAtRuleToken *out, YW_CSSTokenStream *ts)
 fail:
     for (int i = 0; i < prelude_tokens_len; i++)
     {
-        yw_token_deinit(&prelude_tokens[i]);
+        yw_css_token_deinit(&prelude_tokens[i]);
     }
     free(prelude_tokens);
     ts->cursor = old_cursor;
@@ -1453,7 +1414,6 @@ static bool yw_consume_declaration(YW_AstDeclarationToken *out, YW_CSSTokenStrea
     int decl_values_cap = 0;
     bool decl_is_important = false;
     char const *decl_name;
-    YW_CSSToken const *last_node;
 
     /* <name>  :  contents  !important ****************************************/
     YW_CSSToken const *temp_tk = yw_expect_token(ts, YW_CSS_TOKEN_IDENT);
@@ -1482,7 +1442,6 @@ static bool yw_consume_declaration(YW_AstDeclarationToken *out, YW_CSSTokenStrea
         }
         YW_PUSH(YW_CSSToken, &decl_values_cap, &decl_values_len, &decl_values, temp_tk);
     }
-    last_node = &decl_values[decl_values_len - 1];
     if (2 <= decl_values_len)
     {
         // See if we have !important
@@ -1496,8 +1455,6 @@ static bool yw_consume_declaration(YW_AstDeclarationToken *out, YW_CSSTokenStrea
     }
     YW_SHRINK_TO_FIT(YW_CSSToken, &decl_values_cap, decl_values_len, &decl_values);
     out->common.type = YW_CSS_TOKEN_AST_DECLARATION;
-    out->common.cursor_from = old_cursor;
-    out->common.cursor_to = last_node->common.cursor_to;
     out->name = yw_duplicate_str(decl_name);
     out->value_tokens = decl_values;
     out->value_tokens_len = decl_values_len;
@@ -1506,7 +1463,7 @@ static bool yw_consume_declaration(YW_AstDeclarationToken *out, YW_CSSTokenStrea
 fail:
     for (int i = 0; i < decl_values_len; i++)
     {
-        yw_token_deinit(&decl_values[i]);
+        yw_css_token_deinit(&decl_values[i]);
     }
     free(decl_values);
     ts->cursor = old_cursor;
@@ -1572,7 +1529,7 @@ static bool yw_consume_declaration_list(YW_CSSToken **tokens_out, int *len_out, 
             bool ok = yw_consume_declaration(&decl.ast_declaration_tk, &inner_ts);
             for (int i = 0; i < tokens_len; i++)
             {
-                yw_token_deinit(&tokens[i]);
+                yw_css_token_deinit(&tokens[i]);
             }
             free(tokens);
             if (!ok)
@@ -1603,7 +1560,7 @@ static bool yw_consume_declaration_list(YW_CSSToken **tokens_out, int *len_out, 
                 YW_CSSToken unused;
                 if (yw_consume_component_value(&unused, ts))
                 {
-                    yw_token_deinit(&unused);
+                    yw_css_token_deinit(&unused);
                 }
             }
         }
@@ -1684,7 +1641,7 @@ static bool yw_consume_style_block_contents(YW_CSSToken **tokens_out, int *len_o
             bool ok = yw_consume_declaration(&decl.ast_declaration_tk, &inner_ts);
             for (int i = 0; i < tokens_len; i++)
             {
-                yw_token_deinit(&tokens[i]);
+                yw_css_token_deinit(&tokens[i]);
             }
             free(tokens);
             if (!ok)
@@ -1724,7 +1681,7 @@ static bool yw_consume_style_block_contents(YW_CSSToken **tokens_out, int *len_o
                 YW_CSSToken unused;
                 if (yw_consume_component_value(&unused, ts))
                 {
-                    yw_token_deinit(&unused);
+                    yw_css_token_deinit(&unused);
                 }
             }
         }

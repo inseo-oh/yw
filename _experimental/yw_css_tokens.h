@@ -6,6 +6,7 @@
  */
 #ifndef YW_CSS_TOKENS_H_
 #define YW_CSS_TOKENS_H_
+
 #include "yw_common.h"
 #include "yw_css.h"
 #include <stddef.h>
@@ -50,7 +51,6 @@ typedef enum
 typedef struct YW_TokenCommon
 {
     YW_TokenType type;
-    int cursor_from, cursor_to;
 } YW_TokenCommon;
 typedef struct YW_CSSNumberToken
 {

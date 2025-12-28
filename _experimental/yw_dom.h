@@ -263,11 +263,13 @@ void yw_document_type_destroy(void *node_v);
 
 typedef struct YW_DOMAttrData
 {
-    char const *local_name;
-    char const *value;
-    char const *namespace_;       /* May be NULL */
-    char const *namespace_prefix; /* May be NULL */
+    char *local_name;
+    char *value;
+    char *namespace_;       /* May be NULL */
+    char *namespace_prefix; /* May be NULL */
 } YW_DOMAttrData;
+
+void yw_dom_attr_data_deinit(YW_DOMAttrData *data);
 
 struct YW_DOMAttr_Rec
 {

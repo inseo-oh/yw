@@ -20,7 +20,7 @@
 
 typedef union YW_CSSToken YW_CSSToken;
 
-void yw_token_deinit(YW_CSSToken *tk);
+void yw_css_token_deinit(YW_CSSToken *tk);
 
 typedef struct YW_CSSTokenStream
 {
@@ -30,7 +30,7 @@ typedef struct YW_CSSTokenStream
 } YW_CSSTokenStream;
 
 /* NOTE: out->tokens must be freed after using them */
-bool yw_css_tokenize(YW_CSSTokenStream *out, uint8_t const *bytes, int bytes_len, const char *source_name);
+bool yw_css_tokenize(YW_CSSTokenStream *out, uint8_t const *bytes, int bytes_len);
 
 /*******************************************************************************
  *
@@ -587,7 +587,7 @@ typedef union YW_CSSSelector {
 void yw_css_wq_name_deinit(YW_CSSWqName *name);
 void yw_css_selector_deinit(YW_CSSSelector *sel);
 bool yw_css_parse_selector_list(YW_CSSSelector **sels_out, int *len_out, YW_CSSTokenStream *ts);
-bool yw_css_parse_selector(YW_CSSSelector **sels_out, int *len_out, uint8_t const *bytes, int bytes_len, const char *source_name);
+bool yw_css_parse_selector(YW_CSSSelector **sels_out, int *len_out, uint8_t const *bytes, int bytes_len);
 
 /*******************************************************************************
  *

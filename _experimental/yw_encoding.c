@@ -455,6 +455,31 @@ void yw_io_queue_to_items(int **items_out, int *len_out, YW_IOQueue const *queue
     yw_io_queue_item_list_to_items(items_out, len_out, &queue->item_list);
 }
 
+void yw_io_queue_to_utf8(uint8_t **chars_out, int *len_out, YW_IOQueue const *queue)
+{
+    uint8_t *res_buf = NULL;
+    int len = 0;
+    int cap = 0;
+
+    for (int i = 0; i < queue->item_list.len; i++)
+    {
+        if (queue->item_list.items[i] == YW_END_OF_IO_QUEUE)
+        {
+            break;
+        }
+        int ch = queue->item_list.items[i];
+        if (0x80 < ch)
+        {
+            /* TODO: Encode non-ASCII character */
+            ch = '?';
+        }
+        YW_PUSH(uint8_t, &cap, &len, &res_buf, ch);
+    }
+    YW_SHRINK_TO_FIT(uint8_t, &cap, len, &res_buf);
+    *chars_out = res_buf;
+    *len_out = len;
+}
+
 void yw_io_queue_init(YW_IOQueue *out)
 {
     yw_io_queue_init_with_items(out, NULL, 0);
@@ -671,6 +696,7 @@ static YW_EncodingResult yw_utf8_decoder_handler(void *self_v, YW_IOQueue *queue
 
 static YW_TextDecoderCallbacks yw_utf8_decoder_callbacks = {
     .handler = yw_utf8_decoder_handler,
+    .destroy = NULL,
 };
 
 void yw_init_utf8_decoder(YW_TextDecoder *out)

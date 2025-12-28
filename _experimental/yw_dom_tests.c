@@ -532,16 +532,18 @@ void yw_test_dom_append_attr_to_element(YW_TestingContext *ctx)
     YW_DOMAttrData data;
 
     memset(&data, 0, sizeof(data));
-    data.local_name = "name1";
-    data.value = "value1";
-    data.namespace_ = "ns1";
-    data.namespace_prefix = "prefix1";
+    data.local_name = yw_duplicate_str("name1");
+    data.value = yw_duplicate_str("value1");
+    data.namespace_ = yw_duplicate_str("ns1");
+    data.namespace_prefix = yw_duplicate_str("prefix1");
     yw_dom_append_attr_to_element(elem, &heap, &data);
+    yw_dom_attr_data_deinit(&data);
 
     memset(&data, 0, sizeof(data));
-    data.local_name = "name2";
-    data.value = "value2";
+    data.local_name = yw_duplicate_str("name2");
+    data.value = yw_duplicate_str("value2");
     yw_dom_append_attr_to_element(elem, &heap, &data);
+    yw_dom_attr_data_deinit(&data);
 
     /*
      * We don't call yw_fix_children_parent() here, because

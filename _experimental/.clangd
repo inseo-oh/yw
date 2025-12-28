@@ -2,5 +2,7 @@ Diagnostics:
     MissingIncludes: Strict
 
 # Our code is not C++, but we want C++ diagnostics.
+# 
+# We turn off -Wc++20-designator because C had them ages before C++ adopted it.
 CompileFlags:
-    Add: [ -xc++ ]
+    Add: [ -xc++, -Wall, -Wextra, -Wno-c++20-designator -pedantic ]

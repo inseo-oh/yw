@@ -95,6 +95,7 @@ void *yw_shrink_to_fit_impl(int *cap_inout, int len, void *old_buf, size_t item_
 
 /* if another is NULL, this function doesn't do anything */
 void yw_append_str(char **dest, char const *another);
+void yw_append_char(char **dest, YW_Char32 chr);
 /* if s is NULL, this function returns NULL */
 char *yw_duplicate_str(char const *s);
 
@@ -177,15 +178,18 @@ char const *yw_utf8_strchr(char const *s, YW_Char32 c);
  * YW_TextReader
  ******************************************************************************/
 
+typedef uint8_t const *YW_TextCursor;
+
 typedef struct YW_TextReader
 {
-    char const *source_name;
-    YW_Char32 const *chars;
+    uint8_t const *chars;
     int chars_len;
-    int cursor;
+    uint8_t const *cursor;
 } YW_TextReader;
 
-void yw_text_reader_init(YW_TextReader *out, char const *source_name, YW_Char32 const *chars, int chars_len);
+void yw_text_reader_init(YW_TextReader *out, uint8_t const *chars, int chars_len);
+void yw_text_reader_init_from_str(YW_TextReader *out, char const *s);
+int yw_text_reader_cursor(YW_TextReader const *tr);
 bool yw_text_reader_is_eof(YW_TextReader const *tr);
 
 /* Returns -1 on EOF. */

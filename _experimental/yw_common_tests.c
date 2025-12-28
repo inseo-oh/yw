@@ -126,22 +126,23 @@ void yw_test_list(YW_TestingContext *ctx)
 
 void yw_test_utf8_next_char(YW_TestingContext *ctx)
 {
-#define YW_RUN_TEST(_name, _input, ...)                                                                                    \
-    do                                                                                                                     \
-    {                                                                                                                      \
-        YW_Char32 expected[] = {__VA_ARGS__};                                                                              \
-        int dest_len = YW_SIZEOF_ARRAY(expected);                                                                          \
-        char const *next_str = (_input);                                                                                   \
-        for (int i = 0; i < dest_len; i++)                                                                                 \
-        {                                                                                                                  \
-            YW_Char32 res = yw_utf8_next_char(&next_str);                                                                  \
-            if (res != expected[i])                                                                                        \
-            {                                                                                                              \
-                printf("FAIL: %s[%s]: expected U+%04X at index %d, got U+%04X\n", __func__, (_name), expected[i], i, res); \
-                yw_failed_test_impl(ctx);                                                                                  \
-                break;                                                                                                     \
-            }                                                                                                              \
-        }                                                                                                                  \
+#define YW_RUN_TEST(_name, _input, ...)                                           \
+    do                                                                            \
+    {                                                                             \
+        YW_Char32 expected[] = {__VA_ARGS__};                                     \
+        int dest_len = YW_SIZEOF_ARRAY(expected);                                 \
+        char const *next_str = (_input);                                          \
+        for (int i = 0; i < dest_len; i++)                                        \
+        {                                                                         \
+            YW_Char32 res = yw_utf8_next_char(&next_str);                         \
+            if (res != expected[i])                                               \
+            {                                                                     \
+                printf("FAIL: %s[%s]: expected U+%04X at index %d, got U+%04X\n", \
+                       __func__, (_name), expected[i], i, res);                   \
+                yw_failed_test_impl(ctx);                                         \
+                break;                                                            \
+            }                                                                     \
+        }                                                                         \
     } while (0)
 
     YW_RUN_TEST("Simple ASCII", "\x30\x31\x32\x33\x7e", '0', '1', '2', '3');
@@ -178,11 +179,11 @@ void yw_test_utf8_strchr(YW_TestingContext *ctx)
     char const *ch0 = &str[11]; /* 1st kanji (U+53EF) */
     char const *ch1 = &str[14]; /* 2nd kanji (U+611B) */
     char const *ch2 = &str[17]; /* 3rd kanji (U+3044) */
-    YW_TEST_EXPECT(void const *, yw_utf8_strchr(str, 0x53ef), "%p", ch0);
-    YW_TEST_EXPECT(void const *, yw_utf8_strchr(str, 0x611b), "%p", ch1);
-    YW_TEST_EXPECT(void const *, yw_utf8_strchr(str, 0x3044), "%p", ch2);
-    YW_TEST_EXPECT(void const *, yw_utf8_strchr(str, 0x3045), "%p", NULL);
-    YW_TEST_EXPECT(void const *, yw_utf8_strchr(str, '\0'), "%p", &str[strlen(str)]);
+    YW_TEST_EXPECT_STR(yw_utf8_strchr(str, 0x53ef), ch0);
+    YW_TEST_EXPECT_STR(yw_utf8_strchr(str, 0x611b), ch1);
+    YW_TEST_EXPECT_STR(yw_utf8_strchr(str, 0x3044), ch2);
+    YW_TEST_EXPECT_STR(yw_utf8_strchr(str, 0x3045), NULL);
+    YW_TEST_EXPECT_STR(yw_utf8_strchr(str, '\0'), &str[strlen(str)]);
 }
 
 /*******************************************************************************
@@ -192,117 +193,97 @@ void yw_test_utf8_strchr(YW_TestingContext *ctx)
 void yw_test_peek_char(YW_TestingContext *ctx)
 {
     struct YW_TextReader tr;
-    YW_Char32 *chars;
-    int chars_len;
-    yw_utf8_to_char32(&chars, &chars_len, "hello");
-    yw_text_reader_init(&tr, __func__, chars, chars_len);
+    yw_text_reader_init_from_str(&tr, "hello");
     YW_TEST_EXPECT(YW_Char32, yw_peek_char(&tr), "U+%04X", 'h');
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 0);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 0);
 
     tr.cursor++;
     YW_TEST_EXPECT(YW_Char32, yw_peek_char(&tr), "U+%04X", 'e');
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 1);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 1);
 
     tr.cursor++;
     YW_TEST_EXPECT(YW_Char32, yw_peek_char(&tr), "U+%04X", 'l');
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 2);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 2);
 
     tr.cursor++;
     YW_TEST_EXPECT(YW_Char32, yw_peek_char(&tr), "U+%04X", 'l');
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 3);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 3);
 
     tr.cursor++;
     YW_TEST_EXPECT(YW_Char32, yw_peek_char(&tr), "U+%04X", 'o');
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 4);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 4);
 
     tr.cursor++;
     YW_TEST_EXPECT(int, yw_peek_char(&tr), "%d", -1);
-
-    free(chars);
 }
 void yw_test_consume_any_char(YW_TestingContext *ctx)
 {
     struct YW_TextReader tr;
-    YW_Char32 *chars;
-    int chars_len;
-    yw_utf8_to_char32(&chars, &chars_len, "hello");
-    yw_text_reader_init(&tr, __func__, chars, chars_len);
+    yw_text_reader_init_from_str(&tr, "hello");
 
     YW_TEST_EXPECT(YW_Char32, yw_consume_any_char(&tr), "U+%04X", 'h');
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 1);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 1);
 
     YW_TEST_EXPECT(YW_Char32, yw_consume_any_char(&tr), "U+%04X", 'e');
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 2);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 2);
 
     YW_TEST_EXPECT(YW_Char32, yw_consume_any_char(&tr), "U+%04X", 'l');
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 3);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 3);
 
     YW_TEST_EXPECT(YW_Char32, yw_consume_any_char(&tr), "U+%04X", 'l');
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 4);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 4);
 
     YW_TEST_EXPECT(YW_Char32, yw_consume_any_char(&tr), "U+%04X", 'o');
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 5);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 5);
 
     YW_TEST_EXPECT(int, yw_consume_any_char(&tr), "%d", -1);
-
-    free(chars);
 }
 void yw_test_consume_one_of_chars(YW_TestingContext *ctx)
 {
     struct YW_TextReader tr;
-    YW_Char32 *chars;
-    int chars_len;
-    yw_utf8_to_char32(&chars, &chars_len, "hello");
-    yw_text_reader_init(&tr, __func__, chars, chars_len);
+    yw_text_reader_init_from_str(&tr, "hello");
 
     YW_TEST_EXPECT(YW_Char32, yw_consume_one_of_chars(&tr, "abcdefgh"), "U+%04X", 'h');
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 1);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 1);
 
     YW_TEST_EXPECT(YW_Char32, yw_consume_one_of_chars(&tr, "abcdefgh"), "U+%04X", 'e');
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 2);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 2);
 
     YW_TEST_EXPECT(YW_Char32, yw_consume_one_of_chars(&tr, "abcdefgh"), "U+%04X", -1);
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 2);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 2);
 
     YW_TEST_EXPECT(YW_Char32, yw_consume_one_of_chars(&tr, "hijklmn"), "U+%04X", 'l');
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 3);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 3);
 
     YW_TEST_EXPECT(YW_Char32, yw_consume_one_of_chars(&tr, "hijklmn"), "U+%04X", 'l');
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 4);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 4);
 
     YW_TEST_EXPECT(YW_Char32, yw_consume_one_of_chars(&tr, "opqrstu"), "U+%04X", 'o');
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 5);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 5);
 
     YW_TEST_EXPECT(YW_Char32, yw_consume_one_of_chars(&tr, "opqrstu"), "U+%04X", -1);
-
-    free(chars);
 }
 void yw_test_consume_one_of_strs(YW_TestingContext *ctx)
 {
     struct YW_TextReader tr;
-    YW_Char32 *chars;
-    int chars_len;
-    yw_utf8_to_char32(&chars, &chars_len, "a quick fox jumps OvEr THE LAZY dog");
-    yw_text_reader_init(&tr, __func__, chars, chars_len);
+    yw_text_reader_init_from_str(&tr, "a quick fox jumps OvEr THE LAZY dog");
 
     char const *strs1[] = {"a ", "quick ", "fox jumps ", NULL};
     char const *strs2[] = {"oVeR ", "the lazy ", "DOG", NULL};
 
     YW_TEST_EXPECT(int, yw_consume_one_of_strs(&tr, strs1, YW_NO_MATCH_FLAGS), "%d", 0);
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 2);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 2);
     YW_TEST_EXPECT(int, yw_consume_one_of_strs(&tr, strs1, YW_NO_MATCH_FLAGS), "%d", 1);
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 8);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 8);
     YW_TEST_EXPECT(int, yw_consume_one_of_strs(&tr, strs1, YW_NO_MATCH_FLAGS), "%d", 2);
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 18);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 18);
     YW_TEST_EXPECT(int, yw_consume_one_of_strs(&tr, strs2, YW_NO_MATCH_FLAGS), "%d", -1);
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 18);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 18);
     YW_TEST_EXPECT(int, yw_consume_one_of_strs(&tr, strs2, YW_ASCII_CASE_INSENSITIVE), "%d", 0);
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 23);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 23);
     YW_TEST_EXPECT(int, yw_consume_one_of_strs(&tr, strs2, YW_ASCII_CASE_INSENSITIVE), "%d", 1);
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 32);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 32);
     YW_TEST_EXPECT(int, yw_consume_one_of_strs(&tr, strs2, YW_ASCII_CASE_INSENSITIVE), "%d", 2);
-    YW_TEST_EXPECT(int, tr.cursor, "%d", 35);
+    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 35);
     YW_TEST_EXPECT(int, yw_consume_one_of_strs(&tr, strs2, YW_ASCII_CASE_INSENSITIVE), "%d", -1);
-
-    free(chars);
 }

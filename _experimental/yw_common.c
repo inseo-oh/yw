@@ -264,6 +264,16 @@ void yw_append_str(char **dest, char const *another)
     }
     strcat(*dest, another);
 }
+void yw_append_char(char **dest, YW_Char32 chr)
+{
+    if (0x7f < chr)
+    {
+        fprintf(stderr, "%s: support unicode characters\n", __func__);
+        chr = '?';
+    }
+    char temp_buf[] = {(char)chr, 0};
+    yw_append_str(dest, temp_buf);
+}
 
 char *yw_duplicate_str(char const *s)
 {
@@ -438,17 +448,26 @@ char const *yw_utf8_strchr(char const *s, YW_Char32 c)
  * YW_TextReader
  ******************************************************************************/
 
-void yw_text_reader_init(YW_TextReader *out, char const *source_name, YW_Char32 const *chars, int chars_len)
+void yw_text_reader_init(YW_TextReader *out, uint8_t const *chars, int chars_len)
 {
     memset(out, 0, sizeof(*out));
-    out->source_name = source_name;
     out->chars = chars;
     out->chars_len = chars_len;
+    out->cursor = chars;
 }
 
+void yw_text_reader_init_from_str(YW_TextReader *out, char const *s)
+{
+    yw_text_reader_init(out, (uint8_t const *)s, strlen(s));
+}
+
+int yw_text_reader_cursor(YW_TextReader const *tr)
+{
+    return tr->cursor - tr->chars;
+}
 bool yw_text_reader_is_eof(YW_TextReader const *tr)
 {
-    return tr->chars_len <= tr->cursor;
+    return tr->chars_len <= yw_text_reader_cursor(tr);
 }
 
 YW_Char32 yw_peek_char(YW_TextReader const *tr)
@@ -457,7 +476,8 @@ YW_Char32 yw_peek_char(YW_TextReader const *tr)
     {
         return -1;
     }
-    return tr->chars[tr->cursor];
+    uint8_t const *ptr = tr->cursor;
+    return yw_utf8_next_char((char const **)&ptr);
 }
 
 YW_Char32 yw_consume_any_char(YW_TextReader *tr)
@@ -466,9 +486,7 @@ YW_Char32 yw_consume_any_char(YW_TextReader *tr)
     {
         return -1;
     }
-    YW_Char32 res = yw_peek_char(tr);
-    tr->cursor++;
-    return res;
+    return yw_utf8_next_char((char const **)&tr->cursor);
 }
 
 int yw_consume_one_of_chars(YW_TextReader *tr, char const *chars)
@@ -520,9 +538,9 @@ int yw_consume_one_of_strs(YW_TextReader *tr, char const **strs, YW_MatchFlags f
         match_idx++;
         found = true;
         match_len = 0;
-        for (int i = tr->cursor; i < tr->chars_len; i++)
+        for (int i = yw_text_reader_cursor(tr); i < tr->chars_len; i++)
         {
-            char src_chr = (*src_str)[i - tr->cursor];
+            char src_chr = (*src_str)[i - yw_text_reader_cursor(tr)];
             char got_chr = tr->chars[i];
 
             if (src_chr == 0)

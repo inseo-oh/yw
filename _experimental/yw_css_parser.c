@@ -1319,7 +1319,7 @@ static bool yw_parse_pseudo_class_selector(YW_CSSPseudoClassSelector *out, YW_CS
         /* XXX: We don't have args support yet */
         for (int i = 0; i < values_len; i++)
         {
-            yw_token_deinit(&values[i]);
+            yw_css_token_deinit(&values[i]);
         }
         free(values);
         return true;
@@ -1672,17 +1672,17 @@ bool yw_css_parse_selector_list(YW_CSSSelector **sels_out, int *len_out, YW_CSST
     return true;
 }
 
-bool yw_css_parse_selector(YW_CSSSelector **sels_out, int *len_out, uint8_t const *bytes, int bytes_len, const char *source_name)
+bool yw_css_parse_selector(YW_CSSSelector **sels_out, int *len_out, uint8_t const *bytes, int bytes_len)
 {
     YW_CSSTokenStream ts;
-    if (!yw_css_tokenize(&ts, bytes, bytes_len, source_name))
+    if (!yw_css_tokenize(&ts, bytes, bytes_len))
     {
         return false;
     }
     bool res = yw_css_parse_selector_list(sels_out, len_out, &ts);
     for (int i = 0; i < ts.tokens_len; i++)
     {
-        yw_token_deinit(&ts.tokens[i]);
+        yw_css_token_deinit(&ts.tokens[i]);
     }
     free(ts.tokens);
     return res;

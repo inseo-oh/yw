@@ -82,6 +82,9 @@ void yw_io_queue_item_list_to_items(int **items_out, int *len_out, YW_IOQueueIte
 /* Caller owns the returned array. */
 void yw_io_queue_to_items(int **items_out, int *len_out, YW_IOQueue const *queue);
 
+/* Caller owns the returned array. */
+void yw_io_queue_to_utf8(uint8_t **chars_out, int *len_out, YW_IOQueue const *queue);
+
 void yw_io_queue_init(YW_IOQueue *out);
 void yw_io_queue_init_with_items(YW_IOQueue *out, int const *items, int items_len);
 void yw_io_queue_deinit(YW_IOQueue *queue);

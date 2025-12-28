@@ -14,9 +14,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-static bool yw_tokenize_str(YW_CSSTokenStream *out, YW_TestingContext *ctx, char const *str, const char *source_name)
+static bool yw_tokenize_str(YW_CSSTokenStream *out, YW_TestingContext *ctx, char const *str)
 {
-    if (!yw_css_tokenize(out, (uint8_t *)str, strlen(str), source_name))
+    if (!yw_css_tokenize(out, (uint8_t *)str, strlen(str)))
     {
         YW_FAILED_TEST(ctx, "failed to tokenize");
         return false;
@@ -28,7 +28,7 @@ static void yw_css_free_tokens(YW_CSSToken *tokens, int len)
 {
     for (int i = 0; i < len; i++)
     {
-        yw_token_deinit(&tokens[i]);
+        yw_css_token_deinit(&tokens[i]);
     }
     free(tokens);
 }
@@ -47,8 +47,7 @@ void yw_test_css_parse_number(YW_TestingContext *ctx)
                          "3.4e1;"
                          "350e-1;"
                          "3.6E1;"
-                         "370e-1",
-                         __func__))
+                         "370e-1"))
     {
         return;
     }
@@ -103,8 +102,7 @@ void yw_test_css_parse_length(YW_TestingContext *ctx)
                          "11q;"
                          "12pc;"
                          "13pt;"
-                         "14px",
-                         __func__))
+                         "14px"))
     {
         return;
     }
@@ -166,8 +164,7 @@ void yw_test_css_parse_percentage(YW_TestingContext *ctx)
     YW_CSSTokenStream ts;
     if (!yw_tokenize_str(&ts, ctx,
                          "25%;"
-                         "50%",
-                         __func__))
+                         "50%"))
     {
         return;
     }
@@ -189,8 +186,7 @@ void yw_test_css_parse_length_or_percentage(YW_TestingContext *ctx)
     YW_CSSTokenStream ts;
     if (!yw_tokenize_str(&ts, ctx,
                          "25px;"
-                         "50%",
-                         __func__))
+                         "50%"))
     {
         return;
     }
@@ -226,8 +222,7 @@ void yw_test_css_parse_line_style(YW_TestingContext *ctx)
                          "double;"
                          "groove;"
                          "ridge;"
-                         "inset",
-                         __func__))
+                         "inset"))
     {
         return;
     }
@@ -279,8 +274,7 @@ void yw_test_css_parse_line_width(YW_TestingContext *ctx)
                          "thin;"
                          "medium;"
                          "thick;"
-                         "10em",
-                         __func__))
+                         "10em"))
     {
         return;
     }
@@ -319,8 +313,7 @@ void yw_test_css_parse_margin(YW_TestingContext *ctx)
     if (!yw_tokenize_str(&ts, ctx,
                          "10px;"
                          "50%;"
-                         "auto",
-                         __func__))
+                         "auto"))
     {
         return;
     }
@@ -352,8 +345,7 @@ void yw_test_css_parse_padding(YW_TestingContext *ctx)
     if (!yw_tokenize_str(&ts, ctx,
                          "10px;"
                          "50%;"
-                         "-1px",
-                         __func__))
+                         "-1px"))
     {
         return;
     }
@@ -408,8 +400,7 @@ void yw_test_css_parse_color(YW_TestingContext *ctx)
                          /* Named colors, transparent, currentColor ***********/
                          "blue;"
                          "transparent;"
-                         "currentColor;",
-                         __func__))
+                         "currentColor;"))
     {
         return;
     }
@@ -587,8 +578,7 @@ void yw_test_css_parse_display(YW_TestingContext *ctx)
                          "ruby;"
                          "block ruby;"
                          "table;"
-                         "inline-table;",
-                         __func__))
+                         "inline-table;"))
     {
         return;
     }
@@ -699,8 +689,7 @@ void yw_test_css_parse_float(YW_TestingContext *ctx)
     if (!yw_tokenize_str(&ts, ctx,
                          "none;"
                          "left;"
-                         "right",
-                         __func__))
+                         "right"))
     {
         return;
     }
@@ -731,8 +720,7 @@ void yw_test_css_parse_font_family(YW_TestingContext *ctx)
     if (!yw_tokenize_str(&ts, ctx,
                          "serif, sans-serif, cursive, fantasy, monospace,"
                          "space separated,"
-                         "\"quoted string\"",
-                         __func__))
+                         "\"quoted string\""))
     {
         return;
     }
@@ -774,8 +762,7 @@ void yw_test_css_parse_font_weight(YW_TestingContext *ctx)
     if (!yw_tokenize_str(&ts, ctx,
                          "normal;"
                          "bold;"
-                         "600",
-                         __func__))
+                         "600"))
     {
         return;
     }
@@ -808,8 +795,7 @@ void yw_test_css_parse_font_stretch(YW_TestingContext *ctx)
                          "semi-expanded;"
                          "expanded;"
                          "extra-expanded;"
-                         "ultra-expanded;",
-                         __func__))
+                         "ultra-expanded;"))
     {
         return;
     }
@@ -860,8 +846,7 @@ void yw_test_css_parse_font_style(YW_TestingContext *ctx)
     if (!yw_tokenize_str(&ts, ctx,
                          "normal;"
                          "italic;"
-                         "oblique",
-                         __func__))
+                         "oblique"))
     {
         return;
     }
@@ -896,8 +881,7 @@ void yw_test_css_parse_font_size(YW_TestingContext *ctx)
                          "larger;"
                          "smaller;"
                          "50%;"
-                         "50px;",
-                         __func__))
+                         "50px;"))
     {
         return;
     }
@@ -1054,7 +1038,7 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
         /* Complex selector */
         "#a #b, #a>#b, #a+#b, #a~#b, #a||#b";
 
-    if (!yw_css_parse_selector(&selectors, &selectors_len, (uint8_t const *)source, strlen(source), __func__))
+    if (!yw_css_parse_selector(&selectors, &selectors_len, (uint8_t const *)source, strlen(source)))
     {
         YW_FAILED_TEST(ctx, "failed to parse selector");
         return;
@@ -1482,8 +1466,7 @@ void yw_test_css_parse_size_or_auto(YW_TestingContext *ctx)
                          "fit-content(50px);"
                          "50%;"
                          "50px;"
-                         "none",
-                         __func__))
+                         "none"))
     {
         return;
     }
@@ -1543,8 +1526,7 @@ void yw_test_css_parse_size_or_none(YW_TestingContext *ctx)
                          "fit-content(50px);"
                          "50%;"
                          "50px;"
-                         "auto",
-                         __func__))
+                         "auto"))
     {
         return;
     }
@@ -1606,8 +1588,7 @@ void yw_test_css_parse_text_transform(YW_TestingContext *ctx)
                          "capitalize full-width full-size-kana;"
                          "uppercase;"
                          "lowercase;"
-                         "full-width full-size-kana;",
-                         __func__))
+                         "full-width full-size-kana;"))
     {
         return;
     }
@@ -1649,8 +1630,7 @@ void yw_test_css_parse_text_decoration_line(YW_TestingContext *ctx)
     YW_CSSTokenStream ts;
     if (!yw_tokenize_str(&ts, ctx,
                          "none;"
-                         " underline overline line-through blink;",
-                         __func__))
+                         " underline overline line-through blink;"))
     {
         return;
     }
@@ -1674,8 +1654,7 @@ void yw_test_css_parse_text_decoration_style(YW_TestingContext *ctx)
                          "double;"
                          "dotted;"
                          "dashed;"
-                         "wavy",
-                         __func__))
+                         "wavy"))
     {
         return;
     }
