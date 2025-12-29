@@ -52,12 +52,20 @@ bool yw_json_string_equals(YW_JSONString const *s, char const *str)
         {
             if (i != s->chars_len)
             {
+                /* End of str, but not the end of s->chars */
                 eq = false;
             }
             break;
         }
         else if (str[i] != s->chars[i])
         {
+            /* Character mismatch */
+            eq = false;
+            break;
+        }
+        else if (i == (s->chars_len - 1) && str[i + 1] != '\0')
+        {
+            /* End of s->chars, but not the end of str */
             eq = false;
             break;
         }
@@ -76,11 +84,11 @@ void yw_json_object_entry_deinit(YW_JSONObjectEntry *ent)
     yw_json_string_deinit(&ent->name);
     yw_json_value_free(ent->value);
 }
-void yw_json_add_value_to_object_entry(int *ents_cap, int *ents_len, YW_JSONObjectEntry **entries, char const *name, YW_JSONValue **v)
+void yw_json_add_value_to_object_entry(int *ents_cap, int *ents_len, YW_JSONObjectEntry **items, char const *name, YW_JSONValue **v)
 {
     YW_JSONObjectEntry ent;
     yw_json_object_entry_init(&ent, name, v);
-    YW_PUSH(YW_JSONObjectEntry, ents_cap, ents_len, entries, ent);
+    YW_PUSH(YW_JSONObjectEntry, ents_cap, ents_len, items, ent);
 }
 
 static void yw_value_deinit(YW_JSONValue *value)
@@ -105,9 +113,9 @@ static void yw_value_deinit(YW_JSONValue *value)
     case YW_JSON_ARRAY:
         for (int i = 0; i < value->array_val.len; i++)
         {
-            yw_json_value_free(value->array_val.entries[i]);
+            yw_json_value_free(value->array_val.items[i]);
         }
-        free(value->array_val.entries);
+        free(value->array_val.items);
         break;
     case YW_JSON_STRING:
         yw_json_string_deinit(&value->string_val.str);
@@ -138,10 +146,10 @@ static void yw_value_clone(YW_JSONValue *dest, YW_JSONValue const *value)
         }
         break;
     case YW_JSON_ARRAY:
-        dest->array_val.entries = YW_ALLOC(YW_JSONValue *, value->array_val.len);
+        dest->array_val.items = YW_ALLOC(YW_JSONValue *, value->array_val.len);
         for (int i = 0; i < value->array_val.len; i++)
         {
-            dest->array_val.entries[i] = yw_json_value_clone(value->array_val.entries[i]);
+            dest->array_val.items[i] = yw_json_value_clone(value->array_val.items[i]);
         }
         break;
     case YW_JSON_STRING:
@@ -176,22 +184,22 @@ YW_JSONValue *yw_json_new_object(YW_JSONObjectEntry **entries, int *entries_len)
     *entries_len = 0;
     return res;
 }
-YW_JSONValue *yw_json_new_array(YW_JSONValue ***entries, int *entries_len)
+YW_JSONValue *yw_json_new_array(YW_JSONValue ***items, int *items_len)
 {
     YW_JSONValue *res = YW_ALLOC(YW_JSONValue, 1);
     res->type = YW_JSON_ARRAY;
-    if (entries != NULL)
+    if (items != NULL)
     {
-        res->array_val.entries = *entries;
-        res->array_val.len = *entries_len;
+        res->array_val.items = *items;
+        res->array_val.len = *items_len;
     }
     else
     {
-        res->array_val.entries = NULL;
+        res->array_val.items = NULL;
         res->array_val.len = 0;
     }
-    *entries = NULL;
-    *entries_len = 0;
+    *items = NULL;
+    *items_len = 0;
     return res;
 }
 YW_JSONValue *yw_json_new_number(double n)
@@ -465,7 +473,7 @@ static bool yw_parse_string(YW_JSONString *out, YW_JSONParser *par)
         }
         else if (chr == '\\')
         {
-            YW_Char32 escape_chr = yw_consume_one_of_chars(&par->tr, "\"\\/bfnrt");
+            YW_Char32 escape_chr = yw_consume_one_of_chars(&par->tr, "\"\\/bfnrtu");
             switch (escape_chr)
             {
             case '\"':
@@ -488,7 +496,7 @@ static bool yw_parse_string(YW_JSONString *out, YW_JSONParser *par)
             case 't':
                 chr = '\t';
                 break;
-            case -1: {
+            case 'u': {
                 chr = 0;
                 for (int i = 0; i < 4; i++)
                 {
@@ -512,6 +520,8 @@ static bool yw_parse_string(YW_JSONString *out, YW_JSONParser *par)
                 }
                 break;
             }
+            case -1:
+                goto fail;
             }
         }
         if (chr == '\0')
@@ -536,12 +546,12 @@ fail:
     par->tr.cursor = old_cursor;
     return false;
 }
-static bool yw_parse_object(YW_JSONObjectEntry **entries_out, int *len_out, YW_JSONParser *par)
+static bool yw_parse_object(YW_JSONObjectEntry **items_out, int *len_out, YW_JSONParser *par)
 {
     YW_TextCursor old_cursor = par->tr.cursor;
-    YW_JSONObjectEntry *entries = NULL;
-    int entries_len = 0;
-    int entries_cap = 0;
+    YW_JSONObjectEntry *items = NULL;
+    int items_len = 0;
+    int items_cap = 0;
 
     if (!yw_consume_char(&par->tr, '{'))
     {
@@ -588,36 +598,36 @@ static bool yw_parse_object(YW_JSONObjectEntry **entries_out, int *len_out, YW_J
         /* Add object entry to the result */
         ent.value = YW_ALLOC(YW_JSONValue, 1);
         *ent.value = v;
-        YW_PUSH(YW_JSONObjectEntry, &entries_cap, &entries_len, &entries, ent);
+        YW_PUSH(YW_JSONObjectEntry, &items_cap, &items_len, &items, ent);
 
         if (!has_more)
         {
             break;
         }
     }
-    YW_SHRINK_TO_FIT(YW_JSONObjectEntry, &entries_cap, entries_len, &entries);
+    YW_SHRINK_TO_FIT(YW_JSONObjectEntry, &items_cap, items_len, &items);
     if (!yw_consume_char(&par->tr, '}'))
     {
         goto fail;
     }
-    *entries_out = entries;
-    *len_out = entries_len;
+    *items_out = items;
+    *len_out = items_len;
     return true;
 fail:
-    for (int i = 0; i < entries_len; i++)
+    for (int i = 0; i < items_len; i++)
     {
-        yw_json_object_entry_deinit(&entries[i]);
+        yw_json_object_entry_deinit(&items[i]);
     }
-    free(entries);
+    free(items);
     par->tr.cursor = old_cursor;
     return false;
 }
-static bool yw_parse_array(YW_JSONValue ***entries_out, int *len_out, YW_JSONParser *par)
+static bool yw_parse_array(YW_JSONValue ***items_out, int *len_out, YW_JSONParser *par)
 {
     YW_TextCursor old_cursor = par->tr.cursor;
-    YW_JSONValue **entries = NULL;
-    int entries_len = 0;
-    int entries_cap = 0;
+    YW_JSONValue **items = NULL;
+    int items_len = 0;
+    int items_cap = 0;
 
     if (!yw_consume_char(&par->tr, '['))
     {
@@ -645,27 +655,27 @@ static bool yw_parse_array(YW_JSONValue ***entries_out, int *len_out, YW_JSONPar
         /* Add object entry to the result */
         YW_JSONValue *val = YW_ALLOC(YW_JSONValue, 1);
         *val = temp_val;
-        YW_PUSH(YW_JSONValue *, &entries_cap, &entries_len, &entries, val);
+        YW_PUSH(YW_JSONValue *, &items_cap, &items_len, &items, val);
 
         if (!has_more)
         {
             break;
         }
     }
-    YW_SHRINK_TO_FIT(YW_JSONValue *, &entries_cap, entries_len, &entries);
+    YW_SHRINK_TO_FIT(YW_JSONValue *, &items_cap, items_len, &items);
     if (!yw_consume_char(&par->tr, ']'))
     {
         goto fail;
     }
-    *entries_out = entries;
-    *len_out = entries_len;
+    *items_out = items;
+    *len_out = items_len;
     return true;
 fail:
-    for (int i = 0; i < entries_len; i++)
+    for (int i = 0; i < items_len; i++)
     {
-        yw_json_value_free(entries[i]);
+        yw_json_value_free(items[i]);
     }
-    free(entries);
+    free(items);
     par->tr.cursor = old_cursor;
     return false;
 }
@@ -676,7 +686,7 @@ static bool yw_parse_value(YW_JSONValue *out, YW_JSONParser *par)
         out->type = YW_JSON_OBJECT;
         return true;
     }
-    else if (yw_parse_array(&out->array_val.entries, &out->array_val.len, par))
+    else if (yw_parse_array(&out->array_val.items, &out->array_val.len, par))
     {
         out->type = YW_JSON_ARRAY;
         return true;
@@ -711,7 +721,7 @@ static bool yw_parse_value(YW_JSONValue *out, YW_JSONParser *par)
     return false;
 }
 
-YW_JSONValue *yw_parse_json(const uint8_t *chars, int chars_len)
+YW_JSONValue *yw_parse_json(uint8_t const *chars, int chars_len)
 {
     YW_JSONParser par;
     memset(&par, 0, sizeof(par));
@@ -725,4 +735,8 @@ YW_JSONValue *yw_parse_json(const uint8_t *chars, int chars_len)
     YW_JSONValue *res = YW_ALLOC(YW_JSONValue, 1);
     *res = temp;
     return res;
+}
+YW_JSONValue *yw_parse_json_from_c_str(char const *s)
+{
+    return yw_parse_json((uint8_t const *)s, strlen(s));
 }

@@ -43,7 +43,7 @@ void yw_json_object_entry_init(YW_JSONObjectEntry *out, char const *name, YW_JSO
 void yw_json_object_entry_deinit(YW_JSONObjectEntry *ent);
 
 /* NOTE: Given YW_JSONValue will be moved into the entry, and pointer v will be cleared. */
-void yw_json_add_value_to_object_entry(int *ents_cap, int *ents_len, YW_JSONObjectEntry **entries, char const *name, YW_JSONValue **v);
+void yw_json_add_value_to_object_entry(int *ents_cap, int *ents_len, YW_JSONObjectEntry **items, char const *name, YW_JSONValue **v);
 
 typedef enum
 {
@@ -72,16 +72,16 @@ YW_JSONValue *yw_json_new_object(YW_JSONObjectEntry **entries, int *entries_len)
 typedef struct YW_JSONArrayValue
 {
     YW_JSONValueType type; /* YW_JSON_ARRAY */
-    YW_JSONValue **entries;
+    YW_JSONValue **items;
     int len;
 } YW_JSONArrayValue;
 
 /*
- * NOTE: Given entries will be moved into the value, and the list will be cleared.
+ * NOTE: Given items will be moved into the value, and the list will be cleared.
  *
- * If entries is NULL, empty array will be created (and entries_len is ignored).
+ * If items is NULL, empty array will be created (and items_len is ignored).
  */
-YW_JSONValue *yw_json_new_array(YW_JSONValue ***entries, int *entries_len);
+YW_JSONValue *yw_json_new_array(YW_JSONValue ***items, int *items_len);
 
 typedef struct YW_JSONNumberValue
 {
@@ -122,6 +122,9 @@ bool yw_json_expect_boolean(bool *out, YW_JSONValue const *value);
 bool yw_json_expect_null(YW_JSONValue const *value);
 
 /* Caller owns the returned value. */
-YW_JSONValue *yw_parse_json(const uint8_t *chars, int chars_len);
+YW_JSONValue *yw_parse_json(uint8_t const *chars, int chars_len);
+
+/* Caller owns the returned value. */
+YW_JSONValue *yw_parse_json_from_c_str(char const *s);
 
 #endif /* #ifndef YW_JSON_H_ */

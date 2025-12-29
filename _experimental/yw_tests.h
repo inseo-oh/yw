@@ -81,7 +81,8 @@
     _x(yw_test_json_expect_string)                                             \
     _x(yw_test_json_expect_number)                                             \
     _x(yw_test_json_expect_boolean)                                            \
-    _x(yw_test_json_expect_null)
+    _x(yw_test_json_expect_null)                                               \
+    _x(yw_test_json_parse)
 /* clang-format on */
 
 typedef struct YW_TestingContext
