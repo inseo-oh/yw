@@ -1,4 +1,10 @@
-PROJECTDIR := $(CURDIR)
+ifeq ($(PROJECTDIR),)
+$(error PROJECTDIR must be set)
+endif
+
+ifeq ($(TARGET_NAME),)
+$(error TARGET_NAME must be set)
+endif
 
 ################################################################################
 # Platform configuration (such as target name, initial CFLAFGS, etc...)
@@ -9,24 +15,24 @@ ifeq ($(PLATFORM),wasm)
 # Emscripten (WASM) ############################################################
 CC     := emcc
 OUTDIR := $(PROJECTDIR)/out_wasm
-TARGET := $(OUTDIR)/yw.html
+TARGET := $(OUTDIR)/$(TARGET_NAME).html
 else ifeq ($(PLATFORM),aos68k)
 # AmigaOS 680x0 ################################################################
 CC     := vc
 OUTDIR := $(PROJECTDIR)/out_aos68k
-TARGET := $(OUTDIR)/yw
+TARGET := $(OUTDIR)/$(TARGET_NAME)
 CFLAGS += +aos68k -lauto -c99 -lmieee
 else ifeq ($(PLATFORM),aosppc)
 # AmigaOS PowerPC ##############################################################
 CC     := vc
 OUTDIR := $(PROJECTDIR)/out_aosppc
-TARGET := $(OUTDIR)/yw
+TARGET := $(OUTDIR)/$(TARGET_NAME)
 CFLAGS += +aosppc -lauto -c99 -lm
 else
 # Linux ########################################################################
 CFLAGS += -fsanitize=address -g
 OUTDIR := $(PROJECTDIR)/out_linux
-TARGET := $(OUTDIR)/yw
+TARGET := $(OUTDIR)/$(TARGET_NAME)
 endif
 
 ################################################################################
@@ -34,8 +40,8 @@ endif
 ################################################################################
 
 OBJDIR     = $(OUTDIR)/obj
-SRCS      := $(shell find . -name '*.c')
-OBJ_NAMES  = $(patsubst %.c, %.o, $(SRCS))
+SRCS      := $(shell find . -name '*.c') $(ADD_SRCS)
+OBJ_NAMES  = $(patsubst %.c, %.o, $(abspath $(SRCS)))
 
 OBJS      = $(addprefix $(OBJDIR)/, $(OBJ_NAMES))
 DEPS      = $(patsubst %.o, %.d, $(OBJS))
