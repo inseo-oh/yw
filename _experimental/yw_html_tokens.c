@@ -1,13 +1,12 @@
 /*
  * This file is part of YW project. Copyright 2025 Oh Inseo (YJK)
  * SPDX-License-Identifier: BSD-3-Clause
- * See LICENSE for details, and LICENSE_WHATWG_SPECS for WHATWG license
- * information.
+ * See LICENSE for details, and LICENSE_WHATWG_SPECS for WHATWG license information.
  */
 #include "yw_html_tokens.h"
 #include "yw_common.h"
 #include "yw_dom.h"
-#include "yw_encoding.h"
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -91,7 +90,7 @@ static bool yw_is_end_tag(YW_HTMLToken const *tk)
     return tk->type == YW_HTML_TAG_TOKEN && tk->tag_tk.is_end;
 }
 
-static YW_HTMLToken *yw_make_eof_token()
+static YW_HTMLToken *yw_make_eof_token(void)
 {
     YW_HTMLToken *res = YW_ALLOC(YW_HTMLToken, 1);
     memset(res, 0, sizeof(*res));
@@ -122,12 +121,20 @@ static YW_HTMLToken *yw_make_tag_token(char const *name)
     res->tag_tk.name = yw_duplicate_str(name);
     return res;
 }
+static YW_HTMLToken *yw_make_doctype_token(void)
+{
+    YW_HTMLToken *res = YW_ALLOC(YW_HTMLToken, 1);
+    memset(res, 0, sizeof(*res));
+    res->type = YW_HTML_DOCTYPE_TOKEN;
+    return res;
+}
 
 void yw_html_tokenizer_init(YW_HTMLTokenizer *out, const uint8_t *chars, int chars_len)
 {
     memset(out, 0, sizeof(*out));
 
     yw_text_reader_init(&out->tr, chars, chars_len);
+    out->state = yw_html_data_state;
 }
 
 static void yw_set_current_token(YW_HTMLTokenizer *tkr, YW_HTMLToken *tk)
@@ -170,17 +177,6 @@ static YW_DOMAttrData *yw_current_attr(YW_HTMLTokenizer *tkr)
         YW_UNREACHABLE();
     }
     return &tag->attrs[tag->attrs_len - 1];
-}
-static void yw_check_duplicate_attr_name(YW_HTMLTokenizer *tkr, YW_DOMAttrData const *attr)
-{
-    YW_HTMLTagToken *tag = yw_current_tag_token(tkr);
-    for (int i = 0; i < tag->attrs_len; i++)
-    {
-        if (strcmp(attr->local_name, tag->attrs[i].local_name) == 0)
-        {
-            YW_PUSH(int, &tkr->bad_attrs_cap, &tkr->bad_attrs_len, &tkr->bad_attrs, i);
-        }
-    }
 }
 
 /*
@@ -243,6 +239,11 @@ static void yw_emit_char_token(YW_HTMLTokenizer *tkr, YW_Char32 chr)
     YW_HTMLToken *token = yw_make_char_token(chr);
     yw_emit_token(tkr, &token);
 }
+static void yw_emit_doctype_token(YW_HTMLTokenizer *tkr)
+{
+    YW_HTMLToken *token = yw_make_doctype_token();
+    yw_emit_token(tkr, &token);
+}
 
 static bool yw_is_consumed_as_part_of_attr(YW_HTMLTokenizer const *tkr)
 {
@@ -269,6 +270,18 @@ static void yw_flush_codepoints_consumed_as_char_reference(YW_HTMLTokenizer *tkr
             yw_emit_char_token(tkr, *src);
         }
     }
+}
+
+static void yw_add_attr_to_current_tag(YW_HTMLTokenizer *tkr, char const *name)
+{
+    YW_HTMLTagToken *tag = yw_current_tag_token(tkr);
+    YW_DOMAttrData attr;
+    memset(&attr, 0, sizeof(attr));
+    attr.local_name = yw_duplicate_str(name);
+    YW_PUSH(YW_DOMAttrData, &tkr->curr_attrs_cap, &tag->attrs_len, &tag->attrs, attr);
+    assert(tkr->bad_attrs == NULL);
+    assert(tkr->bad_attrs_cap == 0);
+    assert(tkr->bad_attrs_len == 0);
 }
 
 static bool yw_is_appropriate_end_tag_token(YW_HTMLTokenizer const *tkr, YW_HTMLToken const *tk)
@@ -310,7 +323,7 @@ void yw_html_data_state(YW_HTMLTokenizer *tkr)
         break;
     }
 }
-void yw_html_rcdata_state(struct YW_HTMLTokenizer *tkr)
+void yw_html_rcdata_state(YW_HTMLTokenizer *tkr)
 {
     YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
     switch (next_char)
@@ -334,7 +347,7 @@ void yw_html_rcdata_state(struct YW_HTMLTokenizer *tkr)
         break;
     }
 }
-void yw_html_rawtext_state(struct YW_HTMLTokenizer *tkr)
+void yw_html_rawtext_state(YW_HTMLTokenizer *tkr)
 {
     YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
     switch (next_char)
@@ -354,12 +367,12 @@ void yw_html_rawtext_state(struct YW_HTMLTokenizer *tkr)
         break;
     }
 }
-void yw_html_plaintext_state(struct YW_HTMLTokenizer *tkr)
+void yw_html_plaintext_state(YW_HTMLTokenizer *tkr)
 {
     (void)tkr;
     YW_TODO();
 }
-void yw_html_tag_open_state(struct YW_HTMLTokenizer *tkr)
+void yw_html_tag_open_state(YW_HTMLTokenizer *tkr)
 {
     YW_TextCursor old_cursor = tkr->tr.cursor;
     YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
@@ -397,7 +410,7 @@ void yw_html_tag_open_state(struct YW_HTMLTokenizer *tkr)
         }
     }
 }
-void yw_html_end_tag_open_state(struct YW_HTMLTokenizer *tkr)
+void yw_html_end_tag_open_state(YW_HTMLTokenizer *tkr)
 {
     YW_TextCursor old_cursor = tkr->tr.cursor;
     YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
@@ -429,7 +442,7 @@ void yw_html_end_tag_open_state(struct YW_HTMLTokenizer *tkr)
         }
     }
 }
-void yw_html_tag_name_state(struct YW_HTMLTokenizer *tkr)
+void yw_html_tag_name_state(YW_HTMLTokenizer *tkr)
 {
     YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
     switch (next_char)
@@ -461,7 +474,7 @@ void yw_html_tag_name_state(struct YW_HTMLTokenizer *tkr)
     }
     }
 }
-void yw_html_rcdata_less_than_sign_state(struct YW_HTMLTokenizer *tkr)
+void yw_html_rcdata_less_than_sign_state(YW_HTMLTokenizer *tkr)
 {
     YW_TextCursor old_cursor = tkr->tr.cursor;
     YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
@@ -477,7 +490,7 @@ void yw_html_rcdata_less_than_sign_state(struct YW_HTMLTokenizer *tkr)
         tkr->state = yw_html_rcdata_state;
     }
 }
-void yw_html_rcdata_end_tag_open_state(struct YW_HTMLTokenizer *tkr)
+void yw_html_rcdata_end_tag_open_state(YW_HTMLTokenizer *tkr)
 {
     YW_TextCursor old_cursor = tkr->tr.cursor;
     YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
@@ -496,7 +509,7 @@ void yw_html_rcdata_end_tag_open_state(struct YW_HTMLTokenizer *tkr)
         tkr->state = yw_html_rcdata_state;
     }
 }
-void yw_html_rcdata_end_tag_name_state(struct YW_HTMLTokenizer *tkr)
+void yw_html_rcdata_end_tag_name_state(YW_HTMLTokenizer *tkr)
 {
     YW_TextCursor old_cursor = tkr->tr.cursor;
     YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
@@ -553,4 +566,1293 @@ anything_else:
     }
     tkr->tr.cursor = old_cursor;
     tkr->state = yw_html_rcdata_state;
+}
+void yw_html_rawtext_less_than_sign_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '/':
+        tkr->temp_buf = yw_duplicate_str("");
+        tkr->state = yw_html_rawtext_end_tag_open_state;
+        break;
+    default:
+        yw_emit_char_token(tkr, '<');
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_rawtext_state;
+    }
+}
+void yw_html_rawtext_end_tag_open_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    if (yw_is_ascii_alpha(next_char))
+    {
+        yw_set_current_token(tkr, yw_make_tag_token(""));
+        yw_current_tag_token(tkr)->is_end = true;
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_rawtext_end_tag_name_state;
+    }
+    else
+    {
+        yw_emit_char_token(tkr, '<');
+        yw_emit_char_token(tkr, '/');
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_rawtext_state;
+    }
+}
+void yw_html_rawtext_end_tag_name_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '\t':
+    case '\n':
+    case '\x0c':
+    case ' ':
+        if (yw_is_appropriate_end_tag_token(tkr, tkr->current_token))
+        {
+            tkr->state = yw_html_before_attribute_name_state;
+            break;
+        }
+        goto anything_else;
+    case '/':
+        if (yw_is_appropriate_end_tag_token(tkr, tkr->current_token))
+        {
+            tkr->state = yw_html_self_closing_start_tag_state;
+            break;
+        }
+        goto anything_else;
+    case '>':
+        if (yw_is_appropriate_end_tag_token(tkr, tkr->current_token))
+        {
+            tkr->state = yw_html_data_state;
+            yw_emit_token(tkr, &tkr->current_token);
+            break;
+        }
+        goto anything_else;
+    default:
+        if (yw_is_ascii_alpha(next_char))
+        {
+            YW_Char32 chr = yw_to_ascii_lowercase(next_char);
+            yw_append_char(&tkr->temp_buf, chr);
+            break;
+        }
+        goto anything_else;
+    }
+    return;
+anything_else:
+    yw_emit_char_token(tkr, '<');
+    yw_emit_char_token(tkr, '/');
+
+    char const *next_temp_buf_chr = tkr->temp_buf;
+    while (1)
+    {
+        YW_Char32 c = yw_utf8_next_char(&next_temp_buf_chr);
+        if (c == -1)
+        {
+            break;
+        }
+        yw_emit_char_token(tkr, c);
+    }
+    tkr->tr.cursor = old_cursor;
+    tkr->state = yw_html_rawtext_state;
+}
+void yw_html_before_attribute_name_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '\t':
+    case '\n':
+    case '\x0c':
+    case ' ':
+        break;
+    case '/':
+    case '>':
+    case -1:
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_after_attribute_name_state;
+        break;
+    case '=': {
+        char *name_str = yw_char_to_str(next_char);
+        yw_add_attr_to_current_tag(tkr, name_str);
+        free(name_str);
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_attribute_name_state;
+        break;
+    }
+    default:
+        yw_add_attr_to_current_tag(tkr, "");
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_attribute_name_state;
+        break;
+    }
+}
+void yw_html_attribute_name_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '\t':
+    case '\n':
+    case '\x0c':
+    case ' ':
+    case '/':
+    case '>':
+    case -1:
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_after_attribute_name_state;
+        break;
+    case '=':
+        tkr->state = yw_html_before_attribute_value_state;
+        break;
+    case '\0':
+        yw_parse_error_encountered(tkr, YW_UNEXPECTED_NULL_CHARACTER_ERROR);
+        yw_append_str(&yw_current_attr(tkr)->local_name, YW_UNICODE_REPLACEMENT_CHAR);
+        break;
+    case '"':
+    case '\\':
+    case '<':
+        yw_parse_error_encountered(tkr, YW_UNEXPECTED_CHARACTER_IN_ATTRIBUTE_NAME_ERROR);
+        goto anything_else;
+    default:
+        goto anything_else;
+    }
+    goto check_dupliate_attr_name;
+anything_else:
+    yw_append_char(&yw_current_attr(tkr)->local_name, next_char);
+    return;
+check_dupliate_attr_name: {
+    YW_HTMLTagToken *tag = yw_current_tag_token(tkr);
+    YW_DOMAttrData const *current_attr = yw_current_attr(tkr);
+    for (int i = 0; i < tag->attrs_len; i++)
+    {
+        if (strcmp(current_attr->local_name, tag->attrs[i].local_name) == 0)
+        {
+            YW_PUSH(int, &tkr->bad_attrs_cap, &tkr->bad_attrs_len, &tkr->bad_attrs, i);
+        }
+    }
+}
+}
+void yw_html_after_attribute_name_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '\t':
+    case '\n':
+    case '\x0c':
+    case ' ':
+        break;
+    case '/':
+        tkr->state = yw_html_self_closing_start_tag_state;
+        break;
+    case '=':
+        tkr->state = yw_html_before_attribute_value_state;
+        break;
+    case '>':
+        tkr->state = yw_html_data_state;
+        yw_emit_token(tkr, &tkr->current_token);
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_TAG_ERROR);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_add_attr_to_current_tag(tkr, "");
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_before_attribute_name_state;
+        break;
+    }
+}
+void yw_html_before_attribute_value_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '\t':
+    case '\n':
+    case '\x0c':
+    case ' ':
+        break;
+    case '"':
+        tkr->state = yw_html_attribute_value_double_quoted_state;
+        break;
+    case '\'':
+        tkr->state = yw_html_attribute_value_single_quoted_state;
+        break;
+    case '>':
+        yw_parse_error_encountered(tkr, YW_MISSING_ATTRIBUTE_VALUE_ERROR);
+        tkr->state = yw_html_data_state;
+        break;
+    default:
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_attribute_value_unquoted_state;
+    }
+}
+void yw_html_attribute_value_double_quoted_state(YW_HTMLTokenizer *tkr)
+{
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '"':
+        tkr->state = yw_html_after_attribute_value_quoted_state;
+        break;
+    case '&':
+        tkr->return_state = yw_html_attribute_value_double_quoted_state;
+        tkr->state = yw_html_character_reference_state;
+        break;
+    case '\0':
+        yw_parse_error_encountered(tkr, YW_UNEXPECTED_NULL_CHARACTER_ERROR);
+        yw_append_str(&yw_current_attr(tkr)->value, YW_UNICODE_REPLACEMENT_CHAR);
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_TAG_ERROR);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_parse_error_encountered(tkr, YW_UNEXPECTED_NULL_CHARACTER_ERROR);
+        yw_append_char(&yw_current_attr(tkr)->value, next_char);
+        break;
+    }
+}
+void yw_html_attribute_value_single_quoted_state(YW_HTMLTokenizer *tkr)
+{
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '\'':
+        tkr->state = yw_html_after_attribute_value_quoted_state;
+        break;
+    case '&':
+        tkr->return_state = yw_html_attribute_value_single_quoted_state;
+        tkr->state = yw_html_character_reference_state;
+        break;
+    case '\0':
+        yw_parse_error_encountered(tkr, YW_UNEXPECTED_NULL_CHARACTER_ERROR);
+        yw_append_str(&yw_current_attr(tkr)->value, YW_UNICODE_REPLACEMENT_CHAR);
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_TAG_ERROR);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_parse_error_encountered(tkr, YW_UNEXPECTED_NULL_CHARACTER_ERROR);
+        yw_append_char(&yw_current_attr(tkr)->value, next_char);
+        break;
+    }
+}
+void yw_html_attribute_value_unquoted_state(YW_HTMLTokenizer *tkr)
+{
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '\t':
+    case '\n':
+    case '\x0c':
+    case ' ':
+        tkr->state = yw_html_before_attribute_name_state;
+        break;
+    case '&':
+        tkr->return_state = yw_html_attribute_value_unquoted_state;
+        tkr->state = yw_html_character_reference_state;
+        break;
+    case '>':
+        tkr->state = yw_html_data_state;
+        yw_emit_token(tkr, &tkr->current_token);
+        break;
+    case '\0':
+        yw_parse_error_encountered(tkr, YW_UNEXPECTED_NULL_CHARACTER_ERROR);
+        yw_append_str(&yw_current_attr(tkr)->value, YW_UNICODE_REPLACEMENT_CHAR);
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_TAG_ERROR);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_parse_error_encountered(tkr, YW_UNEXPECTED_NULL_CHARACTER_ERROR);
+        yw_append_char(&yw_current_attr(tkr)->value, next_char);
+        break;
+    }
+}
+void yw_html_after_attribute_value_quoted_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '\t':
+    case '\n':
+    case '\x0c':
+    case ' ':
+        tkr->state = yw_html_before_attribute_name_state;
+        break;
+    case '/':
+        tkr->state = yw_html_self_closing_start_tag_state;
+        break;
+    case '>':
+        tkr->state = yw_html_data_state;
+        yw_emit_token(tkr, &tkr->current_token);
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_TAG_ERROR);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_parse_error_encountered(tkr, YW_MISSING_WHITESPACE_BETWEEN_ATTRIBUTES_ERROR);
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_before_attribute_name_state;
+        break;
+    }
+}
+void yw_html_self_closing_start_tag_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '>':
+        yw_current_tag_token(tkr)->is_self_closing = true;
+        tkr->state = yw_html_data_state;
+        yw_emit_token(tkr, &tkr->current_token);
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_TAG_ERROR);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_parse_error_encountered(tkr, YW_UNEXPECTED_SOLIDUS_IN_TAG_ERROR);
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_before_attribute_name_state;
+        break;
+    }
+}
+void yw_html_bogus_comment_state(YW_HTMLTokenizer *tkr)
+{
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '>':
+        tkr->state = yw_html_data_state;
+        yw_emit_token(tkr, &tkr->current_token);
+        break;
+    case -1:
+        yw_emit_token(tkr, &tkr->current_token);
+        yw_emit_eof_token(tkr);
+        break;
+    case '\0':
+        yw_parse_error_encountered(tkr, YW_UNEXPECTED_NULL_CHARACTER_ERROR);
+        yw_append_str(&yw_current_comment_token(tkr)->data, YW_UNICODE_REPLACEMENT_CHAR);
+        break;
+    default:
+        yw_append_char(&yw_current_comment_token(tkr)->data, next_char);
+        break;
+    }
+}
+void yw_html_markup_declaration_open_state(YW_HTMLTokenizer *tkr)
+{
+    if (yw_consume_str(&tkr->tr, "--", YW_NO_MATCH_FLAGS))
+    {
+        yw_set_current_token(tkr, yw_make_comment_token(""));
+        tkr->state = yw_html_comment_start_state;
+    }
+    else if (yw_consume_str(&tkr->tr, "DOCTYPE", YW_ASCII_CASE_INSENSITIVE))
+    {
+        tkr->state = yw_html_doctype_state;
+    }
+    else if (yw_consume_str(&tkr->tr, "[CDATA[", YW_NO_MATCH_FLAGS))
+    {
+        YW_TODO();
+    }
+    else
+    {
+        yw_parse_error_encountered(tkr, YW_INCORRECTLY_OPENED_COMMENT_ERROR);
+        yw_set_current_token(tkr, yw_make_comment_token(""));
+        tkr->state = yw_html_bogus_comment_state;
+    }
+}
+void yw_html_comment_start_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '-':
+        tkr->state = yw_html_comment_start_dash_state;
+        break;
+    case '>':
+        yw_parse_error_encountered(tkr, YW_ABRUPT_CLOSING_OF_EMPTY_COMMENT_ERROR);
+        tkr->state = yw_html_data_state;
+        yw_emit_token(tkr, &tkr->current_token);
+        break;
+    default:
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_bogus_comment_state;
+        break;
+    }
+}
+void yw_html_comment_start_dash_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '-':
+        tkr->state = yw_html_comment_end_state;
+        break;
+    case '>':
+        yw_parse_error_encountered(tkr, YW_ABRUPT_CLOSING_OF_EMPTY_COMMENT_ERROR);
+        tkr->state = yw_html_data_state;
+        yw_emit_token(tkr, &tkr->current_token);
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_COMMENT_ERROR);
+        yw_emit_token(tkr, &tkr->current_token);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_append_str(&yw_current_comment_token(tkr)->data, "-");
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_comment_state;
+        break;
+    }
+}
+void yw_html_comment_state(YW_HTMLTokenizer *tkr)
+{
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '<':
+        yw_append_str(&yw_current_comment_token(tkr)->data, "<");
+        tkr->state = yw_html_comment_less_than_sign_state;
+        break;
+    case '-':
+        tkr->state = yw_html_comment_end_dash_state;
+        break;
+    case '\0':
+        yw_parse_error_encountered(tkr, YW_UNEXPECTED_NULL_CHARACTER_ERROR);
+        yw_append_str(&yw_current_comment_token(tkr)->data, YW_UNICODE_REPLACEMENT_CHAR);
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_COMMENT_ERROR);
+        yw_emit_token(tkr, &tkr->current_token);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_append_char(&yw_current_comment_token(tkr)->data, next_char);
+        break;
+    }
+}
+void yw_html_comment_less_than_sign_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '!':
+        yw_append_char(&yw_current_comment_token(tkr)->data, next_char);
+        YW_TODO();
+        /* tkr->state = yw_html_comment_less_than_sign_bang_state; */
+        break;
+    case '<':
+        yw_append_char(&yw_current_comment_token(tkr)->data, next_char);
+        break;
+    default:
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_comment_state;
+        break;
+    }
+}
+void yw_html_comment_end_dash_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '-':
+        tkr->state = yw_html_comment_end_state;
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_COMMENT_ERROR);
+        yw_emit_token(tkr, &tkr->current_token);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_append_str(&yw_current_comment_token(tkr)->data, "-");
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_comment_state;
+        break;
+    }
+}
+void yw_html_comment_end_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '>':
+        tkr->state = yw_html_data_state;
+        yw_emit_token(tkr, &tkr->current_token);
+        break;
+    case '!':
+        YW_TODO();
+        /* tkr->state = yw_html_comment_end_bang_state; */
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_COMMENT_ERROR);
+        yw_emit_token(tkr, &tkr->current_token);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_append_str(&yw_current_comment_token(tkr)->data, "--");
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_bogus_comment_state;
+        break;
+    }
+}
+void yw_html_doctype_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '\t':
+    case '\n':
+    case '\x0c':
+    case ' ':
+        tkr->state = yw_html_before_doctype_name_state;
+        break;
+    case '>':
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_before_doctype_name_state;
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_DOCTYPE_ERROR);
+        yw_emit_doctype_token(tkr);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_parse_error_encountered(tkr, YW_MISSING_WHITESPACE_BEFORE_DOCTYPE_NAME_ERROR);
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_before_doctype_name_state;
+        break;
+    }
+}
+void yw_html_before_doctype_name_state(YW_HTMLTokenizer *tkr)
+{
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '\t':
+    case '\n':
+    case '\x0c':
+    case ' ':
+        break;
+    case '\0':
+        yw_parse_error_encountered(tkr, YW_UNEXPECTED_NULL_CHARACTER_ERROR);
+        yw_set_current_token(tkr, yw_make_doctype_token());
+        yw_current_doctype_token(tkr)->name = yw_duplicate_str(YW_UNICODE_REPLACEMENT_CHAR);
+        break;
+    case '>':
+        yw_parse_error_encountered(tkr, YW_MISSING_DOCTYPE_NAME_ERROR);
+        yw_set_current_token(tkr, yw_make_doctype_token());
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_DOCTYPE_ERROR);
+        yw_emit_doctype_token(tkr);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_set_current_token(tkr, yw_make_doctype_token());
+        yw_current_doctype_token(tkr)->name = yw_char_to_str(yw_to_ascii_lowercase(next_char));
+        tkr->state = yw_html_doctype_name_state;
+    }
+}
+void yw_html_doctype_name_state(YW_HTMLTokenizer *tkr)
+{
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '\t':
+    case '\n':
+    case '\x0c':
+    case ' ':
+        tkr->state = yw_html_after_doctype_name_state;
+        break;
+    case '>':
+        tkr->state = yw_html_data_state;
+        yw_emit_token(tkr, &tkr->current_token);
+        break;
+    case '\0':
+        yw_parse_error_encountered(tkr, YW_UNEXPECTED_NULL_CHARACTER_ERROR);
+        yw_append_str(&yw_current_doctype_token(tkr)->name, YW_UNICODE_REPLACEMENT_CHAR);
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_DOCTYPE_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        yw_emit_token(tkr, &tkr->current_token);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_append_char(&yw_current_doctype_token(tkr)->name, yw_to_ascii_lowercase(next_char));
+        break;
+    }
+}
+void yw_html_after_doctype_name_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '\t':
+    case '\n':
+    case '\x0c':
+    case ' ':
+        break;
+    case '>':
+        tkr->state = yw_html_data_state;
+        yw_emit_token(tkr, &tkr->current_token);
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_DOCTYPE_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        yw_emit_token(tkr, &tkr->current_token);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        tkr->tr.cursor = old_cursor;
+        if (yw_consume_str(&tkr->tr, "PUBLIC", YW_ASCII_CASE_INSENSITIVE))
+        {
+            tkr->state = yw_html_after_doctype_public_keyword_state;
+        }
+        else if (yw_consume_str(&tkr->tr, "SYSTEM", YW_ASCII_CASE_INSENSITIVE))
+        {
+            tkr->state = yw_html_after_doctype_system_keyword_state;
+        }
+        else
+        {
+            yw_parse_error_encountered(tkr, YW_INVALID_CHARACTER_SEQUENCE_AFTER_DOCTYPE_NAME_ERROR);
+            yw_current_doctype_token(tkr)->force_quirks = true;
+            YW_TODO();
+            /* tkr->state = bogus_doctype_state; */
+        }
+    }
+}
+void yw_html_after_doctype_public_keyword_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '\t':
+    case '\n':
+    case '\x0c':
+    case ' ':
+        tkr->state = yw_html_before_doctype_public_identifier_state;
+        break;
+    case '"':
+        yw_parse_error_encountered(tkr, YW_MISSING_WHITESPACE_AFTER_DOCTYPE_PUBLIC_KEYWORD_ERROR);
+        yw_current_doctype_token(tkr)->public_id = yw_duplicate_str("");
+        tkr->state = yw_html_doctype_public_identifier_double_quoted_state;
+        break;
+    case '\'':
+        yw_parse_error_encountered(tkr, YW_MISSING_WHITESPACE_AFTER_DOCTYPE_PUBLIC_KEYWORD_ERROR);
+        yw_current_doctype_token(tkr)->public_id = yw_duplicate_str("");
+        tkr->state = yw_html_doctype_public_identifier_single_quoted_state;
+        break;
+    case '>':
+        yw_parse_error_encountered(tkr, YW_MISSING_DOCTYPE_PUBLIC_IDENTIFIER_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        tkr->state = yw_html_data_state;
+        yw_emit_token(tkr, &tkr->current_token);
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_DOCTYPE_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        yw_emit_token(tkr, &tkr->current_token);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_parse_error_encountered(tkr, YW_MISSING_QUOTE_BEFORE_DOCTYPE_PUBLIC_IDENTIFIER_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        tkr->tr.cursor = old_cursor;
+        YW_TODO();
+        /* tkr->state = bogus_doctype_state; */
+    }
+}
+void yw_html_before_doctype_public_identifier_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '\t':
+    case '\n':
+    case '\x0c':
+    case ' ':
+        break;
+    case '"':
+        yw_current_doctype_token(tkr)->public_id = yw_duplicate_str("");
+        tkr->state = yw_html_doctype_public_identifier_double_quoted_state;
+        break;
+    case '\'':
+        yw_current_doctype_token(tkr)->public_id = yw_duplicate_str("");
+        tkr->state = yw_html_doctype_public_identifier_single_quoted_state;
+        break;
+    case '>':
+        yw_parse_error_encountered(tkr, YW_MISSING_DOCTYPE_PUBLIC_IDENTIFIER_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        tkr->state = yw_html_data_state;
+        yw_emit_token(tkr, &tkr->current_token);
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_DOCTYPE_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        yw_emit_token(tkr, &tkr->current_token);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_parse_error_encountered(tkr, YW_MISSING_QUOTE_BEFORE_DOCTYPE_PUBLIC_IDENTIFIER_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        tkr->tr.cursor = old_cursor;
+        YW_TODO();
+        /* tkr->state = bogus_doctype_state; */
+    }
+}
+void yw_html_doctype_public_identifier_double_quoted_state(YW_HTMLTokenizer *tkr)
+{
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '"':
+        tkr->state = yw_html_after_doctype_public_identifier_state;
+        break;
+    case '>':
+        yw_parse_error_encountered(tkr, YW_ABRUPT_DOCTYPE_PUBLIC_IDENTIFIER_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        tkr->state = yw_html_data_state;
+        yw_emit_token(tkr, &tkr->current_token);
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_DOCTYPE_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        yw_emit_token(tkr, &tkr->current_token);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_append_char(&yw_current_doctype_token(tkr)->public_id, next_char);
+        break;
+    }
+}
+void yw_html_doctype_public_identifier_single_quoted_state(YW_HTMLTokenizer *tkr)
+{
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '\'':
+        tkr->state = yw_html_after_doctype_public_identifier_state;
+        break;
+    case '>':
+        yw_parse_error_encountered(tkr, YW_ABRUPT_DOCTYPE_PUBLIC_IDENTIFIER_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        tkr->state = yw_html_data_state;
+        yw_emit_token(tkr, &tkr->current_token);
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_DOCTYPE_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        yw_emit_token(tkr, &tkr->current_token);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_append_char(&yw_current_doctype_token(tkr)->public_id, next_char);
+        break;
+    }
+}
+void yw_html_after_doctype_public_identifier_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '\t':
+    case '\n':
+    case '\x0c':
+    case ' ':
+        tkr->state = yw_html_between_doctype_public_and_system_identifiers_state;
+        break;
+    case '>':
+        tkr->state = yw_html_data_state;
+        yw_emit_token(tkr, &tkr->current_token);
+        break;
+    case '"':
+        yw_parse_error_encountered(tkr, YW_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUBLIC_AND_SYSTEM_IDENTIFIERS_ERROR);
+        yw_current_doctype_token(tkr)->system_id = yw_duplicate_str("");
+        tkr->state = yw_html_doctype_system_identifier_double_quoted_state;
+        break;
+    case '\'':
+        yw_parse_error_encountered(tkr, YW_MISSING_WHITESPACE_BETWEEN_DOCTYPE_PUBLIC_AND_SYSTEM_IDENTIFIERS_ERROR);
+        yw_current_doctype_token(tkr)->system_id = yw_duplicate_str("");
+        tkr->state = yw_html_doctype_system_identifier_single_quoted_state;
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_DOCTYPE_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        yw_emit_token(tkr, &tkr->current_token);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_parse_error_encountered(tkr, YW_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_IDENTIFIER_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        tkr->tr.cursor = old_cursor;
+        YW_TODO();
+        /* tkr->state = bogus_doctype_state; */
+    }
+}
+void yw_html_between_doctype_public_and_system_identifiers_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '\t':
+    case '\n':
+    case '\x0c':
+    case ' ':
+        break;
+    case '>':
+        tkr->state = yw_html_data_state;
+        yw_emit_token(tkr, &tkr->current_token);
+        break;
+    case '"':
+        yw_current_doctype_token(tkr)->system_id = yw_duplicate_str("");
+        tkr->state = yw_html_doctype_system_identifier_double_quoted_state;
+        break;
+    case '\'':
+        yw_current_doctype_token(tkr)->system_id = yw_duplicate_str("");
+        tkr->state = yw_html_doctype_system_identifier_single_quoted_state;
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_DOCTYPE_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        yw_emit_token(tkr, &tkr->current_token);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_parse_error_encountered(tkr, YW_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_IDENTIFIER_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        tkr->tr.cursor = old_cursor;
+        YW_TODO();
+        /* tkr->state = bogus_doctype_state; */
+    }
+}
+void yw_html_after_doctype_system_keyword_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '\t':
+    case '\n':
+    case '\x0c':
+    case ' ':
+        tkr->state = yw_html_before_doctype_system_identifier_state;
+        break;
+    case '"':
+        yw_parse_error_encountered(tkr, YW_MISSING_WHITESPACE_AFTER_DOCTYPE_SYSTEM_KEYWORD_ERROR);
+        yw_current_doctype_token(tkr)->system_id = yw_duplicate_str("");
+        tkr->state = yw_html_doctype_system_identifier_double_quoted_state;
+        break;
+    case '\'':
+        yw_parse_error_encountered(tkr, YW_MISSING_WHITESPACE_AFTER_DOCTYPE_SYSTEM_KEYWORD_ERROR);
+        yw_current_doctype_token(tkr)->system_id = yw_duplicate_str("");
+        tkr->state = yw_html_doctype_system_identifier_single_quoted_state;
+        break;
+    case '>':
+        yw_parse_error_encountered(tkr, YW_MISSING_DOCTYPE_SYSTEM_IDENTIFIER_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        tkr->state = yw_html_data_state;
+        yw_emit_token(tkr, &tkr->current_token);
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_DOCTYPE_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        yw_emit_token(tkr, &tkr->current_token);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_parse_error_encountered(tkr, YW_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_IDENTIFIER_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        tkr->tr.cursor = old_cursor;
+        YW_TODO();
+        /* tkr->state = bogus_doctype_state; */
+    }
+}
+void yw_html_before_doctype_system_identifier_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '\t':
+    case '\n':
+    case '\x0c':
+    case ' ':
+        break;
+    case '"':
+        yw_current_doctype_token(tkr)->system_id = yw_duplicate_str("");
+        tkr->state = yw_html_doctype_system_identifier_double_quoted_state;
+        break;
+    case '\'':
+        yw_current_doctype_token(tkr)->system_id = yw_duplicate_str("");
+        tkr->state = yw_html_doctype_system_identifier_single_quoted_state;
+        break;
+    case '>':
+        yw_parse_error_encountered(tkr, YW_MISSING_DOCTYPE_SYSTEM_IDENTIFIER_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        tkr->state = yw_html_data_state;
+        yw_emit_token(tkr, &tkr->current_token);
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_DOCTYPE_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        yw_emit_token(tkr, &tkr->current_token);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_parse_error_encountered(tkr, YW_MISSING_QUOTE_BEFORE_DOCTYPE_SYSTEM_IDENTIFIER_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        tkr->tr.cursor = old_cursor;
+        YW_TODO();
+        /* tkr->state = bogus_doctype_state; */
+    }
+}
+void yw_html_doctype_system_identifier_double_quoted_state(YW_HTMLTokenizer *tkr)
+{
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '"':
+        tkr->state = yw_html_after_doctype_system_identifier_state;
+        break;
+    case '>':
+        yw_parse_error_encountered(tkr, YW_ABRUPT_DOCTYPE_SYSTEM_IDENTIFIER_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        tkr->state = yw_html_data_state;
+        yw_emit_token(tkr, &tkr->current_token);
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_DOCTYPE_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        yw_emit_token(tkr, &tkr->current_token);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_append_char(&yw_current_doctype_token(tkr)->system_id, next_char);
+        break;
+    }
+}
+void yw_html_doctype_system_identifier_single_quoted_state(YW_HTMLTokenizer *tkr)
+{
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '\'':
+        tkr->state = yw_html_after_doctype_system_identifier_state;
+        break;
+    case '>':
+        yw_parse_error_encountered(tkr, YW_ABRUPT_DOCTYPE_SYSTEM_IDENTIFIER_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        tkr->state = yw_html_data_state;
+        yw_emit_token(tkr, &tkr->current_token);
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_DOCTYPE_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        yw_emit_token(tkr, &tkr->current_token);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_append_char(&yw_current_doctype_token(tkr)->system_id, next_char);
+        break;
+    }
+}
+void yw_html_after_doctype_system_identifier_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '\t':
+    case '\n':
+    case '\x0c':
+    case ' ':
+        break;
+    case '>':
+        tkr->state = yw_html_data_state;
+        yw_emit_token(tkr, &tkr->current_token);
+        break;
+    case -1:
+        yw_parse_error_encountered(tkr, YW_EOF_IN_DOCTYPE_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        yw_emit_token(tkr, &tkr->current_token);
+        yw_emit_eof_token(tkr);
+        break;
+    default:
+        yw_parse_error_encountered(tkr, YW_UNEXPECTED_CHARACTER_AFTER_DOCTYPE_SYSTEM_IDENTIFIER_ERROR);
+        yw_current_doctype_token(tkr)->force_quirks = true;
+        tkr->tr.cursor = old_cursor;
+        YW_TODO();
+        /* tkr->state = bogus_doctype_state; */
+    }
+}
+void yw_html_character_reference_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case '#':
+        yw_append_char(&tkr->temp_buf, next_char);
+        tkr->state = yw_html_numeric_character_reference_state;
+        break;
+    default:
+        if (yw_is_ascii_alphanumeric(next_char))
+        {
+            tkr->tr.cursor = old_cursor;
+            tkr->state = yw_html_named_character_reference_state;
+        }
+        else
+        {
+            yw_flush_codepoints_consumed_as_char_reference(tkr);
+            tkr->tr.cursor = old_cursor;
+            tkr->state = tkr->return_state;
+        }
+    }
+}
+void yw_html_named_character_reference_state(YW_HTMLTokenizer *tkr)
+{
+    (void)tkr;
+    YW_TODO();
+}
+void yw_html_numeric_character_reference_state(YW_HTMLTokenizer *tkr)
+{
+    tkr->character_reference_code = 0;
+
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    switch (next_char)
+    {
+    case 'X':
+    case 'x':
+        yw_append_char(&tkr->temp_buf, next_char);
+        tkr->state = yw_html_hexadecimal_character_reference_start_state;
+        break;
+    default:
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_decimal_character_reference_start_state;
+        break;
+    }
+}
+void yw_html_hexadecimal_character_reference_start_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    if (yw_is_ascii_hex_digit(next_char))
+    {
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_hexadecimal_character_reference_state;
+    }
+    else
+    {
+        yw_parse_error_encountered(tkr, YW_ABSENCE_OF_DIGITS_IN_NUMERIC_CHARACTER_REFERENCE_ERROR);
+        tkr->tr.cursor = old_cursor;
+        tkr->state = tkr->return_state;
+    }
+}
+void yw_html_decimal_character_reference_start_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    if (yw_is_ascii_digit(next_char))
+    {
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_decimal_character_reference_state;
+    }
+    else
+    {
+        yw_parse_error_encountered(tkr, YW_ABSENCE_OF_DIGITS_IN_NUMERIC_CHARACTER_REFERENCE_ERROR);
+        tkr->tr.cursor = old_cursor;
+        tkr->state = tkr->return_state;
+    }
+}
+void yw_html_hexadecimal_character_reference_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    if (yw_is_ascii_digit(next_char))
+    {
+        tkr->character_reference_code = (tkr->character_reference_code * 16) + (next_char - '0');
+    }
+    else if (yw_is_ascii_uppercase_hex_digit(next_char))
+    {
+        tkr->character_reference_code = (tkr->character_reference_code * 16) + (next_char - 'A' + 10);
+    }
+    else if (yw_is_ascii_lowercase_hex_digit(next_char))
+    {
+        tkr->character_reference_code = (tkr->character_reference_code * 16) + (next_char - 'A' + 10);
+    }
+    else if (next_char == ';')
+    {
+        tkr->state = yw_html_numeric_character_reference_end_state;
+    }
+    else
+    {
+        yw_parse_error_encountered(tkr, YW_MISSING_SEMICOLON_AFTER_CHARACTER_REFERENCE_ERROR);
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_numeric_character_reference_end_state;
+    }
+}
+void yw_html_decimal_character_reference_state(YW_HTMLTokenizer *tkr)
+{
+    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
+    if (yw_is_ascii_digit(next_char))
+    {
+        tkr->character_reference_code = (tkr->character_reference_code * 16) + (next_char - '0');
+    }
+    else if (next_char == ';')
+    {
+        tkr->state = yw_html_numeric_character_reference_end_state;
+    }
+    else
+    {
+        yw_parse_error_encountered(tkr, YW_MISSING_SEMICOLON_AFTER_CHARACTER_REFERENCE_ERROR);
+        tkr->tr.cursor = old_cursor;
+        tkr->state = yw_html_numeric_character_reference_end_state;
+    }
+}
+void yw_html_numeric_character_reference_end_state(YW_HTMLTokenizer *tkr)
+{
+    if (tkr->character_reference_code == 0x0000)
+    {
+        yw_parse_error_encountered(tkr, YW_NULL_CHARACTER_REFERENCE_ERROR);
+        tkr->character_reference_code = 0xfffd;
+    }
+    else if (0x10fff < tkr->character_reference_code)
+    {
+        yw_parse_error_encountered(tkr, YW_CHARACTER_REFERENCE_OUTSIDE_UNICODE_RANGE_ERROR);
+        tkr->character_reference_code = 0xfffd;
+    }
+    else if (yw_is_surrogate_char(tkr->character_reference_code))
+    {
+        yw_parse_error_encountered(tkr, YW_SURROGATE_CHARACTER_REFERENCE_ERROR);
+        tkr->character_reference_code = 0xfffd;
+    }
+    else if (yw_is_noncharacter(tkr->character_reference_code))
+    {
+        yw_parse_error_encountered(tkr, YW_NONCHARACTER_REFERENCE_ERROR);
+    }
+    else if (
+        tkr->character_reference_code == 0x0d ||
+        (yw_is_control_char(tkr->character_reference_code) && !yw_is_ascii_whitespace(tkr->character_reference_code)))
+    {
+        yw_parse_error_encountered(tkr, YW_CONTROL_CHARACTER_REFERENCE_ERROR);
+        switch (tkr->character_reference_code)
+        {
+        case 0x80:
+            tkr->character_reference_code = 0x20ac;
+            break;
+        case 0x82:
+            tkr->character_reference_code = 0x201a;
+            break;
+        case 0x83:
+            tkr->character_reference_code = 0x0192;
+            break;
+        case 0x84:
+            tkr->character_reference_code = 0x201e;
+            break;
+        case 0x85:
+            tkr->character_reference_code = 0x2026;
+            break;
+        case 0x86:
+            tkr->character_reference_code = 0x2020;
+            break;
+        case 0x87:
+            tkr->character_reference_code = 0x2021;
+            break;
+        case 0x88:
+            tkr->character_reference_code = 0x02c6;
+            break;
+        case 0x89:
+            tkr->character_reference_code = 0x2030;
+            break;
+        case 0x8a:
+            tkr->character_reference_code = 0x0160;
+            break;
+        case 0x8b:
+            tkr->character_reference_code = 0x2039;
+            break;
+        case 0x8c:
+            tkr->character_reference_code = 0x0152;
+            break;
+        case 0x8e:
+            tkr->character_reference_code = 0x017d;
+            break;
+        case 0x91:
+            tkr->character_reference_code = 0x2018;
+            break;
+        case 0x92:
+            tkr->character_reference_code = 0x2019;
+            break;
+        case 0x93:
+            tkr->character_reference_code = 0x201c;
+            break;
+        case 0x94:
+            tkr->character_reference_code = 0x201d;
+            break;
+        case 0x95:
+            tkr->character_reference_code = 0x2022;
+            break;
+        case 0x96:
+            tkr->character_reference_code = 0x2013;
+            break;
+        case 0x97:
+            tkr->character_reference_code = 0x2014;
+            break;
+        case 0x98:
+            tkr->character_reference_code = 0x02dc;
+            break;
+        case 0x99:
+            tkr->character_reference_code = 0x2122;
+            break;
+        case 0x9a:
+            tkr->character_reference_code = 0x0161;
+            break;
+        case 0x9b:
+            tkr->character_reference_code = 0x203a;
+            break;
+        case 0x9c:
+            tkr->character_reference_code = 0x0153;
+            break;
+        case 0x9e:
+            tkr->character_reference_code = 0x017e;
+            break;
+        case 0x9f:
+            tkr->character_reference_code = 0x0178;
+            break;
+        }
+    }
+    free(tkr->temp_buf);
+    tkr->temp_buf = yw_char_to_str(tkr->character_reference_code);
+    yw_flush_codepoints_consumed_as_char_reference(tkr);
+    tkr->state = tkr->return_state;
 }

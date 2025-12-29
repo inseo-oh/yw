@@ -46,7 +46,11 @@ CFLAGS += -std=c99
 CFLAGS += -Wall -Wextra -Werror -pedantic
 CFLAGS += -Wno-error=unused-function -Wno-error=unused-const-variable
 else
-CFLAGS += -dontwarn=214 # Turn off warning 214(suspicious format string) -- seems to have some false positives.
+# We urn off some warnings:
+# - 51  (bitfield type non-portable)
+# - 214 (suspicious format string)
+# Both of these seems to have false positives on vbcc when boolean type is used. 
+CFLAGS += -dontwarn=51,214
 endif
 CFLAGS += -O3
 CFLAGS += -I$(PROJECTDIR)/include
@@ -58,19 +62,19 @@ CFLAGS += -I$(PROJECTDIR)/include
 all: $(TARGET)
 
 all-platforms:
-	make all
-	make all PLATFORM=wasm
-	make all PLATFORM=aos68k
-	make all PLATFORM=aosppc
+	$(MAKE) all
+	$(MAKE) all PLATFORM=wasm
+	$(MAKE) all PLATFORM=aos68k
+	$(MAKE) all PLATFORM=aosppc
 
 clean:
 	@rm -f $(OBJS) $(DEPS) $(TARGET)
 
 clean-all-platforms:
-	make clean
-	make clean PLATFORM=wasm
-	make clean PLATFORM=aos68k
-	make clean PLATFORM=aosppc
+	$(MAKE) clean
+	$(MAKE) clean PLATFORM=wasm
+	$(MAKE) clean PLATFORM=aos68k
+	$(MAKE) clean PLATFORM=aosppc
 
 cleandep:
 	@rm -f $(DEPS)

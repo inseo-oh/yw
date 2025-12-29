@@ -1,8 +1,7 @@
 /*
  * This file is part of YW project. Copyright 2025 Oh Inseo (YJK)
  * SPDX-License-Identifier: BSD-3-Clause
- * See LICENSE for details, and LICENSE_WHATWG_SPECS for WHATWG license
- * information.
+ * See LICENSE for details, and LICENSE_WHATWG_SPECS for WHATWG license information.
  */
 #include "yw_css_tokens.h"
 #include "yw_common.h"
@@ -321,7 +320,7 @@ static bool yw_consume_number(double *out, YW_Tokenizer *tkr)
     /***************************************************************************
      * Decimal point
      **************************************************************************/
-    YW_TextCursor old_cursor = tkr->tr.cursor;
+    YW_TextCursor cursor_before_exp = tkr->tr.cursor;
 
     if (yw_consume_char(&tkr->tr, '.'))
     {
@@ -345,7 +344,7 @@ static bool yw_consume_number(double *out, YW_Tokenizer *tkr)
         }
         if (!have_integer_part && digit_count == 0)
         {
-            tkr->tr.cursor = old_cursor;
+            tkr->tr.cursor = cursor_before_exp;
             return false;
         }
         have_fractional_part = true;
@@ -361,7 +360,7 @@ static bool yw_consume_number(double *out, YW_Tokenizer *tkr)
     /***************************************************************************
      * Exponent indicator
      **************************************************************************/
-    old_cursor = tkr->tr.cursor;
+    cursor_before_exp = tkr->tr.cursor;
     if (yw_consume_one_of_chars(&tkr->tr, "eE") != -1)
     {
         int digit_count = 0;
@@ -389,7 +388,7 @@ static bool yw_consume_number(double *out, YW_Tokenizer *tkr)
         }
         if (digit_count == 0)
         {
-            tkr->tr.cursor = old_cursor;
+            tkr->tr.cursor = cursor_before_exp;
         }
     }
 

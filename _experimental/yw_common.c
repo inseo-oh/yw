@@ -1,8 +1,7 @@
 /*
  * This file is part of YW project. Copyright 2025 Oh Inseo (YJK)
  * SPDX-License-Identifier: BSD-3-Clause
- * See LICENSE for details, and LICENSE_WHATWG_SPECS for WHATWG license
- * information.
+ * See LICENSE for details, and LICENSE_WHATWG_SPECS for WHATWG license information.
  */
 #include "yw_common.h"
 #include <limits.h>
@@ -283,6 +282,12 @@ char *yw_duplicate_str(char const *s)
     }
     char *res = NULL;
     yw_append_str(&res, s);
+    return res;
+}
+char *yw_char_to_str(YW_Char32 chr)
+{
+    char *res = NULL;
+    yw_append_char(&res, chr);
     return res;
 }
 

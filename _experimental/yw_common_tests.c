@@ -1,13 +1,11 @@
 /*
  * This file is part of YW project. Copyright 2025 Oh Inseo (YJK)
  * SPDX-License-Identifier: BSD-3-Clause
- * See LICENSE for details, and LICENSE_WHATWG_SPECS for WHATWG license
- * information.
+ * See LICENSE for details, and LICENSE_WHATWG_SPECS for WHATWG license information.
  */
 #include "yw_common.h"
 #include "yw_tests.h"
 #include <stdbool.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,16 +21,16 @@ void yw_test_grow(YW_TestingContext *ctx)
     char *buf = NULL;
 
     YW_GROW(char, &cap, &len, &buf, 1);
-    YW_TEST_EXPECT(int, cap, "%d", 2);
-    YW_TEST_EXPECT(int, len, "%d", 1);
+    YW_TEST_EXPECT(int, ctx, cap, "%d", 2);
+    YW_TEST_EXPECT(int, ctx, len, "%d", 1);
 
     YW_GROW(char, &cap, &len, &buf, 1);
-    YW_TEST_EXPECT(int, cap, "%d", 2);
-    YW_TEST_EXPECT(int, len, "%d", 2);
+    YW_TEST_EXPECT(int, ctx, cap, "%d", 2);
+    YW_TEST_EXPECT(int, ctx, len, "%d", 2);
 
     YW_GROW(char, &cap, &len, &buf, 1);
-    YW_TEST_EXPECT(int, cap, "%d", 6);
-    YW_TEST_EXPECT(int, len, "%d", 3);
+    YW_TEST_EXPECT(int, ctx, cap, "%d", 6);
+    YW_TEST_EXPECT(int, ctx, len, "%d", 3);
 
     free(buf);
 }
@@ -47,14 +45,14 @@ void yw_test_shrink_to_fit(YW_TestingContext *ctx)
     len = 10;
     cap = 10;
     YW_SHRINK_TO_FIT(char, &cap, len, &buf);
-    YW_TEST_EXPECT(int, cap, "%d", 10);
-    YW_TEST_EXPECT(int, len, "%d", 10);
+    YW_TEST_EXPECT(int, ctx, cap, "%d", 10);
+    YW_TEST_EXPECT(int, ctx, len, "%d", 10);
 
     len = 20;
     cap = 100;
     YW_SHRINK_TO_FIT(char, &cap, len, &buf);
-    YW_TEST_EXPECT(int, cap, "%d", 20);
-    YW_TEST_EXPECT(int, len, "%d", 20);
+    YW_TEST_EXPECT(int, ctx, cap, "%d", 20);
+    YW_TEST_EXPECT(int, ctx, len, "%d", 20);
 
     free(buf);
 }
@@ -75,16 +73,16 @@ void yw_test_list(YW_TestingContext *ctx)
     {
         YW_LIST_PUSH(int, &lst, i);
     }
-    YW_TEST_EXPECT(int, lst.items[0], "%d", 1);
-    YW_TEST_EXPECT(int, lst.items[1], "%d", 2);
-    YW_TEST_EXPECT(int, lst.items[2], "%d", 3);
-    YW_TEST_EXPECT(int, lst.items[3], "%d", 4);
-    YW_TEST_EXPECT(int, lst.items[4], "%d", 5);
-    YW_TEST_EXPECT(int, lst.items[5], "%d", 6);
-    YW_TEST_EXPECT(int, lst.items[6], "%d", 7);
-    YW_TEST_EXPECT(int, lst.items[7], "%d", 8);
-    YW_TEST_EXPECT(int, lst.items[8], "%d", 9);
-    YW_TEST_EXPECT(int, lst.items[9], "%d", 10);
+    YW_TEST_EXPECT(int, ctx, lst.items[0], "%d", 1);
+    YW_TEST_EXPECT(int, ctx, lst.items[1], "%d", 2);
+    YW_TEST_EXPECT(int, ctx, lst.items[2], "%d", 3);
+    YW_TEST_EXPECT(int, ctx, lst.items[3], "%d", 4);
+    YW_TEST_EXPECT(int, ctx, lst.items[4], "%d", 5);
+    YW_TEST_EXPECT(int, ctx, lst.items[5], "%d", 6);
+    YW_TEST_EXPECT(int, ctx, lst.items[6], "%d", 7);
+    YW_TEST_EXPECT(int, ctx, lst.items[7], "%d", 8);
+    YW_TEST_EXPECT(int, ctx, lst.items[8], "%d", 9);
+    YW_TEST_EXPECT(int, ctx, lst.items[9], "%d", 10);
 
     /* Remove *****************************************************************/
     YW_LIST_REMOVE(int, &lst, 8); /* 1 2 3 4 5 6 7 8 [9] 10 */
@@ -93,11 +91,11 @@ void yw_test_list(YW_TestingContext *ctx)
     YW_LIST_REMOVE(int, &lst, 2); /* 1 2 [3] 4 6 8 10 */
     YW_LIST_REMOVE(int, &lst, 0); /* [1] 2 4 6 8 10 */
 
-    YW_TEST_EXPECT(int, lst.items[0], "%d", 2);
-    YW_TEST_EXPECT(int, lst.items[1], "%d", 4);
-    YW_TEST_EXPECT(int, lst.items[2], "%d", 6);
-    YW_TEST_EXPECT(int, lst.items[3], "%d", 8);
-    YW_TEST_EXPECT(int, lst.items[4], "%d", 10);
+    YW_TEST_EXPECT(int, ctx, lst.items[0], "%d", 2);
+    YW_TEST_EXPECT(int, ctx, lst.items[1], "%d", 4);
+    YW_TEST_EXPECT(int, ctx, lst.items[2], "%d", 6);
+    YW_TEST_EXPECT(int, ctx, lst.items[3], "%d", 8);
+    YW_TEST_EXPECT(int, ctx, lst.items[4], "%d", 10);
 
     /* Insert *****************************************************************/
     YW_LIST_INSERT(int, &lst, 0, 20);  /* [20] 2 4 6 8 10 */
@@ -106,16 +104,16 @@ void yw_test_list(YW_TestingContext *ctx)
     YW_LIST_INSERT(int, &lst, 6, 80);  /* 20 2 40 4 60 6 [80] 8 10 */
     YW_LIST_INSERT(int, &lst, 9, 100); /* Insert at the end */
 
-    YW_TEST_EXPECT(int, lst.items[0], "%d", 20);
-    YW_TEST_EXPECT(int, lst.items[1], "%d", 2);
-    YW_TEST_EXPECT(int, lst.items[2], "%d", 40);
-    YW_TEST_EXPECT(int, lst.items[3], "%d", 4);
-    YW_TEST_EXPECT(int, lst.items[4], "%d", 60);
-    YW_TEST_EXPECT(int, lst.items[5], "%d", 6);
-    YW_TEST_EXPECT(int, lst.items[6], "%d", 80);
-    YW_TEST_EXPECT(int, lst.items[7], "%d", 8);
-    YW_TEST_EXPECT(int, lst.items[8], "%d", 10);
-    YW_TEST_EXPECT(int, lst.items[9], "%d", 100);
+    YW_TEST_EXPECT(int, ctx, lst.items[0], "%d", 20);
+    YW_TEST_EXPECT(int, ctx, lst.items[1], "%d", 2);
+    YW_TEST_EXPECT(int, ctx, lst.items[2], "%d", 40);
+    YW_TEST_EXPECT(int, ctx, lst.items[3], "%d", 4);
+    YW_TEST_EXPECT(int, ctx, lst.items[4], "%d", 60);
+    YW_TEST_EXPECT(int, ctx, lst.items[5], "%d", 6);
+    YW_TEST_EXPECT(int, ctx, lst.items[6], "%d", 80);
+    YW_TEST_EXPECT(int, ctx, lst.items[7], "%d", 8);
+    YW_TEST_EXPECT(int, ctx, lst.items[8], "%d", 10);
+    YW_TEST_EXPECT(int, ctx, lst.items[9], "%d", 100);
 
     YW_LIST_FREE(&lst);
 }
@@ -158,7 +156,7 @@ void yw_test_utf8_to_char32(YW_TestingContext *ctx)
     YW_Char32 *chars;
     int chars_len;
     yw_utf8_to_char32(&chars, &chars_len, "hello");
-    YW_TEST_EXPECT_ARRAY(YW_Char32, chars, chars_len, "U+%04X", 'h', 'e', 'l', 'l', 'o');
+    YW_TEST_EXPECT_ARRAY(YW_Char32, ctx, chars, chars_len, "U+%04X", 'h', 'e', 'l', 'l', 'o');
 
     free(chars);
 }
@@ -168,7 +166,7 @@ void yw_test_utf8_strlen(YW_TestingContext *ctx)
     char const *str = "This is so "
                       /* Kanji string "Kawaii" - U+53EF U+611B U+3044 */
                       "\xe5\x8f\xaf\xe6\x84\x9b\xe3\x81\x84";
-    YW_TEST_EXPECT(int, (int)yw_utf8_strlen(str), "%d", 14);
+    YW_TEST_EXPECT(int, ctx, (int)yw_utf8_strlen(str), "%d", 14);
 }
 
 void yw_test_utf8_strchr(YW_TestingContext *ctx)
@@ -179,11 +177,11 @@ void yw_test_utf8_strchr(YW_TestingContext *ctx)
     char const *ch0 = &str[11]; /* 1st kanji (U+53EF) */
     char const *ch1 = &str[14]; /* 2nd kanji (U+611B) */
     char const *ch2 = &str[17]; /* 3rd kanji (U+3044) */
-    YW_TEST_EXPECT_STR(yw_utf8_strchr(str, 0x53ef), ch0);
-    YW_TEST_EXPECT_STR(yw_utf8_strchr(str, 0x611b), ch1);
-    YW_TEST_EXPECT_STR(yw_utf8_strchr(str, 0x3044), ch2);
-    YW_TEST_EXPECT_STR(yw_utf8_strchr(str, 0x3045), NULL);
-    YW_TEST_EXPECT_STR(yw_utf8_strchr(str, '\0'), &str[strlen(str)]);
+    YW_TEST_EXPECT_STR(ctx, yw_utf8_strchr(str, 0x53ef), ch0);
+    YW_TEST_EXPECT_STR(ctx, yw_utf8_strchr(str, 0x611b), ch1);
+    YW_TEST_EXPECT_STR(ctx, yw_utf8_strchr(str, 0x3044), ch2);
+    YW_TEST_EXPECT_STR(ctx, yw_utf8_strchr(str, 0x3045), NULL);
+    YW_TEST_EXPECT_STR(ctx, yw_utf8_strchr(str, '\0'), &str[strlen(str)]);
 }
 
 /*******************************************************************************
@@ -194,74 +192,74 @@ void yw_test_peek_char(YW_TestingContext *ctx)
 {
     struct YW_TextReader tr;
     yw_text_reader_init_from_str(&tr, "hello");
-    YW_TEST_EXPECT(YW_Char32, yw_peek_char(&tr), "U+%04X", 'h');
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 0);
+    YW_TEST_EXPECT(YW_Char32, ctx, yw_peek_char(&tr), "U+%04X", 'h');
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 0);
 
     tr.cursor++;
-    YW_TEST_EXPECT(YW_Char32, yw_peek_char(&tr), "U+%04X", 'e');
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 1);
+    YW_TEST_EXPECT(YW_Char32, ctx, yw_peek_char(&tr), "U+%04X", 'e');
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 1);
 
     tr.cursor++;
-    YW_TEST_EXPECT(YW_Char32, yw_peek_char(&tr), "U+%04X", 'l');
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 2);
+    YW_TEST_EXPECT(YW_Char32, ctx, yw_peek_char(&tr), "U+%04X", 'l');
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 2);
 
     tr.cursor++;
-    YW_TEST_EXPECT(YW_Char32, yw_peek_char(&tr), "U+%04X", 'l');
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 3);
+    YW_TEST_EXPECT(YW_Char32, ctx, yw_peek_char(&tr), "U+%04X", 'l');
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 3);
 
     tr.cursor++;
-    YW_TEST_EXPECT(YW_Char32, yw_peek_char(&tr), "U+%04X", 'o');
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 4);
+    YW_TEST_EXPECT(YW_Char32, ctx, yw_peek_char(&tr), "U+%04X", 'o');
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 4);
 
     tr.cursor++;
-    YW_TEST_EXPECT(int, yw_peek_char(&tr), "%d", -1);
+    YW_TEST_EXPECT(int, ctx, yw_peek_char(&tr), "%d", -1);
 }
 void yw_test_consume_any_char(YW_TestingContext *ctx)
 {
     struct YW_TextReader tr;
     yw_text_reader_init_from_str(&tr, "hello");
 
-    YW_TEST_EXPECT(YW_Char32, yw_consume_any_char(&tr), "U+%04X", 'h');
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 1);
+    YW_TEST_EXPECT(YW_Char32, ctx, yw_consume_any_char(&tr), "U+%04X", 'h');
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 1);
 
-    YW_TEST_EXPECT(YW_Char32, yw_consume_any_char(&tr), "U+%04X", 'e');
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 2);
+    YW_TEST_EXPECT(YW_Char32, ctx, yw_consume_any_char(&tr), "U+%04X", 'e');
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 2);
 
-    YW_TEST_EXPECT(YW_Char32, yw_consume_any_char(&tr), "U+%04X", 'l');
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 3);
+    YW_TEST_EXPECT(YW_Char32, ctx, yw_consume_any_char(&tr), "U+%04X", 'l');
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 3);
 
-    YW_TEST_EXPECT(YW_Char32, yw_consume_any_char(&tr), "U+%04X", 'l');
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 4);
+    YW_TEST_EXPECT(YW_Char32, ctx, yw_consume_any_char(&tr), "U+%04X", 'l');
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 4);
 
-    YW_TEST_EXPECT(YW_Char32, yw_consume_any_char(&tr), "U+%04X", 'o');
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 5);
+    YW_TEST_EXPECT(YW_Char32, ctx, yw_consume_any_char(&tr), "U+%04X", 'o');
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 5);
 
-    YW_TEST_EXPECT(int, yw_consume_any_char(&tr), "%d", -1);
+    YW_TEST_EXPECT(int, ctx, yw_consume_any_char(&tr), "%d", -1);
 }
 void yw_test_consume_one_of_chars(YW_TestingContext *ctx)
 {
     struct YW_TextReader tr;
     yw_text_reader_init_from_str(&tr, "hello");
 
-    YW_TEST_EXPECT(YW_Char32, yw_consume_one_of_chars(&tr, "abcdefgh"), "U+%04X", 'h');
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 1);
+    YW_TEST_EXPECT(YW_Char32, ctx, yw_consume_one_of_chars(&tr, "abcdefgh"), "U+%04X", 'h');
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 1);
 
-    YW_TEST_EXPECT(YW_Char32, yw_consume_one_of_chars(&tr, "abcdefgh"), "U+%04X", 'e');
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 2);
+    YW_TEST_EXPECT(YW_Char32, ctx, yw_consume_one_of_chars(&tr, "abcdefgh"), "U+%04X", 'e');
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 2);
 
-    YW_TEST_EXPECT(YW_Char32, yw_consume_one_of_chars(&tr, "abcdefgh"), "U+%04X", -1);
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 2);
+    YW_TEST_EXPECT(YW_Char32, ctx, yw_consume_one_of_chars(&tr, "abcdefgh"), "U+%04X", -1);
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 2);
 
-    YW_TEST_EXPECT(YW_Char32, yw_consume_one_of_chars(&tr, "hijklmn"), "U+%04X", 'l');
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 3);
+    YW_TEST_EXPECT(YW_Char32, ctx, yw_consume_one_of_chars(&tr, "hijklmn"), "U+%04X", 'l');
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 3);
 
-    YW_TEST_EXPECT(YW_Char32, yw_consume_one_of_chars(&tr, "hijklmn"), "U+%04X", 'l');
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 4);
+    YW_TEST_EXPECT(YW_Char32, ctx, yw_consume_one_of_chars(&tr, "hijklmn"), "U+%04X", 'l');
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 4);
 
-    YW_TEST_EXPECT(YW_Char32, yw_consume_one_of_chars(&tr, "opqrstu"), "U+%04X", 'o');
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 5);
+    YW_TEST_EXPECT(YW_Char32, ctx, yw_consume_one_of_chars(&tr, "opqrstu"), "U+%04X", 'o');
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 5);
 
-    YW_TEST_EXPECT(YW_Char32, yw_consume_one_of_chars(&tr, "opqrstu"), "U+%04X", -1);
+    YW_TEST_EXPECT(YW_Char32, ctx, yw_consume_one_of_chars(&tr, "opqrstu"), "U+%04X", -1);
 }
 void yw_test_consume_one_of_strs(YW_TestingContext *ctx)
 {
@@ -271,19 +269,19 @@ void yw_test_consume_one_of_strs(YW_TestingContext *ctx)
     char const *strs1[] = {"a ", "quick ", "fox jumps ", NULL};
     char const *strs2[] = {"oVeR ", "the lazy ", "DOG", NULL};
 
-    YW_TEST_EXPECT(int, yw_consume_one_of_strs(&tr, strs1, YW_NO_MATCH_FLAGS), "%d", 0);
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 2);
-    YW_TEST_EXPECT(int, yw_consume_one_of_strs(&tr, strs1, YW_NO_MATCH_FLAGS), "%d", 1);
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 8);
-    YW_TEST_EXPECT(int, yw_consume_one_of_strs(&tr, strs1, YW_NO_MATCH_FLAGS), "%d", 2);
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 18);
-    YW_TEST_EXPECT(int, yw_consume_one_of_strs(&tr, strs2, YW_NO_MATCH_FLAGS), "%d", -1);
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 18);
-    YW_TEST_EXPECT(int, yw_consume_one_of_strs(&tr, strs2, YW_ASCII_CASE_INSENSITIVE), "%d", 0);
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 23);
-    YW_TEST_EXPECT(int, yw_consume_one_of_strs(&tr, strs2, YW_ASCII_CASE_INSENSITIVE), "%d", 1);
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 32);
-    YW_TEST_EXPECT(int, yw_consume_one_of_strs(&tr, strs2, YW_ASCII_CASE_INSENSITIVE), "%d", 2);
-    YW_TEST_EXPECT(int, yw_text_reader_cursor(&tr), "%d", 35);
-    YW_TEST_EXPECT(int, yw_consume_one_of_strs(&tr, strs2, YW_ASCII_CASE_INSENSITIVE), "%d", -1);
+    YW_TEST_EXPECT(int, ctx, yw_consume_one_of_strs(&tr, strs1, YW_NO_MATCH_FLAGS), "%d", 0);
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 2);
+    YW_TEST_EXPECT(int, ctx, yw_consume_one_of_strs(&tr, strs1, YW_NO_MATCH_FLAGS), "%d", 1);
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 8);
+    YW_TEST_EXPECT(int, ctx, yw_consume_one_of_strs(&tr, strs1, YW_NO_MATCH_FLAGS), "%d", 2);
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 18);
+    YW_TEST_EXPECT(int, ctx, yw_consume_one_of_strs(&tr, strs2, YW_NO_MATCH_FLAGS), "%d", -1);
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 18);
+    YW_TEST_EXPECT(int, ctx, yw_consume_one_of_strs(&tr, strs2, YW_ASCII_CASE_INSENSITIVE), "%d", 0);
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 23);
+    YW_TEST_EXPECT(int, ctx, yw_consume_one_of_strs(&tr, strs2, YW_ASCII_CASE_INSENSITIVE), "%d", 1);
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 32);
+    YW_TEST_EXPECT(int, ctx, yw_consume_one_of_strs(&tr, strs2, YW_ASCII_CASE_INSENSITIVE), "%d", 2);
+    YW_TEST_EXPECT(int, ctx, yw_text_reader_cursor(&tr), "%d", 35);
+    YW_TEST_EXPECT(int, ctx, yw_consume_one_of_strs(&tr, strs2, YW_ASCII_CASE_INSENSITIVE), "%d", -1);
 }

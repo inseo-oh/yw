@@ -1,8 +1,7 @@
 /*
  * This file is part of YW project. Copyright 2025 Oh Inseo (YJK)
  * SPDX-License-Identifier: BSD-3-Clause
- * See LICENSE for details, and LICENSE_WHATWG_SPECS for WHATWG license
- * information.
+ * See LICENSE for details, and LICENSE_WHATWG_SPECS for WHATWG license information.
  */
 #include "yw_css.h"
 #include "yw_css_tokens.h"
@@ -53,32 +52,32 @@ void yw_test_css_parse_number(YW_TestingContext *ctx)
     }
     double num;
 
-    YW_TEST_EXPECT(bool, yw_css_parse_number(&num, &ts), "%d", true);
-    YW_TEST_EXPECT(int, num, "%d", 31);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_number(&num, &ts), "%d", true);
+    YW_TEST_EXPECT(int, ctx, num, "%d", 31);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_number(&num, &ts), "%d", true);
-    YW_TEST_EXPECT(int, num * 10, "%d", 32);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_number(&num, &ts), "%d", true);
+    YW_TEST_EXPECT(int, ctx, num * 10, "%d", 32);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_number(&num, &ts), "%d", true);
-    YW_TEST_EXPECT(int, num * 100, "%d", 33);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_number(&num, &ts), "%d", true);
+    YW_TEST_EXPECT(int, ctx, num * 100, "%d", 33);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_number(&num, &ts), "%d", true);
-    YW_TEST_EXPECT(int, num, "%d", 34);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_number(&num, &ts), "%d", true);
+    YW_TEST_EXPECT(int, ctx, num, "%d", 34);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_number(&num, &ts), "%d", true);
-    YW_TEST_EXPECT(int, num, "%d", 35);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_number(&num, &ts), "%d", true);
+    YW_TEST_EXPECT(int, ctx, num, "%d", 35);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_number(&num, &ts), "%d", true);
-    YW_TEST_EXPECT(int, num, "%d", 36);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_number(&num, &ts), "%d", true);
+    YW_TEST_EXPECT(int, ctx, num, "%d", 36);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_number(&num, &ts), "%d", true);
-    YW_TEST_EXPECT(int, num, "%d", 37);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_number(&num, &ts), "%d", true);
+    YW_TEST_EXPECT(int, ctx, num, "%d", 37);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     yw_css_free_tokens(ts.tokens, ts.tokens_len);
@@ -108,52 +107,52 @@ void yw_test_css_parse_length(YW_TestingContext *ctx)
     }
     YW_CSSLength len;
 
-    YW_TEST_EXPECT(bool, yw_css_parse_length(&len, &ts, YW_NO_ALLOW_ZERO_SHORTHAND), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_length(&len, &ts, YW_NO_ALLOW_ZERO_SHORTHAND), "%d", false);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_length(&len, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
-    YW_TEST_EXPECT(int, len.value, "%d", 0);
-    YW_TEST_EXPECT(YW_CSSLengthUnit, len.unit, "%d", YW_CSS_PX);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_length(&len, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
+    YW_TEST_EXPECT(int, ctx, len.value, "%d", 0);
+    YW_TEST_EXPECT(YW_CSSLengthUnit, ctx, len.unit, "%d", YW_CSS_PX);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_length(&len, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
-    YW_TEST_EXPECT(int, len.value, "%d", 1);
-    YW_TEST_EXPECT(YW_CSSLengthUnit, len.unit, "%d", YW_CSS_EM);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_length(&len, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
+    YW_TEST_EXPECT(int, ctx, len.value, "%d", 1);
+    YW_TEST_EXPECT(YW_CSSLengthUnit, ctx, len.unit, "%d", YW_CSS_EM);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_length(&len, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
-    YW_TEST_EXPECT(int, len.value, "%d", 2);
-    YW_TEST_EXPECT(YW_CSSLengthUnit, len.unit, "%d", YW_CSS_EX);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_length(&len, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
+    YW_TEST_EXPECT(int, ctx, len.value, "%d", 2);
+    YW_TEST_EXPECT(YW_CSSLengthUnit, ctx, len.unit, "%d", YW_CSS_EX);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_length(&len, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
-    YW_TEST_EXPECT(int, len.value, "%d", 3);
-    YW_TEST_EXPECT(YW_CSSLengthUnit, len.unit, "%d", YW_CSS_CH);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_length(&len, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
+    YW_TEST_EXPECT(int, ctx, len.value, "%d", 3);
+    YW_TEST_EXPECT(YW_CSSLengthUnit, ctx, len.unit, "%d", YW_CSS_CH);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_length(&len, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
-    YW_TEST_EXPECT(int, len.value, "%d", 4);
-    YW_TEST_EXPECT(YW_CSSLengthUnit, len.unit, "%d", YW_CSS_REM);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_length(&len, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
+    YW_TEST_EXPECT(int, ctx, len.value, "%d", 4);
+    YW_TEST_EXPECT(YW_CSSLengthUnit, ctx, len.unit, "%d", YW_CSS_REM);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_length(&len, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
-    YW_TEST_EXPECT(int, len.value, "%d", 5);
-    YW_TEST_EXPECT(YW_CSSLengthUnit, len.unit, "%d", YW_CSS_VW);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_length(&len, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
+    YW_TEST_EXPECT(int, ctx, len.value, "%d", 5);
+    YW_TEST_EXPECT(YW_CSSLengthUnit, ctx, len.unit, "%d", YW_CSS_VW);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_length(&len, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
-    YW_TEST_EXPECT(int, len.value, "%d", 6);
-    YW_TEST_EXPECT(YW_CSSLengthUnit, len.unit, "%d", YW_CSS_VH);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_length(&len, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
+    YW_TEST_EXPECT(int, ctx, len.value, "%d", 6);
+    YW_TEST_EXPECT(YW_CSSLengthUnit, ctx, len.unit, "%d", YW_CSS_VH);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_length(&len, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
-    YW_TEST_EXPECT(int, len.value, "%d", 7);
-    YW_TEST_EXPECT(YW_CSSLengthUnit, len.unit, "%d", YW_CSS_VMIN);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_length(&len, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
+    YW_TEST_EXPECT(int, ctx, len.value, "%d", 7);
+    YW_TEST_EXPECT(YW_CSSLengthUnit, ctx, len.unit, "%d", YW_CSS_VMIN);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_length(&len, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
-    YW_TEST_EXPECT(int, len.value, "%d", 8);
-    YW_TEST_EXPECT(YW_CSSLengthUnit, len.unit, "%d", YW_CSS_VMAX);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_length(&len, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
+    YW_TEST_EXPECT(int, ctx, len.value, "%d", 8);
+    YW_TEST_EXPECT(YW_CSSLengthUnit, ctx, len.unit, "%d", YW_CSS_VMAX);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     yw_css_free_tokens(ts.tokens, ts.tokens_len);
@@ -170,12 +169,12 @@ void yw_test_css_parse_percentage(YW_TestingContext *ctx)
     }
     double num;
 
-    YW_TEST_EXPECT(bool, yw_css_parse_percentage(&num, &ts), "%d", true);
-    YW_TEST_EXPECT(int, num, "%d", 25);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_percentage(&num, &ts), "%d", true);
+    YW_TEST_EXPECT(int, ctx, num, "%d", 25);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_percentage(&num, &ts), "%d", true);
-    YW_TEST_EXPECT(int, num, "%d", 50);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_percentage(&num, &ts), "%d", true);
+    YW_TEST_EXPECT(int, ctx, num, "%d", 50);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     yw_css_free_tokens(ts.tokens, ts.tokens_len);
@@ -192,15 +191,15 @@ void yw_test_css_parse_length_or_percentage(YW_TestingContext *ctx)
     }
     YW_CSSLengthOrPercentage num;
 
-    YW_TEST_EXPECT(bool, yw_css_parse_length_or_percentage(&num, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
-    YW_TEST_EXPECT(bool, num.is_percentage, "%d", false);
-    YW_TEST_EXPECT(int, num.value.length.value, "%d", 25);
-    YW_TEST_EXPECT(YW_CSSLengthUnit, num.value.length.unit, "%d", YW_CSS_PX);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_length_or_percentage(&num, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, num.is_percentage, "%d", false);
+    YW_TEST_EXPECT(int, ctx, num.value.length.value, "%d", 25);
+    YW_TEST_EXPECT(YW_CSSLengthUnit, ctx, num.value.length.unit, "%d", YW_CSS_PX);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_length_or_percentage(&num, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
-    YW_TEST_EXPECT(bool, num.is_percentage, "%d", true);
-    YW_TEST_EXPECT(int, num.value.percentage, "%d", 50);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_length_or_percentage(&num, &ts, YW_ALLOW_ZERO_SHORTHAND), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, num.is_percentage, "%d", true);
+    YW_TEST_EXPECT(int, ctx, num.value.percentage, "%d", 50);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     yw_css_free_tokens(ts.tokens, ts.tokens_len);
@@ -228,40 +227,40 @@ void yw_test_css_parse_line_style(YW_TestingContext *ctx)
     }
     YW_CSSLineStyle style;
 
-    YW_TEST_EXPECT(bool, yw_css_parse_line_style(&style, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSLineStyle, style, "%d", YW_CSS_NO_LINE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_line_style(&style, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSLineStyle, ctx, style, "%d", YW_CSS_NO_LINE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_line_style(&style, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSLineStyle, style, "%d", YW_CSS_HIDDEN_LINE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_line_style(&style, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSLineStyle, ctx, style, "%d", YW_CSS_HIDDEN_LINE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_line_style(&style, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSLineStyle, style, "%d", YW_CSS_DOTTED_LINE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_line_style(&style, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSLineStyle, ctx, style, "%d", YW_CSS_DOTTED_LINE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_line_style(&style, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSLineStyle, style, "%d", YW_CSS_DASHED_LINE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_line_style(&style, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSLineStyle, ctx, style, "%d", YW_CSS_DASHED_LINE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_line_style(&style, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSLineStyle, style, "%d", YW_CSS_SOLID_LINE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_line_style(&style, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSLineStyle, ctx, style, "%d", YW_CSS_SOLID_LINE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_line_style(&style, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSLineStyle, style, "%d", YW_CSS_DOUBLE_LINE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_line_style(&style, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSLineStyle, ctx, style, "%d", YW_CSS_DOUBLE_LINE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_line_style(&style, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSLineStyle, style, "%d", YW_CSS_GROOVE_LINE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_line_style(&style, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSLineStyle, ctx, style, "%d", YW_CSS_GROOVE_LINE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_line_style(&style, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSLineStyle, style, "%d", YW_CSS_RIDGE_LINE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_line_style(&style, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSLineStyle, ctx, style, "%d", YW_CSS_RIDGE_LINE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_line_style(&style, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSLineStyle, style, "%d", YW_CSS_INSET_LINE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_line_style(&style, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSLineStyle, ctx, style, "%d", YW_CSS_INSET_LINE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     yw_css_free_tokens(ts.tokens, ts.tokens_len);
@@ -280,24 +279,24 @@ void yw_test_css_parse_line_width(YW_TestingContext *ctx)
     }
     YW_CSSLength length;
 
-    YW_TEST_EXPECT(bool, yw_css_parse_line_width(&length, &ts), "%d", true);
-    YW_TEST_EXPECT(int, length.value, "%d", 1);
-    YW_TEST_EXPECT(YW_CSSLengthUnit, length.unit, "%d", YW_CSS_PX);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_line_width(&length, &ts), "%d", true);
+    YW_TEST_EXPECT(int, ctx, length.value, "%d", 1);
+    YW_TEST_EXPECT(YW_CSSLengthUnit, ctx, length.unit, "%d", YW_CSS_PX);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_line_width(&length, &ts), "%d", true);
-    YW_TEST_EXPECT(int, length.value, "%d", 3);
-    YW_TEST_EXPECT(YW_CSSLengthUnit, length.unit, "%d", YW_CSS_PX);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_line_width(&length, &ts), "%d", true);
+    YW_TEST_EXPECT(int, ctx, length.value, "%d", 3);
+    YW_TEST_EXPECT(YW_CSSLengthUnit, ctx, length.unit, "%d", YW_CSS_PX);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_line_width(&length, &ts), "%d", true);
-    YW_TEST_EXPECT(int, length.value, "%d", 5);
-    YW_TEST_EXPECT(YW_CSSLengthUnit, length.unit, "%d", YW_CSS_PX);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_line_width(&length, &ts), "%d", true);
+    YW_TEST_EXPECT(int, ctx, length.value, "%d", 5);
+    YW_TEST_EXPECT(YW_CSSLengthUnit, ctx, length.unit, "%d", YW_CSS_PX);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_line_width(&length, &ts), "%d", true);
-    YW_TEST_EXPECT(int, length.value, "%d", 10);
-    YW_TEST_EXPECT(YW_CSSLengthUnit, length.unit, "%d", YW_CSS_EM);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_line_width(&length, &ts), "%d", true);
+    YW_TEST_EXPECT(int, ctx, length.value, "%d", 10);
+    YW_TEST_EXPECT(YW_CSSLengthUnit, ctx, length.unit, "%d", YW_CSS_EM);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     yw_css_free_tokens(ts.tokens, ts.tokens_len);
@@ -319,21 +318,21 @@ void yw_test_css_parse_margin(YW_TestingContext *ctx)
     }
     YW_CSSMargin margin;
 
-    YW_TEST_EXPECT(bool, yw_css_parse_margin(&margin, &ts), "%d", true);
-    YW_TEST_EXPECT(bool, margin.value.is_percentage, "%d", false);
-    YW_TEST_EXPECT(int, margin.value.value.length.value, "%d", 10);
-    YW_TEST_EXPECT(YW_CSSLengthUnit, margin.value.value.length.unit, "%d", YW_CSS_PX);
-    YW_TEST_EXPECT(bool, margin.is_auto, "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_margin(&margin, &ts), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, margin.value.is_percentage, "%d", false);
+    YW_TEST_EXPECT(int, ctx, margin.value.value.length.value, "%d", 10);
+    YW_TEST_EXPECT(YW_CSSLengthUnit, ctx, margin.value.value.length.unit, "%d", YW_CSS_PX);
+    YW_TEST_EXPECT(bool, ctx, margin.is_auto, "%d", false);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_margin(&margin, &ts), "%d", true);
-    YW_TEST_EXPECT(bool, margin.value.is_percentage, "%d", true);
-    YW_TEST_EXPECT(int, margin.value.value.percentage, "%d", 50);
-    YW_TEST_EXPECT(bool, margin.is_auto, "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_margin(&margin, &ts), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, margin.value.is_percentage, "%d", true);
+    YW_TEST_EXPECT(int, ctx, margin.value.value.percentage, "%d", 50);
+    YW_TEST_EXPECT(bool, ctx, margin.is_auto, "%d", false);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_margin(&margin, &ts), "%d", true);
-    YW_TEST_EXPECT(bool, margin.is_auto, "%d", true);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_margin(&margin, &ts), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, margin.is_auto, "%d", true);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     yw_css_free_tokens(ts.tokens, ts.tokens_len);
@@ -351,18 +350,18 @@ void yw_test_css_parse_padding(YW_TestingContext *ctx)
     }
     YW_CSSLengthOrPercentage padding;
 
-    YW_TEST_EXPECT(bool, yw_css_parse_padding(&padding, &ts), "%d", true);
-    YW_TEST_EXPECT(bool, padding.is_percentage, "%d", false);
-    YW_TEST_EXPECT(int, padding.value.length.value, "%d", 10);
-    YW_TEST_EXPECT(YW_CSSLengthUnit, padding.value.length.unit, "%d", YW_CSS_PX);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_padding(&padding, &ts), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, padding.is_percentage, "%d", false);
+    YW_TEST_EXPECT(int, ctx, padding.value.length.value, "%d", 10);
+    YW_TEST_EXPECT(YW_CSSLengthUnit, ctx, padding.value.length.unit, "%d", YW_CSS_PX);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_padding(&padding, &ts), "%d", true);
-    YW_TEST_EXPECT(bool, padding.is_percentage, "%d", true);
-    YW_TEST_EXPECT(int, padding.value.percentage, "%d", 50);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_padding(&padding, &ts), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, padding.is_percentage, "%d", true);
+    YW_TEST_EXPECT(int, ctx, padding.value.percentage, "%d", 50);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_padding(&padding, &ts), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_padding(&padding, &ts), "%d", false);
 
     yw_css_free_tokens(ts.tokens, ts.tokens_len);
 }
@@ -408,144 +407,144 @@ void yw_test_css_parse_color(YW_TestingContext *ctx)
 
     /* Hexadecimal ************************************************************/
     /* #12345678 */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0x12345678);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0x12345678);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* #123456 */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0x123456ff);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0x123456ff);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* #1234 */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0x11223344);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0x11223344);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* #123 */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0x112233ff);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0x112233ff);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* rgb/rgba - legacy syntax ***********************************************/
     /* rgb( 100%, 100%, 100%, 0%) */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0xffffff00);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0xffffff00);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* rgba(100%, 100%, 100%, 0%) */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0xffffff00);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0xffffff00);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* rgb( 100%, 100%, 100%) */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0xffffffff);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0xffffffff);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* rgba(100%, 100%, 100%) */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0xffffffff);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0xffffffff);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* rgb( 12, 34, 56, 78) */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0x0c22384e);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0x0c22384e);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* rgba(90, 12, 34, 56) */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0x5a0c2238);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0x5a0c2238);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* rgb( 78, 90, 12) */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0x4e5a0cff);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0x4e5a0cff);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* rgba(34, 56, 78) */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0x22384eff);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0x22384eff);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* rgb/rgba - modern syntax ***********************************************/
     /* rgb( 100% 100% 100% / 0%) */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0xffffff00);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0xffffff00);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* rgba(100% 100% 100% / 0%) */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0xffffff00);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0xffffff00);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* rgb( 100%, 100%, 100%) */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0xffffffff);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0xffffffff);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* rgba(100% 100% 100%) */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0xffffffff);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0xffffffff);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* rgb( 12 34 56 / 78) */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0x0c22384e);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0x0c22384e);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* rgba(90 12 34 / 56) */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0x5a0c2238);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0x5a0c2238);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* rgb( 78 90 12) */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0x4e5a0cff);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0x4e5a0cff);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* rgba(34 56 78) */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0x22384eff);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0x22384eff);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* Named colors, transparent, currentColor ********************************/
 
     /* blue */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0x0000ffff);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0x0000ffff);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* transparent */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_RGB_COLOR);
-    YW_TEST_EXPECT(YW_CSSRgba, color.rgb.rgba, "#%08x", 0x00000000);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_RGB_COLOR);
+    YW_TEST_EXPECT(YW_CSSRgba, ctx, color.rgb.rgba, "#%08x", 0x00000000);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* currentColor */
-    YW_TEST_EXPECT(bool, yw_css_parse_color(&color, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSColorType, color.type, "%d", YW_CSS_CURRENT_COLOR);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_color(&color, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSColorType, ctx, color.type, "%d", YW_CSS_CURRENT_COLOR);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     yw_css_free_tokens(ts.tokens, ts.tokens_len);
@@ -586,92 +585,92 @@ void yw_test_css_parse_display(YW_TestingContext *ctx)
     YW_CSSDisplay display;
 
     /* none */
-    YW_TEST_EXPECT(bool, yw_css_parse_display(&display, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSDisplay, display, "%d", YW_CSS_DISPLAY_NONE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_display(&display, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSDisplay, ctx, display, "%d", YW_CSS_DISPLAY_NONE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* contents */
-    YW_TEST_EXPECT(bool, yw_css_parse_display(&display, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSDisplay, display, "%d", YW_CSS_DISPLAY_CONTENTS);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_display(&display, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSDisplay, ctx, display, "%d", YW_CSS_DISPLAY_CONTENTS);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* block */
-    YW_TEST_EXPECT(bool, yw_css_parse_display(&display, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSDisplay, display, "%d", YW_CSS_DISPLAY_BLOCK | YW_CSS_DISPLAY_FLOW);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_display(&display, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSDisplay, ctx, display, "%d", YW_CSS_DISPLAY_BLOCK | YW_CSS_DISPLAY_FLOW);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* flow-root */
-    YW_TEST_EXPECT(bool, yw_css_parse_display(&display, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSDisplay, display, "%d", YW_CSS_DISPLAY_BLOCK | YW_CSS_DISPLAY_FLOW_ROOT);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_display(&display, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSDisplay, ctx, display, "%d", YW_CSS_DISPLAY_BLOCK | YW_CSS_DISPLAY_FLOW_ROOT);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* inline */
-    YW_TEST_EXPECT(bool, yw_css_parse_display(&display, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSDisplay, display, "%d", YW_CSS_DISPLAY_INLINE | YW_CSS_DISPLAY_FLOW);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_display(&display, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSDisplay, ctx, display, "%d", YW_CSS_DISPLAY_INLINE | YW_CSS_DISPLAY_FLOW);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* inline-block */
-    YW_TEST_EXPECT(bool, yw_css_parse_display(&display, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSDisplay, display, "%d", YW_CSS_DISPLAY_INLINE | YW_CSS_DISPLAY_FLOW_ROOT);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_display(&display, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSDisplay, ctx, display, "%d", YW_CSS_DISPLAY_INLINE | YW_CSS_DISPLAY_FLOW_ROOT);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* run-in */
-    YW_TEST_EXPECT(bool, yw_css_parse_display(&display, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSDisplay, display, "%d", YW_CSS_DISPLAY_RUN_IN | YW_CSS_DISPLAY_FLOW);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_display(&display, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSDisplay, ctx, display, "%d", YW_CSS_DISPLAY_RUN_IN | YW_CSS_DISPLAY_FLOW);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* Below are disabled as they are not implemented yet*/
     if (0)
     {
         /* list-item */
-        YW_TEST_EXPECT(bool, yw_css_parse_display(&display, &ts), "%d", true);
-        YW_TEST_EXPECT(YW_CSSDisplay, display, "%d", YW_CSS_DISPLAY_BLOCK | YW_CSS_DISPLAY_FLOW | YW_CSS_DISPLAY_LIST_ITEM);
+        YW_TEST_EXPECT(bool, ctx, yw_css_parse_display(&display, &ts), "%d", true);
+        YW_TEST_EXPECT(YW_CSSDisplay, ctx, display, "%d", YW_CSS_DISPLAY_BLOCK | YW_CSS_DISPLAY_FLOW | YW_CSS_DISPLAY_LIST_ITEM);
         yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
         /* inline list-item */
-        YW_TEST_EXPECT(bool, yw_css_parse_display(&display, &ts), "%d", true);
-        YW_TEST_EXPECT(YW_CSSDisplay, display, "%d", YW_CSS_DISPLAY_BLOCK | YW_CSS_DISPLAY_FLOW | YW_CSS_DISPLAY_LIST_ITEM);
+        YW_TEST_EXPECT(bool, ctx, yw_css_parse_display(&display, &ts), "%d", true);
+        YW_TEST_EXPECT(YW_CSSDisplay, ctx, display, "%d", YW_CSS_DISPLAY_BLOCK | YW_CSS_DISPLAY_FLOW | YW_CSS_DISPLAY_LIST_ITEM);
         yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
     }
 
     /* flex */
-    YW_TEST_EXPECT(bool, yw_css_parse_display(&display, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSDisplay, display, "%d", YW_CSS_DISPLAY_BLOCK | YW_CSS_DISPLAY_FLEX);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_display(&display, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSDisplay, ctx, display, "%d", YW_CSS_DISPLAY_BLOCK | YW_CSS_DISPLAY_FLEX);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* inline-flex */
-    YW_TEST_EXPECT(bool, yw_css_parse_display(&display, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSDisplay, display, "%d", YW_CSS_DISPLAY_INLINE | YW_CSS_DISPLAY_FLEX);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_display(&display, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSDisplay, ctx, display, "%d", YW_CSS_DISPLAY_INLINE | YW_CSS_DISPLAY_FLEX);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* grid */
-    YW_TEST_EXPECT(bool, yw_css_parse_display(&display, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSDisplay, display, "%d", YW_CSS_DISPLAY_BLOCK | YW_CSS_DISPLAY_GRID);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_display(&display, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSDisplay, ctx, display, "%d", YW_CSS_DISPLAY_BLOCK | YW_CSS_DISPLAY_GRID);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* inline-grid */
-    YW_TEST_EXPECT(bool, yw_css_parse_display(&display, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSDisplay, display, "%d", YW_CSS_DISPLAY_INLINE | YW_CSS_DISPLAY_GRID);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_display(&display, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSDisplay, ctx, display, "%d", YW_CSS_DISPLAY_INLINE | YW_CSS_DISPLAY_GRID);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* ruby */
-    YW_TEST_EXPECT(bool, yw_css_parse_display(&display, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSDisplay, display, "%d", YW_CSS_DISPLAY_INLINE | YW_CSS_DISPLAY_RUBY);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_display(&display, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSDisplay, ctx, display, "%d", YW_CSS_DISPLAY_INLINE | YW_CSS_DISPLAY_RUBY);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* block ruby */
-    YW_TEST_EXPECT(bool, yw_css_parse_display(&display, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSDisplay, display, "%d", YW_CSS_DISPLAY_BLOCK | YW_CSS_DISPLAY_RUBY);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_display(&display, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSDisplay, ctx, display, "%d", YW_CSS_DISPLAY_BLOCK | YW_CSS_DISPLAY_RUBY);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* table */
-    YW_TEST_EXPECT(bool, yw_css_parse_display(&display, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSDisplay, display, "%d", YW_CSS_DISPLAY_BLOCK | YW_CSS_DISPLAY_TABLE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_display(&display, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSDisplay, ctx, display, "%d", YW_CSS_DISPLAY_BLOCK | YW_CSS_DISPLAY_TABLE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* inline-table */
-    YW_TEST_EXPECT(bool, yw_css_parse_display(&display, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSDisplay, display, "%d", YW_CSS_DISPLAY_INLINE | YW_CSS_DISPLAY_TABLE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_display(&display, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSDisplay, ctx, display, "%d", YW_CSS_DISPLAY_INLINE | YW_CSS_DISPLAY_TABLE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     /* TODO: test display-internal values *************************************/
@@ -695,16 +694,16 @@ void yw_test_css_parse_float(YW_TestingContext *ctx)
     }
     YW_CSSFloat flo;
 
-    YW_TEST_EXPECT(bool, yw_css_parse_float(&flo, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFloat, flo, "%d", YW_CSS_NO_FLOAT);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_float(&flo, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFloat, ctx, flo, "%d", YW_CSS_NO_FLOAT);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_float(&flo, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFloat, flo, "%d", YW_CSS_FLOAT_LEFT);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_float(&flo, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFloat, ctx, flo, "%d", YW_CSS_FLOAT_LEFT);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_float(&flo, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFloat, flo, "%d", YW_CSS_FLOAT_RIGHT);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_float(&flo, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFloat, ctx, flo, "%d", YW_CSS_FLOAT_RIGHT);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     yw_css_free_tokens(ts.tokens, ts.tokens_len);
@@ -727,24 +726,24 @@ void yw_test_css_parse_font_family(YW_TestingContext *ctx)
 
     YW_CSSFontFamilies families;
     memset(&families, 0, sizeof(families));
-    YW_TEST_EXPECT(bool, yw_css_parse_font_family(&families, &ts), "%d", true);
-    YW_TEST_EXPECT(int, families.len, "%d", 7);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_family(&families, &ts), "%d", true);
+    YW_TEST_EXPECT(int, ctx, families.len, "%d", 7);
     if (families.len == 7)
     {
-        YW_TEST_EXPECT(YW_CSSGenericFontFamily, families.items[0].family, "%d", YW_CSS_SERIF);
-        YW_TEST_EXPECT(YW_CSSGenericFontFamily, families.items[1].family, "%d", YW_CSS_SANS_SERIF);
-        YW_TEST_EXPECT(YW_CSSGenericFontFamily, families.items[2].family, "%d", YW_CSS_CURSIVE);
-        YW_TEST_EXPECT(YW_CSSGenericFontFamily, families.items[3].family, "%d", YW_CSS_FANTASY);
-        YW_TEST_EXPECT(YW_CSSGenericFontFamily, families.items[4].family, "%d", YW_CSS_MONOSPACE);
-        YW_TEST_EXPECT(YW_CSSGenericFontFamily, families.items[5].family, "%d", YW_CSS_NON_GENERIC_FONT_FAMILY);
+        YW_TEST_EXPECT(YW_CSSGenericFontFamily, ctx, families.items[0].family, "%d", YW_CSS_SERIF);
+        YW_TEST_EXPECT(YW_CSSGenericFontFamily, ctx, families.items[1].family, "%d", YW_CSS_SANS_SERIF);
+        YW_TEST_EXPECT(YW_CSSGenericFontFamily, ctx, families.items[2].family, "%d", YW_CSS_CURSIVE);
+        YW_TEST_EXPECT(YW_CSSGenericFontFamily, ctx, families.items[3].family, "%d", YW_CSS_FANTASY);
+        YW_TEST_EXPECT(YW_CSSGenericFontFamily, ctx, families.items[4].family, "%d", YW_CSS_MONOSPACE);
+        YW_TEST_EXPECT(YW_CSSGenericFontFamily, ctx, families.items[5].family, "%d", YW_CSS_NON_GENERIC_FONT_FAMILY);
         if (families.items[5].family == YW_CSS_NON_GENERIC_FONT_FAMILY)
         {
-            YW_TEST_EXPECT_STR(families.items[5].name, "space separated");
+            YW_TEST_EXPECT_STR(ctx, families.items[5].name, "space separated");
         }
-        YW_TEST_EXPECT(YW_CSSGenericFontFamily, families.items[6].family, "%d", YW_CSS_NON_GENERIC_FONT_FAMILY);
+        YW_TEST_EXPECT(YW_CSSGenericFontFamily, ctx, families.items[6].family, "%d", YW_CSS_NON_GENERIC_FONT_FAMILY);
         if (families.items[6].family == YW_CSS_NON_GENERIC_FONT_FAMILY)
         {
-            YW_TEST_EXPECT_STR(families.items[6].name, "quoted string");
+            YW_TEST_EXPECT_STR(ctx, families.items[6].name, "quoted string");
         }
     }
     for (int i = 0; i < families.len; i++)
@@ -768,16 +767,16 @@ void yw_test_css_parse_font_weight(YW_TestingContext *ctx)
     }
     YW_CSSFontWeight weight;
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_weight(&weight, &ts), "%d", true);
-    YW_TEST_EXPECT(int, weight, "%d", (YW_CSSFontWeight)400);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_weight(&weight, &ts), "%d", true);
+    YW_TEST_EXPECT(int, ctx, weight, "%d", (YW_CSSFontWeight)400);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_weight(&weight, &ts), "%d", true);
-    YW_TEST_EXPECT(int, weight, "%d", (YW_CSSFontWeight)700);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_weight(&weight, &ts), "%d", true);
+    YW_TEST_EXPECT(int, ctx, weight, "%d", (YW_CSSFontWeight)700);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_weight(&weight, &ts), "%d", true);
-    YW_TEST_EXPECT(int, weight, "%d", (YW_CSSFontWeight)600);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_weight(&weight, &ts), "%d", true);
+    YW_TEST_EXPECT(int, ctx, weight, "%d", (YW_CSSFontWeight)600);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     yw_css_free_tokens(ts.tokens, ts.tokens_len);
@@ -801,40 +800,40 @@ void yw_test_css_parse_font_stretch(YW_TestingContext *ctx)
     }
     YW_CSSFontStretch stretch;
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_stretch(&stretch, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontStretch, stretch, "%d", YW_CSS_ULTRA_CONDENSED);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_stretch(&stretch, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontStretch, ctx, stretch, "%d", YW_CSS_ULTRA_CONDENSED);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_stretch(&stretch, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontStretch, stretch, "%d", YW_CSS_EXTRA_CONDENSED);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_stretch(&stretch, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontStretch, ctx, stretch, "%d", YW_CSS_EXTRA_CONDENSED);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_stretch(&stretch, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontStretch, stretch, "%d", YW_CSS_CONDENSED);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_stretch(&stretch, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontStretch, ctx, stretch, "%d", YW_CSS_CONDENSED);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_stretch(&stretch, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontStretch, stretch, "%d", YW_CSS_SEMI_CONDENSED);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_stretch(&stretch, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontStretch, ctx, stretch, "%d", YW_CSS_SEMI_CONDENSED);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_stretch(&stretch, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontStretch, stretch, "%d", YW_CSS_NORMAL_FONT_STRETCH);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_stretch(&stretch, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontStretch, ctx, stretch, "%d", YW_CSS_NORMAL_FONT_STRETCH);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_stretch(&stretch, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontStretch, stretch, "%d", YW_CSS_SEMI_EXPANDED);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_stretch(&stretch, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontStretch, ctx, stretch, "%d", YW_CSS_SEMI_EXPANDED);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_stretch(&stretch, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontStretch, stretch, "%d", YW_CSS_EXPANDED);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_stretch(&stretch, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontStretch, ctx, stretch, "%d", YW_CSS_EXPANDED);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_stretch(&stretch, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontStretch, stretch, "%d", YW_CSS_EXTRA_EXPANDED);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_stretch(&stretch, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontStretch, ctx, stretch, "%d", YW_CSS_EXTRA_EXPANDED);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_stretch(&stretch, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontStretch, stretch, "%d", YW_CSS_ULTRA_EXPANDED);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_stretch(&stretch, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontStretch, ctx, stretch, "%d", YW_CSS_ULTRA_EXPANDED);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     yw_css_free_tokens(ts.tokens, ts.tokens_len);
@@ -852,16 +851,16 @@ void yw_test_css_parse_font_style(YW_TestingContext *ctx)
     }
     YW_CSSFontStyle style;
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_style(&style, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontStyle, style, "%d", YW_CSS_NORMAL_FONT_STYLE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_style(&style, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontStyle, ctx, style, "%d", YW_CSS_NORMAL_FONT_STYLE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_style(&style, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontStyle, style, "%d", YW_CSS_ITALIC);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_style(&style, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontStyle, ctx, style, "%d", YW_CSS_ITALIC);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_style(&style, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontStyle, style, "%d", YW_CSS_OBLIQUE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_style(&style, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontStyle, ctx, style, "%d", YW_CSS_OBLIQUE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     yw_css_free_tokens(ts.tokens, ts.tokens_len);
@@ -887,53 +886,53 @@ void yw_test_css_parse_font_size(YW_TestingContext *ctx)
     }
     YW_CSSFontSize size;
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_size(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontSizeType, size.type, "%d", YW_CSS_XX_SMALL);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_size(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontSizeType, ctx, size.type, "%d", YW_CSS_XX_SMALL);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_size(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontSizeType, size.type, "%d", YW_CSS_X_SMALL);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_size(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontSizeType, ctx, size.type, "%d", YW_CSS_X_SMALL);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_size(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontSizeType, size.type, "%d", YW_CSS_SMALL);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_size(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontSizeType, ctx, size.type, "%d", YW_CSS_SMALL);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_size(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontSizeType, size.type, "%d", YW_CSS_MEDIUM_FONT_SIZE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_size(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontSizeType, ctx, size.type, "%d", YW_CSS_MEDIUM_FONT_SIZE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_size(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontSizeType, size.type, "%d", YW_CSS_LARGE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_size(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontSizeType, ctx, size.type, "%d", YW_CSS_LARGE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_size(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontSizeType, size.type, "%d", YW_CSS_X_LARGE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_size(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontSizeType, ctx, size.type, "%d", YW_CSS_X_LARGE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_size(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontSizeType, size.type, "%d", YW_CSS_XX_LARGE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_size(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontSizeType, ctx, size.type, "%d", YW_CSS_XX_LARGE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_size(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontSizeType, size.type, "%d", YW_CSS_LARGER);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_size(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontSizeType, ctx, size.type, "%d", YW_CSS_LARGER);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_size(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontSizeType, size.type, "%d", YW_CSS_SMALLER);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_size(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontSizeType, ctx, size.type, "%d", YW_CSS_SMALLER);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_size(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontSizeType, size.type, "%d", YW_CSS_LENGTH_FONT_SIZE);
-    YW_TEST_EXPECT(bool, size.size.is_percentage, "%d", true);
-    YW_TEST_EXPECT(int, size.size.value.percentage, "%d", 50);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_size(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontSizeType, ctx, size.type, "%d", YW_CSS_LENGTH_FONT_SIZE);
+    YW_TEST_EXPECT(bool, ctx, size.size.is_percentage, "%d", true);
+    YW_TEST_EXPECT(int, ctx, size.size.value.percentage, "%d", 50);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_font_size(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSFontSizeType, size.type, "%d", YW_CSS_LENGTH_FONT_SIZE);
-    YW_TEST_EXPECT(bool, size.size.is_percentage, "%d", false);
-    YW_TEST_EXPECT(int, size.size.value.length.value, "%d", 50);
-    YW_TEST_EXPECT(YW_CSSLengthUnit, size.size.value.length.unit, "%d", YW_CSS_PX);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_font_size(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSFontSizeType, ctx, size.type, "%d", YW_CSS_LENGTH_FONT_SIZE);
+    YW_TEST_EXPECT(bool, ctx, size.size.is_percentage, "%d", false);
+    YW_TEST_EXPECT(int, ctx, size.size.value.length.value, "%d", 50);
+    YW_TEST_EXPECT(YW_CSSLengthUnit, ctx, size.size.value.length.unit, "%d", YW_CSS_PX);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     yw_css_free_tokens(ts.tokens, ts.tokens_len);
@@ -1043,7 +1042,7 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
         YW_FAILED_TEST(ctx, "failed to parse selector");
         return;
     }
-    YW_TEST_EXPECT(int, selectors_len, "%d", 23);
+    YW_TEST_EXPECT(int, ctx, selectors_len, "%d", 23);
     if (selectors_len != 23)
     {
         return;
@@ -1053,8 +1052,8 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     sel_temp = yw_complex_sel_to_type(&selectors[0].complex_sel);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_TYPE);
-        YW_TEST_EXPECT_STR(sel_temp->type_sel.name.ident, "div");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_TYPE);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->type_sel.name.ident, "div");
     }
     else
     {
@@ -1065,8 +1064,8 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     sel_temp = yw_complex_sel_to_subclass(&selectors[1].complex_sel);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_PSEUDO_CLASS);
-        YW_TEST_EXPECT_STR(sel_temp->pseudo_class_sel.name, "link");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_PSEUDO_CLASS);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->pseudo_class_sel.name, "link");
     }
     else
     {
@@ -1077,8 +1076,8 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     sel_temp = yw_complex_sel_to_subclass(&selectors[2].complex_sel);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_PSEUDO_CLASS);
-        YW_TEST_EXPECT_STR(sel_temp->pseudo_class_sel.name, "nth-child");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_PSEUDO_CLASS);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->pseudo_class_sel.name, "nth-child");
     }
     else
     {
@@ -1089,8 +1088,8 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     sel_temp = yw_complex_sel_to_pseudo_elem(&selectors[3].complex_sel);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_PSEUDO_CLASS);
-        YW_TEST_EXPECT_STR(sel_temp->pseudo_class_sel.name, "before");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_PSEUDO_CLASS);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->pseudo_class_sel.name, "before");
     }
     else
     {
@@ -1101,8 +1100,8 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     sel_temp = yw_complex_sel_to_subclass(&selectors[4].complex_sel);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
-        YW_TEST_EXPECT_STR(sel_temp->id_sel.id, "id");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->id_sel.id, "id");
     }
     else
     {
@@ -1112,8 +1111,8 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     sel_temp = yw_complex_sel_to_subclass(&selectors[5].complex_sel);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_CLASS);
-        YW_TEST_EXPECT_STR(sel_temp->class_sel.class_name, "class");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_CLASS);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->class_sel.class_name, "class");
     }
     else
     {
@@ -1123,9 +1122,9 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     sel_temp = yw_complex_sel_to_subclass(&selectors[6].complex_sel);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_ATTR);
-        YW_TEST_EXPECT_STR(sel_temp->attr_sel.attr_name.ident, "attr");
-        YW_TEST_EXPECT(YW_CSSValueMatchType, sel_temp->attr_sel.value_match_type, "%d", YW_CSS_NO_VALUE_MATCH);
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_ATTR);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->attr_sel.attr_name.ident, "attr");
+        YW_TEST_EXPECT(YW_CSSValueMatchType, ctx, sel_temp->attr_sel.value_match_type, "%d", YW_CSS_NO_VALUE_MATCH);
     }
     else
     {
@@ -1135,10 +1134,10 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     sel_temp = yw_complex_sel_to_subclass(&selectors[7].complex_sel);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_ATTR);
-        YW_TEST_EXPECT_STR(sel_temp->attr_sel.attr_name.ident, "attr");
-        YW_TEST_EXPECT(YW_CSSValueMatchType, sel_temp->attr_sel.value_match_type, "%d", YW_CSS_VALUE_EQUALS);
-        YW_TEST_EXPECT_STR(sel_temp->attr_sel.attr_value, "value");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_ATTR);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->attr_sel.attr_name.ident, "attr");
+        YW_TEST_EXPECT(YW_CSSValueMatchType, ctx, sel_temp->attr_sel.value_match_type, "%d", YW_CSS_VALUE_EQUALS);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->attr_sel.attr_value, "value");
     }
     else
     {
@@ -1148,10 +1147,10 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     sel_temp = yw_complex_sel_to_subclass(&selectors[8].complex_sel);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_ATTR);
-        YW_TEST_EXPECT_STR(sel_temp->attr_sel.attr_name.ident, "attr");
-        YW_TEST_EXPECT(YW_CSSValueMatchType, sel_temp->attr_sel.value_match_type, "%d", YW_CSS_VALUE_EQUALS);
-        YW_TEST_EXPECT_STR(sel_temp->attr_sel.attr_value, "string");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_ATTR);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->attr_sel.attr_name.ident, "attr");
+        YW_TEST_EXPECT(YW_CSSValueMatchType, ctx, sel_temp->attr_sel.value_match_type, "%d", YW_CSS_VALUE_EQUALS);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->attr_sel.attr_value, "string");
     }
     else
     {
@@ -1161,10 +1160,10 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     sel_temp = yw_complex_sel_to_subclass(&selectors[9].complex_sel);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_ATTR);
-        YW_TEST_EXPECT_STR(sel_temp->attr_sel.attr_name.ident, "attr");
-        YW_TEST_EXPECT(YW_CSSValueMatchType, sel_temp->attr_sel.value_match_type, "%d", YW_CSS_VALUE_TILDE_EQUALS);
-        YW_TEST_EXPECT_STR(sel_temp->attr_sel.attr_value, "value");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_ATTR);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->attr_sel.attr_name.ident, "attr");
+        YW_TEST_EXPECT(YW_CSSValueMatchType, ctx, sel_temp->attr_sel.value_match_type, "%d", YW_CSS_VALUE_TILDE_EQUALS);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->attr_sel.attr_value, "value");
     }
     else
     {
@@ -1174,10 +1173,10 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     sel_temp = yw_complex_sel_to_subclass(&selectors[10].complex_sel);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_ATTR);
-        YW_TEST_EXPECT_STR(sel_temp->attr_sel.attr_name.ident, "attr");
-        YW_TEST_EXPECT(YW_CSSValueMatchType, sel_temp->attr_sel.value_match_type, "%d", YW_CSS_VALUE_BAR_EQUALS);
-        YW_TEST_EXPECT_STR(sel_temp->attr_sel.attr_value, "value");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_ATTR);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->attr_sel.attr_name.ident, "attr");
+        YW_TEST_EXPECT(YW_CSSValueMatchType, ctx, sel_temp->attr_sel.value_match_type, "%d", YW_CSS_VALUE_BAR_EQUALS);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->attr_sel.attr_value, "value");
     }
     else
     {
@@ -1187,10 +1186,10 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     sel_temp = yw_complex_sel_to_subclass(&selectors[11].complex_sel);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_ATTR);
-        YW_TEST_EXPECT_STR(sel_temp->attr_sel.attr_name.ident, "attr");
-        YW_TEST_EXPECT(YW_CSSValueMatchType, sel_temp->attr_sel.value_match_type, "%d", YW_CSS_VALUE_CARET_EQUALS);
-        YW_TEST_EXPECT_STR(sel_temp->attr_sel.attr_value, "value");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_ATTR);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->attr_sel.attr_name.ident, "attr");
+        YW_TEST_EXPECT(YW_CSSValueMatchType, ctx, sel_temp->attr_sel.value_match_type, "%d", YW_CSS_VALUE_CARET_EQUALS);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->attr_sel.attr_value, "value");
     }
     else
     {
@@ -1200,10 +1199,10 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     sel_temp = yw_complex_sel_to_subclass(&selectors[12].complex_sel);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_ATTR);
-        YW_TEST_EXPECT_STR(sel_temp->attr_sel.attr_name.ident, "attr");
-        YW_TEST_EXPECT(YW_CSSValueMatchType, sel_temp->attr_sel.value_match_type, "%d", YW_CSS_VALUE_DOLLAR_EQUALS);
-        YW_TEST_EXPECT_STR(sel_temp->attr_sel.attr_value, "value");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_ATTR);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->attr_sel.attr_name.ident, "attr");
+        YW_TEST_EXPECT(YW_CSSValueMatchType, ctx, sel_temp->attr_sel.value_match_type, "%d", YW_CSS_VALUE_DOLLAR_EQUALS);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->attr_sel.attr_value, "value");
     }
     else
     {
@@ -1213,10 +1212,10 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     sel_temp = yw_complex_sel_to_subclass(&selectors[13].complex_sel);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_ATTR);
-        YW_TEST_EXPECT_STR(sel_temp->attr_sel.attr_name.ident, "attr");
-        YW_TEST_EXPECT(YW_CSSValueMatchType, sel_temp->attr_sel.value_match_type, "%d", YW_CSS_VALUE_ASTERISK_EQUALS);
-        YW_TEST_EXPECT_STR(sel_temp->attr_sel.attr_value, "value");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_ATTR);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->attr_sel.attr_name.ident, "attr");
+        YW_TEST_EXPECT(YW_CSSValueMatchType, ctx, sel_temp->attr_sel.value_match_type, "%d", YW_CSS_VALUE_ASTERISK_EQUALS);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->attr_sel.attr_value, "value");
     }
     else
     {
@@ -1227,16 +1226,16 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     sel_temp = yw_complex_sel_to_compound(&selectors[14].complex_sel);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(int, sel_temp->compound_sel.subclass_sels_len, "%d", 1);
-        YW_TEST_EXPECT(int, sel_temp->compound_sel.pseudo_items_len, "%d", 0);
-        YW_TEST_EXPECT(bool, sel_temp->compound_sel.type_sel != NULL, "%d", true);
+        YW_TEST_EXPECT(int, ctx, sel_temp->compound_sel.subclass_sels_len, "%d", 1);
+        YW_TEST_EXPECT(int, ctx, sel_temp->compound_sel.pseudo_items_len, "%d", 0);
+        YW_TEST_EXPECT(bool, ctx, sel_temp->compound_sel.type_sel != NULL, "%d", true);
         if (sel_temp->compound_sel.type_sel != NULL)
         {
-            YW_TEST_EXPECT(int, sel_temp->compound_sel.type_sel->type, "%d", YW_CSS_SELECTOR_TYPE);
-            YW_TEST_EXPECT_STR(sel_temp->compound_sel.type_sel->type_sel.name.ident, "div");
+            YW_TEST_EXPECT(int, ctx, sel_temp->compound_sel.type_sel->type, "%d", YW_CSS_SELECTOR_TYPE);
+            YW_TEST_EXPECT_STR(ctx, sel_temp->compound_sel.type_sel->type_sel.name.ident, "div");
         }
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->compound_sel.subclass_sels[0].type, "%d", YW_CSS_SELECTOR_CLASS);
-        YW_TEST_EXPECT_STR(sel_temp->compound_sel.subclass_sels[0].class_sel.class_name, "class");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->compound_sel.subclass_sels[0].type, "%d", YW_CSS_SELECTOR_CLASS);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->compound_sel.subclass_sels[0].class_sel.class_name, "class");
     }
     else
     {
@@ -1246,19 +1245,19 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     sel_temp = yw_complex_sel_to_compound(&selectors[15].complex_sel);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(int, sel_temp->compound_sel.subclass_sels_len, "%d", 1);
-        YW_TEST_EXPECT(int, sel_temp->compound_sel.pseudo_items_len, "%d", 1);
-        YW_TEST_EXPECT(bool, sel_temp->compound_sel.type_sel != NULL, "%d", true);
+        YW_TEST_EXPECT(int, ctx, sel_temp->compound_sel.subclass_sels_len, "%d", 1);
+        YW_TEST_EXPECT(int, ctx, sel_temp->compound_sel.pseudo_items_len, "%d", 1);
+        YW_TEST_EXPECT(bool, ctx, sel_temp->compound_sel.type_sel != NULL, "%d", true);
         if (sel_temp->compound_sel.type_sel != NULL)
         {
-            YW_TEST_EXPECT(int, sel_temp->compound_sel.type_sel->type, "%d", YW_CSS_SELECTOR_TYPE);
-            YW_TEST_EXPECT_STR(sel_temp->compound_sel.type_sel->type_sel.name.ident, "div");
+            YW_TEST_EXPECT(int, ctx, sel_temp->compound_sel.type_sel->type, "%d", YW_CSS_SELECTOR_TYPE);
+            YW_TEST_EXPECT_STR(ctx, sel_temp->compound_sel.type_sel->type_sel.name.ident, "div");
         }
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->compound_sel.subclass_sels[0].type, "%d", YW_CSS_SELECTOR_CLASS);
-        YW_TEST_EXPECT_STR(sel_temp->compound_sel.subclass_sels[0].class_sel.class_name, "class");
-        YW_TEST_EXPECT(int, sel_temp->compound_sel.pseudo_items[0].class_sels_len, "%d", 0);
-        YW_TEST_EXPECT(int, sel_temp->compound_sel.pseudo_items[0].pseudo_elem_sel->type, "%d", YW_CSS_SELECTOR_PSEUDO_CLASS);
-        YW_TEST_EXPECT_STR(sel_temp->compound_sel.pseudo_items[0].pseudo_elem_sel->pseudo_class_sel.name, "before");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->compound_sel.subclass_sels[0].type, "%d", YW_CSS_SELECTOR_CLASS);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->compound_sel.subclass_sels[0].class_sel.class_name, "class");
+        YW_TEST_EXPECT(int, ctx, sel_temp->compound_sel.pseudo_items[0].class_sels_len, "%d", 0);
+        YW_TEST_EXPECT(int, ctx, sel_temp->compound_sel.pseudo_items[0].pseudo_elem_sel->type, "%d", YW_CSS_SELECTOR_PSEUDO_CLASS);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->compound_sel.pseudo_items[0].pseudo_elem_sel->pseudo_class_sel.name, "before");
     }
     else
     {
@@ -1268,22 +1267,22 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     sel_temp = yw_complex_sel_to_compound(&selectors[16].complex_sel);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(int, sel_temp->compound_sel.subclass_sels_len, "%d", 1);
-        YW_TEST_EXPECT(int, sel_temp->compound_sel.pseudo_items_len, "%d", 1);
-        YW_TEST_EXPECT(bool, sel_temp->compound_sel.type_sel != NULL, "%d", true);
+        YW_TEST_EXPECT(int, ctx, sel_temp->compound_sel.subclass_sels_len, "%d", 1);
+        YW_TEST_EXPECT(int, ctx, sel_temp->compound_sel.pseudo_items_len, "%d", 1);
+        YW_TEST_EXPECT(bool, ctx, sel_temp->compound_sel.type_sel != NULL, "%d", true);
         if (sel_temp->compound_sel.type_sel != NULL)
         {
-            YW_TEST_EXPECT(int, sel_temp->compound_sel.type_sel->type, "%d", YW_CSS_SELECTOR_TYPE);
-            YW_TEST_EXPECT_STR(sel_temp->compound_sel.type_sel->type_sel.name.ident, "div");
+            YW_TEST_EXPECT(int, ctx, sel_temp->compound_sel.type_sel->type, "%d", YW_CSS_SELECTOR_TYPE);
+            YW_TEST_EXPECT_STR(ctx, sel_temp->compound_sel.type_sel->type_sel.name.ident, "div");
         }
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->compound_sel.subclass_sels[0].type, "%d", YW_CSS_SELECTOR_CLASS);
-        YW_TEST_EXPECT_STR(sel_temp->compound_sel.subclass_sels[0].class_sel.class_name, "class");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->compound_sel.subclass_sels[0].type, "%d", YW_CSS_SELECTOR_CLASS);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->compound_sel.subclass_sels[0].class_sel.class_name, "class");
 
-        YW_TEST_EXPECT(int, sel_temp->compound_sel.pseudo_items[0].class_sels_len, "%d", 1);
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->compound_sel.pseudo_items[0].pseudo_elem_sel->type, "%d", YW_CSS_SELECTOR_PSEUDO_CLASS);
-        YW_TEST_EXPECT_STR(sel_temp->compound_sel.pseudo_items[0].pseudo_elem_sel->pseudo_class_sel.name, "before");
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->compound_sel.pseudo_items[0].class_sels[0].type, "%d", YW_CSS_SELECTOR_PSEUDO_CLASS);
-        YW_TEST_EXPECT_STR(sel_temp->compound_sel.pseudo_items[0].class_sels[0].pseudo_class_sel.name, "link");
+        YW_TEST_EXPECT(int, ctx, sel_temp->compound_sel.pseudo_items[0].class_sels_len, "%d", 1);
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->compound_sel.pseudo_items[0].pseudo_elem_sel->type, "%d", YW_CSS_SELECTOR_PSEUDO_CLASS);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->compound_sel.pseudo_items[0].pseudo_elem_sel->pseudo_class_sel.name, "before");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->compound_sel.pseudo_items[0].class_sels[0].type, "%d", YW_CSS_SELECTOR_PSEUDO_CLASS);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->compound_sel.pseudo_items[0].class_sels[0].pseudo_class_sel.name, "link");
     }
     else
     {
@@ -1293,16 +1292,16 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     sel_temp = yw_complex_sel_to_compound(&selectors[17].complex_sel);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(int, sel_temp->compound_sel.subclass_sels_len, "%d", 1);
-        YW_TEST_EXPECT(int, sel_temp->compound_sel.pseudo_items_len, "%d", 0);
-        YW_TEST_EXPECT(bool, sel_temp->compound_sel.type_sel != NULL, "%d", true);
+        YW_TEST_EXPECT(int, ctx, sel_temp->compound_sel.subclass_sels_len, "%d", 1);
+        YW_TEST_EXPECT(int, ctx, sel_temp->compound_sel.pseudo_items_len, "%d", 0);
+        YW_TEST_EXPECT(bool, ctx, sel_temp->compound_sel.type_sel != NULL, "%d", true);
         if (sel_temp->compound_sel.type_sel != NULL)
         {
-            YW_TEST_EXPECT(int, sel_temp->compound_sel.type_sel->type, "%d", YW_CSS_SELECTOR_TYPE);
-            YW_TEST_EXPECT_STR(sel_temp->compound_sel.type_sel->type_sel.name.ident, "div");
+            YW_TEST_EXPECT(int, ctx, sel_temp->compound_sel.type_sel->type, "%d", YW_CSS_SELECTOR_TYPE);
+            YW_TEST_EXPECT_STR(ctx, sel_temp->compound_sel.type_sel->type_sel.name.ident, "div");
         }
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->compound_sel.subclass_sels[0].type, "%d", YW_CSS_SELECTOR_PSEUDO_CLASS);
-        YW_TEST_EXPECT_STR(sel_temp->compound_sel.subclass_sels[0].class_sel.class_name, "link");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->compound_sel.subclass_sels[0].type, "%d", YW_CSS_SELECTOR_PSEUDO_CLASS);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->compound_sel.subclass_sels[0].class_sel.class_name, "link");
     }
     else
     {
@@ -1311,26 +1310,26 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     /* Complex selector *******************************************************/
     /* #a #b */
     complex_sel_temp = &selectors[18].complex_sel;
-    YW_TEST_EXPECT(int, complex_sel_temp->type, "%d", YW_CSS_SELECTOR_COMPLEX);
+    YW_TEST_EXPECT(int, ctx, complex_sel_temp->type, "%d", YW_CSS_SELECTOR_COMPLEX);
     sel_temp = yw_complex_sel_to_subclass(complex_sel_temp);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
-        YW_TEST_EXPECT_STR(sel_temp->id_sel.id, "a");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->id_sel.id, "a");
     }
     else
     {
         YW_FAILED_TEST(ctx, "yw_complex_sel_to_subclass() failed");
     }
 
-    YW_TEST_EXPECT(int, complex_sel_temp->rests_len, "%d", 1);
-    YW_TEST_EXPECT(YW_CSSCombinator, complex_sel_temp->rests[0].combinator, "%d", YW_CSS_CHILD_COMBINATOR);
+    YW_TEST_EXPECT(int, ctx, complex_sel_temp->rests_len, "%d", 1);
+    YW_TEST_EXPECT(YW_CSSCombinator, ctx, complex_sel_temp->rests[0].combinator, "%d", YW_CSS_CHILD_COMBINATOR);
 
     sel_temp = yw_compound_sel_to_subclass(complex_sel_temp->rests[0].selector);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
-        YW_TEST_EXPECT_STR(sel_temp->id_sel.id, "b");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->id_sel.id, "b");
     }
     else
     {
@@ -1338,26 +1337,26 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     }
     /* #a>#b */
     complex_sel_temp = &selectors[19].complex_sel;
-    YW_TEST_EXPECT(YW_CSSSelectorType, complex_sel_temp->type, "%d", YW_CSS_SELECTOR_COMPLEX);
+    YW_TEST_EXPECT(YW_CSSSelectorType, ctx, complex_sel_temp->type, "%d", YW_CSS_SELECTOR_COMPLEX);
     sel_temp = yw_compound_sel_to_subclass(complex_sel_temp->base);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
-        YW_TEST_EXPECT_STR(sel_temp->id_sel.id, "a");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->id_sel.id, "a");
     }
     else
     {
         YW_FAILED_TEST(ctx, "yw_compound_sel_to_subclass() failed");
     }
 
-    YW_TEST_EXPECT(int, complex_sel_temp->rests_len, "%d", 1);
-    YW_TEST_EXPECT(YW_CSSCombinator, complex_sel_temp->rests[0].combinator, "%d", YW_CSS_DIRECT_CHILD_COMBINATOR);
+    YW_TEST_EXPECT(int, ctx, complex_sel_temp->rests_len, "%d", 1);
+    YW_TEST_EXPECT(YW_CSSCombinator, ctx, complex_sel_temp->rests[0].combinator, "%d", YW_CSS_DIRECT_CHILD_COMBINATOR);
 
     sel_temp = yw_compound_sel_to_subclass(complex_sel_temp->rests[0].selector);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
-        YW_TEST_EXPECT_STR(sel_temp->id_sel.id, "b");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->id_sel.id, "b");
     }
     else
     {
@@ -1365,26 +1364,26 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     }
     /* #a+#b */
     complex_sel_temp = &selectors[20].complex_sel;
-    YW_TEST_EXPECT(YW_CSSSelectorType, complex_sel_temp->type, "%d", YW_CSS_SELECTOR_COMPLEX);
+    YW_TEST_EXPECT(YW_CSSSelectorType, ctx, complex_sel_temp->type, "%d", YW_CSS_SELECTOR_COMPLEX);
     sel_temp = yw_compound_sel_to_subclass(complex_sel_temp->base);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
-        YW_TEST_EXPECT_STR(sel_temp->id_sel.id, "a");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->id_sel.id, "a");
     }
     else
     {
         YW_FAILED_TEST(ctx, "yw_compound_sel_to_subclass() failed");
     }
 
-    YW_TEST_EXPECT(int, complex_sel_temp->rests_len, "%d", 1);
-    YW_TEST_EXPECT(YW_CSSCombinator, complex_sel_temp->rests[0].combinator, "%d", YW_CSS_PLUS_COMBINATOR);
+    YW_TEST_EXPECT(int, ctx, complex_sel_temp->rests_len, "%d", 1);
+    YW_TEST_EXPECT(YW_CSSCombinator, ctx, complex_sel_temp->rests[0].combinator, "%d", YW_CSS_PLUS_COMBINATOR);
 
     sel_temp = yw_compound_sel_to_subclass(complex_sel_temp->rests[0].selector);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
-        YW_TEST_EXPECT_STR(sel_temp->id_sel.id, "b");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->id_sel.id, "b");
     }
     else
     {
@@ -1392,26 +1391,26 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     }
     /* #a~#b */
     complex_sel_temp = &selectors[21].complex_sel;
-    YW_TEST_EXPECT(YW_CSSSelectorType, complex_sel_temp->type, "%d", YW_CSS_SELECTOR_COMPLEX);
+    YW_TEST_EXPECT(YW_CSSSelectorType, ctx, complex_sel_temp->type, "%d", YW_CSS_SELECTOR_COMPLEX);
     sel_temp = yw_compound_sel_to_subclass(complex_sel_temp->base);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
-        YW_TEST_EXPECT_STR(sel_temp->id_sel.id, "a");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->id_sel.id, "a");
     }
     else
     {
         YW_FAILED_TEST(ctx, "yw_compound_sel_to_subclass() failed");
     }
 
-    YW_TEST_EXPECT(int, complex_sel_temp->rests_len, "%d", 1);
-    YW_TEST_EXPECT(YW_CSSCombinator, complex_sel_temp->rests[0].combinator, "%d", YW_CSS_TILDE_COMBINATOR);
+    YW_TEST_EXPECT(int, ctx, complex_sel_temp->rests_len, "%d", 1);
+    YW_TEST_EXPECT(YW_CSSCombinator, ctx, complex_sel_temp->rests[0].combinator, "%d", YW_CSS_TILDE_COMBINATOR);
 
     sel_temp = yw_compound_sel_to_subclass(complex_sel_temp->rests[0].selector);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
-        YW_TEST_EXPECT_STR(sel_temp->id_sel.id, "b");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->id_sel.id, "b");
     }
     else
     {
@@ -1419,26 +1418,26 @@ void yw_test_css_parse_selector(YW_TestingContext *ctx)
     }
     /* #a||#b */
     complex_sel_temp = &selectors[22].complex_sel;
-    YW_TEST_EXPECT(YW_CSSSelectorType, complex_sel_temp->type, "%d", YW_CSS_SELECTOR_COMPLEX);
+    YW_TEST_EXPECT(YW_CSSSelectorType, ctx, complex_sel_temp->type, "%d", YW_CSS_SELECTOR_COMPLEX);
     sel_temp = yw_compound_sel_to_subclass(complex_sel_temp->base);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
-        YW_TEST_EXPECT_STR(sel_temp->id_sel.id, "a");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->id_sel.id, "a");
     }
     else
     {
         YW_FAILED_TEST(ctx, "yw_compound_sel_to_subclass() failed");
     }
 
-    YW_TEST_EXPECT(int, complex_sel_temp->rests_len, "%d", 1);
-    YW_TEST_EXPECT(YW_CSSCombinator, complex_sel_temp->rests[0].combinator, "%d", YW_CSS_TWO_BARS_COMBINATOR);
+    YW_TEST_EXPECT(int, ctx, complex_sel_temp->rests_len, "%d", 1);
+    YW_TEST_EXPECT(YW_CSSCombinator, ctx, complex_sel_temp->rests[0].combinator, "%d", YW_CSS_TWO_BARS_COMBINATOR);
 
     sel_temp = yw_compound_sel_to_subclass(complex_sel_temp->rests[0].selector);
     if (sel_temp != NULL)
     {
-        YW_TEST_EXPECT(YW_CSSSelectorType, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
-        YW_TEST_EXPECT_STR(sel_temp->id_sel.id, "b");
+        YW_TEST_EXPECT(YW_CSSSelectorType, ctx, sel_temp->type, "%d", YW_CSS_SELECTOR_ID);
+        YW_TEST_EXPECT_STR(ctx, sel_temp->id_sel.id, "b");
     }
     else
     {
@@ -1472,45 +1471,45 @@ void yw_test_css_parse_size_or_auto(YW_TestingContext *ctx)
     }
     YW_CSSSize size;
 
-    YW_TEST_EXPECT(bool, yw_css_parse_size_or_auto(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSSizeType, size.type, "%d", YW_CSS_AUTO_SIZE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_size_or_auto(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSSizeType, ctx, size.type, "%d", YW_CSS_AUTO_SIZE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_size_or_auto(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSSizeType, size.type, "%d", YW_CSS_MIN_CONTENT);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_size_or_auto(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSSizeType, ctx, size.type, "%d", YW_CSS_MIN_CONTENT);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_size_or_auto(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSSizeType, size.type, "%d", YW_CSS_MAX_CONTENT);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_size_or_auto(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSSizeType, ctx, size.type, "%d", YW_CSS_MAX_CONTENT);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_size_or_auto(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSSizeType, size.type, "%d", YW_CSS_FIT_CONTENT);
-    YW_TEST_EXPECT(bool, size.size.is_percentage, "%d", true);
-    YW_TEST_EXPECT(int, size.size.value.percentage, "%d", 50);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_size_or_auto(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSSizeType, ctx, size.type, "%d", YW_CSS_FIT_CONTENT);
+    YW_TEST_EXPECT(bool, ctx, size.size.is_percentage, "%d", true);
+    YW_TEST_EXPECT(int, ctx, size.size.value.percentage, "%d", 50);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_size_or_auto(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSSizeType, size.type, "%d", YW_CSS_FIT_CONTENT);
-    YW_TEST_EXPECT(bool, size.size.is_percentage, "%d", false);
-    YW_TEST_EXPECT(int, size.size.value.length.value, "%d", 50);
-    YW_TEST_EXPECT(YW_CSSLengthUnit, size.size.value.length.unit, "%d", YW_CSS_PX);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_size_or_auto(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSSizeType, ctx, size.type, "%d", YW_CSS_FIT_CONTENT);
+    YW_TEST_EXPECT(bool, ctx, size.size.is_percentage, "%d", false);
+    YW_TEST_EXPECT(int, ctx, size.size.value.length.value, "%d", 50);
+    YW_TEST_EXPECT(YW_CSSLengthUnit, ctx, size.size.value.length.unit, "%d", YW_CSS_PX);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_size_or_auto(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSSizeType, size.type, "%d", YW_CSS_MANUAL_SIZE);
-    YW_TEST_EXPECT(bool, size.size.is_percentage, "%d", true);
-    YW_TEST_EXPECT(int, size.size.value.percentage, "%d", 50);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_size_or_auto(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSSizeType, ctx, size.type, "%d", YW_CSS_MANUAL_SIZE);
+    YW_TEST_EXPECT(bool, ctx, size.size.is_percentage, "%d", true);
+    YW_TEST_EXPECT(int, ctx, size.size.value.percentage, "%d", 50);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_size_or_auto(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSSizeType, size.type, "%d", YW_CSS_MANUAL_SIZE);
-    YW_TEST_EXPECT(bool, size.size.is_percentage, "%d", false);
-    YW_TEST_EXPECT(int, size.size.value.length.value, "%d", 50);
-    YW_TEST_EXPECT(YW_CSSLengthUnit, size.size.value.length.unit, "%d", YW_CSS_PX);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_size_or_auto(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSSizeType, ctx, size.type, "%d", YW_CSS_MANUAL_SIZE);
+    YW_TEST_EXPECT(bool, ctx, size.size.is_percentage, "%d", false);
+    YW_TEST_EXPECT(int, ctx, size.size.value.length.value, "%d", 50);
+    YW_TEST_EXPECT(YW_CSSLengthUnit, ctx, size.size.value.length.unit, "%d", YW_CSS_PX);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_size_or_auto(&size, &ts), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_size_or_auto(&size, &ts), "%d", false);
 
     yw_css_free_tokens(ts.tokens, ts.tokens_len);
 }
@@ -1532,45 +1531,45 @@ void yw_test_css_parse_size_or_none(YW_TestingContext *ctx)
     }
     YW_CSSSize size;
 
-    YW_TEST_EXPECT(bool, yw_css_parse_size_or_none(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSSizeType, size.type, "%d", YW_CSS_NO_SIZE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_size_or_none(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSSizeType, ctx, size.type, "%d", YW_CSS_NO_SIZE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_size_or_none(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSSizeType, size.type, "%d", YW_CSS_MIN_CONTENT);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_size_or_none(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSSizeType, ctx, size.type, "%d", YW_CSS_MIN_CONTENT);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_size_or_none(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSSizeType, size.type, "%d", YW_CSS_MAX_CONTENT);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_size_or_none(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSSizeType, ctx, size.type, "%d", YW_CSS_MAX_CONTENT);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_size_or_none(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSSizeType, size.type, "%d", YW_CSS_FIT_CONTENT);
-    YW_TEST_EXPECT(bool, size.size.is_percentage, "%d", true);
-    YW_TEST_EXPECT(int, size.size.value.percentage, "%d", 50);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_size_or_none(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSSizeType, ctx, size.type, "%d", YW_CSS_FIT_CONTENT);
+    YW_TEST_EXPECT(bool, ctx, size.size.is_percentage, "%d", true);
+    YW_TEST_EXPECT(int, ctx, size.size.value.percentage, "%d", 50);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_size_or_none(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSSizeType, size.type, "%d", YW_CSS_FIT_CONTENT);
-    YW_TEST_EXPECT(bool, size.size.is_percentage, "%d", false);
-    YW_TEST_EXPECT(int, size.size.value.length.value, "%d", 50);
-    YW_TEST_EXPECT(YW_CSSLengthUnit, size.size.value.length.unit, "%d", YW_CSS_PX);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_size_or_none(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSSizeType, ctx, size.type, "%d", YW_CSS_FIT_CONTENT);
+    YW_TEST_EXPECT(bool, ctx, size.size.is_percentage, "%d", false);
+    YW_TEST_EXPECT(int, ctx, size.size.value.length.value, "%d", 50);
+    YW_TEST_EXPECT(YW_CSSLengthUnit, ctx, size.size.value.length.unit, "%d", YW_CSS_PX);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_size_or_none(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSSizeType, size.type, "%d", YW_CSS_MANUAL_SIZE);
-    YW_TEST_EXPECT(bool, size.size.is_percentage, "%d", true);
-    YW_TEST_EXPECT(int, size.size.value.percentage, "%d", 50);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_size_or_none(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSSizeType, ctx, size.type, "%d", YW_CSS_MANUAL_SIZE);
+    YW_TEST_EXPECT(bool, ctx, size.size.is_percentage, "%d", true);
+    YW_TEST_EXPECT(int, ctx, size.size.value.percentage, "%d", 50);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_size_or_none(&size, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSSizeType, size.type, "%d", YW_CSS_MANUAL_SIZE);
-    YW_TEST_EXPECT(bool, size.size.is_percentage, "%d", false);
-    YW_TEST_EXPECT(int, size.size.value.length.value, "%d", 50);
-    YW_TEST_EXPECT(YW_CSSLengthUnit, size.size.value.length.unit, "%d", YW_CSS_PX);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_size_or_none(&size, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSSizeType, ctx, size.type, "%d", YW_CSS_MANUAL_SIZE);
+    YW_TEST_EXPECT(bool, ctx, size.size.is_percentage, "%d", false);
+    YW_TEST_EXPECT(int, ctx, size.size.value.length.value, "%d", 50);
+    YW_TEST_EXPECT(YW_CSSLengthUnit, ctx, size.size.value.length.unit, "%d", YW_CSS_PX);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_size_or_none(&size, &ts), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_size_or_none(&size, &ts), "%d", false);
 
     yw_css_free_tokens(ts.tokens, ts.tokens_len);
 }
@@ -1594,28 +1593,28 @@ void yw_test_css_parse_text_transform(YW_TestingContext *ctx)
     }
     YW_CSSTextTransform trans;
 
-    YW_TEST_EXPECT(bool, yw_css_parse_text_transform(&trans, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSTextTransform, trans, "%d", YW_CSS_TEXT_TRANSFORM_CAPITALIZE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_text_transform(&trans, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSTextTransform, ctx, trans, "%d", YW_CSS_TEXT_TRANSFORM_CAPITALIZE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_text_transform(&trans, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSTextTransform, trans, "%d", YW_CSS_TEXT_TRANSFORM_CAPITALIZE | YW_CSS_TEXT_TRANSFORM_FULL_WIDTH);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_text_transform(&trans, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSTextTransform, ctx, trans, "%d", YW_CSS_TEXT_TRANSFORM_CAPITALIZE | YW_CSS_TEXT_TRANSFORM_FULL_WIDTH);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_text_transform(&trans, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSTextTransform, trans, "%d", YW_CSS_TEXT_TRANSFORM_CAPITALIZE | YW_CSS_TEXT_TRANSFORM_FULL_WIDTH | YW_CSS_TEXT_TRANSFORM_FULL_SIZE_KANA);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_text_transform(&trans, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSTextTransform, ctx, trans, "%d", YW_CSS_TEXT_TRANSFORM_CAPITALIZE | YW_CSS_TEXT_TRANSFORM_FULL_WIDTH | YW_CSS_TEXT_TRANSFORM_FULL_SIZE_KANA);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_text_transform(&trans, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSTextTransform, trans, "%d", YW_CSS_TEXT_TRANSFORM_UPPERCASE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_text_transform(&trans, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSTextTransform, ctx, trans, "%d", YW_CSS_TEXT_TRANSFORM_UPPERCASE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_text_transform(&trans, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSTextTransform, trans, "%d", YW_CSS_TEXT_TRANSFORM_LOWERCASE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_text_transform(&trans, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSTextTransform, ctx, trans, "%d", YW_CSS_TEXT_TRANSFORM_LOWERCASE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_text_transform(&trans, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSTextTransform, trans, "%d", YW_CSS_TEXT_TRANSFORM_ORIGINAL_CAPS | YW_CSS_TEXT_TRANSFORM_FULL_WIDTH | YW_CSS_TEXT_TRANSFORM_FULL_SIZE_KANA);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_text_transform(&trans, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSTextTransform, ctx, trans, "%d", YW_CSS_TEXT_TRANSFORM_ORIGINAL_CAPS | YW_CSS_TEXT_TRANSFORM_FULL_WIDTH | YW_CSS_TEXT_TRANSFORM_FULL_SIZE_KANA);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     yw_css_free_tokens(ts.tokens, ts.tokens_len);
@@ -1636,11 +1635,11 @@ void yw_test_css_parse_text_decoration_line(YW_TestingContext *ctx)
     }
     YW_CSSTextDecorationLine lines;
 
-    YW_TEST_EXPECT(bool, yw_css_parse_text_decoration_line(&lines, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSTextDecorationLine, lines, "%d", 0);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_text_decoration_line(&lines, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSTextDecorationLine, ctx, lines, "%d", 0);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_text_decoration_line(&lines, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSTextDecorationLine, lines, "%d", YW_CSS_TEXT_DECORATION_UNDERLINE | YW_CSS_TEXT_DECORATION_OVERLINE | YW_CSS_TEXT_DECORATION_LINE_THROUGH | YW_CSS_TEXT_DECORATION_BLINK);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_text_decoration_line(&lines, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSTextDecorationLine, ctx, lines, "%d", YW_CSS_TEXT_DECORATION_UNDERLINE | YW_CSS_TEXT_DECORATION_OVERLINE | YW_CSS_TEXT_DECORATION_LINE_THROUGH | YW_CSS_TEXT_DECORATION_BLINK);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     yw_css_free_tokens(ts.tokens, ts.tokens_len);
@@ -1660,24 +1659,24 @@ void yw_test_css_parse_text_decoration_style(YW_TestingContext *ctx)
     }
     YW_CSSTextDecorationStyle style;
 
-    YW_TEST_EXPECT(bool, yw_css_parse_text_decoration_style(&style, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSTextDecorationStyle, style, "%d", YW_CSS_TEXT_DECORATION_SOLID);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_text_decoration_style(&style, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSTextDecorationStyle, ctx, style, "%d", YW_CSS_TEXT_DECORATION_SOLID);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_text_decoration_style(&style, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSTextDecorationStyle, style, "%d", YW_CSS_TEXT_DECORATION_DOUBLE);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_text_decoration_style(&style, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSTextDecorationStyle, ctx, style, "%d", YW_CSS_TEXT_DECORATION_DOUBLE);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_text_decoration_style(&style, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSTextDecorationStyle, style, "%d", YW_CSS_TEXT_DECORATION_DOTTED);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_text_decoration_style(&style, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSTextDecorationStyle, ctx, style, "%d", YW_CSS_TEXT_DECORATION_DOTTED);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_text_decoration_style(&style, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSTextDecorationStyle, style, "%d", YW_CSS_TEXT_DECORATION_DASHED);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_text_decoration_style(&style, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSTextDecorationStyle, ctx, style, "%d", YW_CSS_TEXT_DECORATION_DASHED);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
-    YW_TEST_EXPECT(bool, yw_css_parse_text_decoration_style(&style, &ts), "%d", true);
-    YW_TEST_EXPECT(YW_CSSTextDecorationStyle, style, "%d", YW_CSS_TEXT_DECORATION_WAVY);
+    YW_TEST_EXPECT(bool, ctx, yw_css_parse_text_decoration_style(&style, &ts), "%d", true);
+    YW_TEST_EXPECT(YW_CSSTextDecorationStyle, ctx, style, "%d", YW_CSS_TEXT_DECORATION_WAVY);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
 
     yw_css_free_tokens(ts.tokens, ts.tokens_len);

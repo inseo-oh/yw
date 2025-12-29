@@ -1,8 +1,7 @@
 /*
  * This file is part of YW project. Copyright 2025 Oh Inseo (YJK)
  * SPDX-License-Identifier: BSD-3-Clause
- * See LICENSE for details, and LICENSE_WHATWG_SPECS for WHATWG license
- * information.
+ * See LICENSE for details, and LICENSE_WHATWG_SPECS for WHATWG license information.
  */
 #include "yw_common.h"
 #include "yw_dom.h"
@@ -55,16 +54,16 @@ void yw_test_dom_first_child(YW_TestingContext *ctx)
     YW_GC_PTR(YW_DOMNode) child1 = yw_test_node_alloc(&heap);
     YW_GC_PTR(YW_DOMNode) child2 = yw_test_node_alloc(&heap);
 
-    YW_TEST_EXPECT(void *, yw_dom_first_child(root), "%p", (void *)NULL);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_first_child(root), "%p", (void *)NULL);
 
     YW_LIST_PUSH(YW_GC_PTR(YW_DOMNode), &root->children, child1);
     yw_fix_children_parent(root);
-    YW_TEST_EXPECT(void *, yw_dom_first_child(root), "%p", (void *)child1);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_first_child(root), "%p", (void *)child1);
 
     YW_LIST_PUSH(YW_GC_PTR(YW_DOMNode), &root->children, child2);
     yw_fix_children_parent(root);
 
-    YW_TEST_EXPECT(void *, yw_dom_first_child(root), "%p", (void *)child1);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_first_child(root), "%p", (void *)child1);
 
     yw_gc_heap_deinit(&heap);
 }
@@ -78,15 +77,15 @@ void yw_test_dom_last_child(YW_TestingContext *ctx)
     YW_GC_PTR(YW_DOMNode) child1 = yw_test_node_alloc(&heap);
     YW_GC_PTR(YW_DOMNode) child2 = yw_test_node_alloc(&heap);
 
-    YW_TEST_EXPECT(void *, yw_dom_last_child(root), "%p", (void *)NULL);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_last_child(root), "%p", (void *)NULL);
 
     YW_LIST_PUSH(YW_GC_PTR(YW_DOMNode), &root->children, child1);
     yw_fix_children_parent(root);
-    YW_TEST_EXPECT(void *, yw_dom_last_child(root), "%p", (void *)child1);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_last_child(root), "%p", (void *)child1);
 
     YW_LIST_PUSH(YW_GC_PTR(YW_DOMNode), &root->children, child2);
     yw_fix_children_parent(root);
-    YW_TEST_EXPECT(void *, yw_dom_last_child(root), "%p", (void *)child2);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_last_child(root), "%p", (void *)child2);
 
     yw_gc_heap_deinit(&heap);
 }
@@ -105,10 +104,10 @@ void yw_test_dom_next_sibling(YW_TestingContext *ctx)
     YW_LIST_PUSH(YW_GC_PTR(YW_DOMNode), &root->children, child3);
     yw_fix_children_parent(root);
 
-    YW_TEST_EXPECT(void *, yw_dom_next_sibling(root), "%p", (void *)NULL);
-    YW_TEST_EXPECT(void *, yw_dom_next_sibling(child1), "%p", (void *)child2);
-    YW_TEST_EXPECT(void *, yw_dom_next_sibling(child2), "%p", (void *)child3);
-    YW_TEST_EXPECT(void *, yw_dom_next_sibling(child3), "%p", (void *)NULL);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_sibling(root), "%p", (void *)NULL);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_sibling(child1), "%p", (void *)child2);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_sibling(child2), "%p", (void *)child3);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_sibling(child3), "%p", (void *)NULL);
 
     yw_gc_heap_deinit(&heap);
 }
@@ -127,10 +126,10 @@ void yw_test_dom_prev_sibling(YW_TestingContext *ctx)
     YW_LIST_PUSH(YW_GC_PTR(YW_DOMNode), &root->children, child3);
     yw_fix_children_parent(root);
 
-    YW_TEST_EXPECT(void *, yw_dom_prev_sibling(root), "%p", (void *)NULL);
-    YW_TEST_EXPECT(void *, yw_dom_prev_sibling(child1), "%p", (void *)NULL);
-    YW_TEST_EXPECT(void *, yw_dom_prev_sibling(child2), "%p", (void *)child1);
-    YW_TEST_EXPECT(void *, yw_dom_prev_sibling(child3), "%p", (void *)child2);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_prev_sibling(root), "%p", (void *)NULL);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_prev_sibling(child1), "%p", (void *)NULL);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_prev_sibling(child2), "%p", (void *)child1);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_prev_sibling(child3), "%p", (void *)child2);
 
     yw_gc_heap_deinit(&heap);
 }
@@ -149,10 +148,10 @@ void yw_test_dom_root(YW_TestingContext *ctx)
     YW_LIST_PUSH(YW_GC_PTR(YW_DOMNode), &child2->children, child3);
     yw_fix_children_parent(root);
 
-    YW_TEST_EXPECT(void *, yw_dom_root(root, YW_DOM_NO_SEARCH_FLAGS), "%p", (void *)root);
-    YW_TEST_EXPECT(void *, yw_dom_root(child1, YW_DOM_NO_SEARCH_FLAGS), "%p", (void *)root);
-    YW_TEST_EXPECT(void *, yw_dom_root(child2, YW_DOM_NO_SEARCH_FLAGS), "%p", (void *)root);
-    YW_TEST_EXPECT(void *, yw_dom_root(child3, YW_DOM_NO_SEARCH_FLAGS), "%p", (void *)root);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_root(root, YW_DOM_NO_SEARCH_FLAGS), "%p", (void *)root);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_root(child1, YW_DOM_NO_SEARCH_FLAGS), "%p", (void *)root);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_root(child2, YW_DOM_NO_SEARCH_FLAGS), "%p", (void *)root);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_root(child3, YW_DOM_NO_SEARCH_FLAGS), "%p", (void *)root);
 
     /* TODO: Test shadow-including root */
 
@@ -173,10 +172,10 @@ void yw_test_dom_index(YW_TestingContext *ctx)
     YW_LIST_PUSH(YW_GC_PTR(YW_DOMNode), &root->children, child3);
     yw_fix_children_parent(root);
 
-    YW_TEST_EXPECT(int, yw_dom_index(root), "%d", 0);
-    YW_TEST_EXPECT(int, yw_dom_index(child1), "%d", 0);
-    YW_TEST_EXPECT(int, yw_dom_index(child2), "%d", 1);
-    YW_TEST_EXPECT(int, yw_dom_index(child3), "%d", 2);
+    YW_TEST_EXPECT(int, ctx, yw_dom_index(root), "%d", 0);
+    YW_TEST_EXPECT(int, ctx, yw_dom_index(child1), "%d", 0);
+    YW_TEST_EXPECT(int, ctx, yw_dom_index(child2), "%d", 1);
+    YW_TEST_EXPECT(int, ctx, yw_dom_index(child3), "%d", 2);
 
     yw_gc_heap_deinit(&heap);
 }
@@ -189,10 +188,10 @@ void yw_test_dom_has_type(YW_TestingContext *ctx)
     YW_GC_PTR(YW_DOMNode) node = yw_test_node_alloc(&heap);
     node->type_flags |= YW_DOM_SHADOW_ROOT_NODE;
 
-    YW_TEST_EXPECT(bool, yw_dom_has_type((void *)NULL, YW_DOM_TEXT_NODE), "%d", false);
-    YW_TEST_EXPECT(bool, yw_dom_has_type(node, YW_DOM_SHADOW_ROOT_NODE), "%d", true);
-    YW_TEST_EXPECT(bool, yw_dom_has_type(node, YW_DOM_DOCUMENT_FRAGMENT_NODE), "%d", true);
-    YW_TEST_EXPECT(bool, yw_dom_has_type(node, YW_DOM_ELEMENT_NODE), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_has_type((void *)NULL, YW_DOM_TEXT_NODE), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_has_type(node, YW_DOM_SHADOW_ROOT_NODE), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_has_type(node, YW_DOM_DOCUMENT_FRAGMENT_NODE), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_has_type(node, YW_DOM_ELEMENT_NODE), "%d", false);
 
     yw_gc_heap_deinit(&heap);
 }
@@ -213,13 +212,13 @@ void yw_test_dom_is_in_same_tree(YW_TestingContext *ctx)
     yw_fix_children_parent(root1);
     yw_fix_children_parent(root2);
 
-    YW_TEST_EXPECT(bool, yw_dom_is_in_same_tree(root1, root1), "%d", true);
-    YW_TEST_EXPECT(bool, yw_dom_is_in_same_tree(root1, child1), "%d", true);
-    YW_TEST_EXPECT(bool, yw_dom_is_in_same_tree(root1, child2), "%d", true);
-    YW_TEST_EXPECT(bool, yw_dom_is_in_same_tree(root1, child3), "%d", false);
-    YW_TEST_EXPECT(bool, yw_dom_is_in_same_tree(root2, child3), "%d", true);
-    YW_TEST_EXPECT(bool, yw_dom_is_in_same_tree(child1, child2), "%d", true);
-    YW_TEST_EXPECT(bool, yw_dom_is_in_same_tree(child1, child3), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_in_same_tree(root1, root1), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_in_same_tree(root1, child1), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_in_same_tree(root1, child2), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_in_same_tree(root1, child3), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_in_same_tree(root2, child3), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_in_same_tree(child1, child2), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_in_same_tree(child1, child3), "%d", false);
 
     yw_gc_heap_deinit(&heap);
 }
@@ -242,11 +241,11 @@ void yw_test_dom_is_connected(YW_TestingContext *ctx)
     yw_fix_children_parent((YW_GC_PTR(YW_DOMNode))root1);
     yw_fix_children_parent((YW_GC_PTR(YW_DOMNode))root2);
 
-    YW_TEST_EXPECT(bool, yw_dom_is_connected(root1), "%d", true);
-    YW_TEST_EXPECT(bool, yw_dom_is_connected(root2), "%d", false);
-    YW_TEST_EXPECT(bool, yw_dom_is_connected(child1), "%d", true);
-    YW_TEST_EXPECT(bool, yw_dom_is_connected(child2), "%d", true);
-    YW_TEST_EXPECT(bool, yw_dom_is_connected(child3), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_connected(root1), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_connected(root2), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_connected(child1), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_connected(child2), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_connected(child3), "%d", false);
 
     yw_gc_heap_deinit(&heap);
 }
@@ -270,7 +269,7 @@ void yw_test_dom_child_text(YW_TestingContext *ctx)
     YW_LIST_PUSH(YW_GC_PTR(YW_DOMNode), &root->children, (YW_GC_PTR(YW_DOMNode))child3);
 
     char *text = yw_dom_child_text(root);
-    YW_TEST_EXPECT_STR(text, "123abc789");
+    YW_TEST_EXPECT_STR(ctx, text, "123abc789");
     free(text);
 
     yw_gc_heap_deinit(&heap);
@@ -319,56 +318,56 @@ void yw_test_dom_iter(YW_TestingContext *ctx)
     YW_DOMIter iter;
     yw_dom_inclusive_descendants_init(&iter, (void *)nodes[0], YW_DOM_NO_SEARCH_FLAGS);
 
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[0]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[1]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[2]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[3]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[4]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[5]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[6]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[7]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[8]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[9]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[10]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[11]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)NULL);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[0]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[1]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[2]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[3]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[4]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[5]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[6]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[7]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[8]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[9]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[10]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[11]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)NULL);
 
     yw_dom_inclusive_descendants_init(&iter, nodes[1], YW_DOM_NO_SEARCH_FLAGS);
 
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[1]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[2]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[3]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[4]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[5]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)NULL);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[1]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[2]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[3]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[4]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[5]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)NULL);
 
     yw_dom_descendants_init(&iter, nodes[0], YW_DOM_NO_SEARCH_FLAGS);
 
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[1]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[2]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[3]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[4]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[5]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[6]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[7]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[8]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[9]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[10]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)nodes[11]);
-    YW_TEST_EXPECT(void *, yw_dom_next_descendant(&iter), "%p", (void *)NULL);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[1]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[2]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[3]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[4]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[5]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[6]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[7]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[8]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[9]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[10]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)nodes[11]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_descendant(&iter), "%p", (void *)NULL);
 
     yw_dom_inclusive_ancestors_init(&iter, nodes[11], YW_DOM_NO_SEARCH_FLAGS);
 
-    YW_TEST_EXPECT(void *, yw_dom_next_ancestor(&iter), "%p", (void *)nodes[11]);
-    YW_TEST_EXPECT(void *, yw_dom_next_ancestor(&iter), "%p", (void *)nodes[7]);
-    YW_TEST_EXPECT(void *, yw_dom_next_ancestor(&iter), "%p", (void *)nodes[0]);
-    YW_TEST_EXPECT(void *, yw_dom_next_ancestor(&iter), "%p", (void *)NULL);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_ancestor(&iter), "%p", (void *)nodes[11]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_ancestor(&iter), "%p", (void *)nodes[7]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_ancestor(&iter), "%p", (void *)nodes[0]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_ancestor(&iter), "%p", (void *)NULL);
 
     yw_dom_ancestors_init(&iter, nodes[11], YW_DOM_NO_SEARCH_FLAGS);
 
-    YW_TEST_EXPECT(void *, yw_dom_next_ancestor(&iter), "%p", (void *)nodes[7]);
-    YW_TEST_EXPECT(void *, yw_dom_next_ancestor(&iter), "%p", (void *)nodes[0]);
-    YW_TEST_EXPECT(void *, yw_dom_next_ancestor(&iter), "%p", (void *)NULL);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_ancestor(&iter), "%p", (void *)nodes[7]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_ancestor(&iter), "%p", (void *)nodes[0]);
+    YW_TEST_EXPECT(void *, ctx, yw_dom_next_ancestor(&iter), "%p", (void *)NULL);
 
     yw_gc_heap_deinit(&heap);
 }
@@ -391,12 +390,12 @@ void yw_test_dom_insert(YW_TestingContext *ctx)
      * supposed to do that.
      */
 
-    YW_TEST_EXPECT(void *, root->children.items[0], "%p", (void *)child1);
-    YW_TEST_EXPECT(void *, root->children.items[0]->parent, "%p", (void *)root);
-    YW_TEST_EXPECT(void *, root->children.items[1], "%p", (void *)child3);
-    YW_TEST_EXPECT(void *, root->children.items[1]->parent, "%p", (void *)root);
-    YW_TEST_EXPECT(void *, root->children.items[2], "%p", (void *)child2);
-    YW_TEST_EXPECT(void *, root->children.items[2]->parent, "%p", (void *)root);
+    YW_TEST_EXPECT(void *, ctx, root->children.items[0], "%p", (void *)child1);
+    YW_TEST_EXPECT(void *, ctx, root->children.items[0]->parent, "%p", (void *)root);
+    YW_TEST_EXPECT(void *, ctx, root->children.items[1], "%p", (void *)child3);
+    YW_TEST_EXPECT(void *, ctx, root->children.items[1]->parent, "%p", (void *)root);
+    YW_TEST_EXPECT(void *, ctx, root->children.items[2], "%p", (void *)child2);
+    YW_TEST_EXPECT(void *, ctx, root->children.items[2]->parent, "%p", (void *)root);
 
     yw_gc_heap_deinit(&heap);
 }
@@ -415,16 +414,16 @@ void yw_test_dom_is_element_defined(YW_TestingContext *ctx)
     YW_GC_PTR(YW_DOMNode) non_elem = yw_test_node_alloc(&heap);
     YW_GC_PTR(YW_DOMElement) elem = yw_dom_element_alloc(&heap, YW_NO_GC_ALLOC_FLAGS);
     elem->custom_element_state = YW_DOM_CUSTOM_ELEMENT_UNDEFINED;
-    YW_TEST_EXPECT(bool, yw_dom_is_element_defined(non_elem), "%d", false);
-    YW_TEST_EXPECT(bool, yw_dom_is_element_defined(elem), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element_defined(non_elem), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element_defined(elem), "%d", false);
     elem->custom_element_state = YW_DOM_CUSTOM_ELEMENT_FAILED;
-    YW_TEST_EXPECT(bool, yw_dom_is_element_defined(elem), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element_defined(elem), "%d", false);
     elem->custom_element_state = YW_DOM_CUSTOM_ELEMENT_UNCUSTOMIZED;
-    YW_TEST_EXPECT(bool, yw_dom_is_element_defined(elem), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element_defined(elem), "%d", true);
     elem->custom_element_state = YW_DOM_CUSTOM_ELEMENT_PRECUSTOMIZED;
-    YW_TEST_EXPECT(bool, yw_dom_is_element_defined(elem), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element_defined(elem), "%d", false);
     elem->custom_element_state = YW_DOM_CUSTOM_ELEMENT_CUSTOM;
-    YW_TEST_EXPECT(bool, yw_dom_is_element_defined(elem), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element_defined(elem), "%d", true);
     yw_gc_heap_deinit(&heap);
 }
 
@@ -436,16 +435,16 @@ void yw_test_dom_is_element_custom(YW_TestingContext *ctx)
     YW_GC_PTR(YW_DOMNode) non_elem = yw_test_node_alloc(&heap);
     YW_GC_PTR(YW_DOMElement) elem = yw_dom_element_alloc(&heap, YW_NO_GC_ALLOC_FLAGS);
     elem->custom_element_state = YW_DOM_CUSTOM_ELEMENT_UNCUSTOMIZED;
-    YW_TEST_EXPECT(bool, yw_dom_is_element_custom(non_elem), "%d", false);
-    YW_TEST_EXPECT(bool, yw_dom_is_element_custom(elem), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element_custom(non_elem), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element_custom(elem), "%d", false);
     elem->custom_element_state = YW_DOM_CUSTOM_ELEMENT_FAILED;
-    YW_TEST_EXPECT(bool, yw_dom_is_element_custom(elem), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element_custom(elem), "%d", false);
     elem->custom_element_state = YW_DOM_CUSTOM_ELEMENT_UNCUSTOMIZED;
-    YW_TEST_EXPECT(bool, yw_dom_is_element_custom(elem), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element_custom(elem), "%d", false);
     elem->custom_element_state = YW_DOM_CUSTOM_ELEMENT_PRECUSTOMIZED;
-    YW_TEST_EXPECT(bool, yw_dom_is_element_custom(elem), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element_custom(elem), "%d", false);
     elem->custom_element_state = YW_DOM_CUSTOM_ELEMENT_CUSTOM;
-    YW_TEST_EXPECT(bool, yw_dom_is_element_custom(elem), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element_custom(elem), "%d", true);
     yw_gc_heap_deinit(&heap);
 }
 
@@ -474,12 +473,12 @@ void yw_test_dom_is_element_inside(YW_TestingContext *ctx)
 
     yw_fix_children_parent(&root->_node);
 
-    YW_TEST_EXPECT(bool, yw_dom_is_element_inside(non_elem, YW_HTML_NAMESPACE, "p"), "%d", false);
-    YW_TEST_EXPECT(bool, yw_dom_is_element_inside(child2, YW_HTML_NAMESPACE, "p"), "%d", true);
-    YW_TEST_EXPECT(bool, yw_dom_is_element_inside(child2, YW_HTML_NAMESPACE, "div"), "%d", true);
-    YW_TEST_EXPECT(bool, yw_dom_is_element_inside(child1, YW_HTML_NAMESPACE, "p"), "%d", false);
-    YW_TEST_EXPECT(bool, yw_dom_is_element_inside(child1, YW_HTML_NAMESPACE, "div"), "%d", true);
-    YW_TEST_EXPECT(bool, yw_dom_is_element_inside(child1, YW_SVG_NAMESPACE, "div"), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element_inside(non_elem, YW_HTML_NAMESPACE, "p"), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element_inside(child2, YW_HTML_NAMESPACE, "p"), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element_inside(child2, YW_HTML_NAMESPACE, "div"), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element_inside(child1, YW_HTML_NAMESPACE, "p"), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element_inside(child1, YW_HTML_NAMESPACE, "div"), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element_inside(child1, YW_SVG_NAMESPACE, "div"), "%d", false);
 
     yw_gc_heap_deinit(&heap);
 }
@@ -502,22 +501,22 @@ void yw_test_dom_is_element(YW_TestingContext *ctx)
     svg_elem->local_name = "g";
     svg_elem->namespace_ = YW_SVG_NAMESPACE;
 
-    YW_TEST_EXPECT(bool, yw_dom_is_element(non_elem, YW_HTML_NAMESPACE, "p"), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element(non_elem, YW_HTML_NAMESPACE, "p"), "%d", false);
 
-    YW_TEST_EXPECT(bool, yw_dom_is_element(html_elem, YW_HTML_NAMESPACE, "p"), "%d", true);
-    YW_TEST_EXPECT(bool, yw_dom_is_element(html_elem, YW_HTML_NAMESPACE, "li"), "%d", false);
-    YW_TEST_EXPECT(bool, yw_dom_is_element(mathml_elem, YW_HTML_NAMESPACE, "p"), "%d", false);
-    YW_TEST_EXPECT(bool, yw_dom_is_element(svg_elem, YW_HTML_NAMESPACE, "p"), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element(html_elem, YW_HTML_NAMESPACE, "p"), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element(html_elem, YW_HTML_NAMESPACE, "li"), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element(mathml_elem, YW_HTML_NAMESPACE, "p"), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element(svg_elem, YW_HTML_NAMESPACE, "p"), "%d", false);
 
-    YW_TEST_EXPECT(bool, yw_dom_is_element(html_elem, YW_SVG_NAMESPACE, "g"), "%d", false);
-    YW_TEST_EXPECT(bool, yw_dom_is_element(mathml_elem, YW_SVG_NAMESPACE, "g"), "%d", false);
-    YW_TEST_EXPECT(bool, yw_dom_is_element(svg_elem, YW_SVG_NAMESPACE, "g"), "%d", true);
-    YW_TEST_EXPECT(bool, yw_dom_is_element(svg_elem, YW_SVG_NAMESPACE, "line"), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element(html_elem, YW_SVG_NAMESPACE, "g"), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element(mathml_elem, YW_SVG_NAMESPACE, "g"), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element(svg_elem, YW_SVG_NAMESPACE, "g"), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element(svg_elem, YW_SVG_NAMESPACE, "line"), "%d", false);
 
-    YW_TEST_EXPECT(bool, yw_dom_is_element(html_elem, YW_MATHML_NAMESPACE, "mi"), "%d", false);
-    YW_TEST_EXPECT(bool, yw_dom_is_element(mathml_elem, YW_MATHML_NAMESPACE, "mi"), "%d", true);
-    YW_TEST_EXPECT(bool, yw_dom_is_element(mathml_elem, YW_MATHML_NAMESPACE, "foo"), "%d", false);
-    YW_TEST_EXPECT(bool, yw_dom_is_element(svg_elem, YW_MATHML_NAMESPACE, "mi"), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element(html_elem, YW_MATHML_NAMESPACE, "mi"), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element(mathml_elem, YW_MATHML_NAMESPACE, "mi"), "%d", true);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element(mathml_elem, YW_MATHML_NAMESPACE, "foo"), "%d", false);
+    YW_TEST_EXPECT(bool, ctx, yw_dom_is_element(svg_elem, YW_MATHML_NAMESPACE, "mi"), "%d", false);
 
     yw_gc_heap_deinit(&heap);
 }
@@ -550,21 +549,21 @@ void yw_test_dom_append_attr_to_element(YW_TestingContext *ctx)
      * yw_dom_append_attr_to_element() is supposed to do that.
      */
 
-    YW_TEST_EXPECT(int, elem->attrs.len, "%d", 2);
+    YW_TEST_EXPECT(int, ctx, elem->attrs.len, "%d", 2);
 
-    YW_TEST_EXPECT(void *, elem->attrs.items[0]->_node.parent, "%p", (void *)elem);
-    YW_TEST_EXPECT_STR(elem->attrs.items[0]->local_name, "name1");
-    YW_TEST_EXPECT_STR(elem->attrs.items[0]->value, "value1");
-    YW_TEST_EXPECT_STR(elem->attrs.items[0]->namespace_, "ns1");
-    YW_TEST_EXPECT_STR(elem->attrs.items[0]->namespace_prefix, "prefix1");
-    YW_TEST_EXPECT(void *, elem->attrs.items[0]->element, "%p", (void *)elem);
+    YW_TEST_EXPECT(void *, ctx, elem->attrs.items[0]->_node.parent, "%p", (void *)elem);
+    YW_TEST_EXPECT_STR(ctx, elem->attrs.items[0]->local_name, "name1");
+    YW_TEST_EXPECT_STR(ctx, elem->attrs.items[0]->value, "value1");
+    YW_TEST_EXPECT_STR(ctx, elem->attrs.items[0]->namespace_, "ns1");
+    YW_TEST_EXPECT_STR(ctx, elem->attrs.items[0]->namespace_prefix, "prefix1");
+    YW_TEST_EXPECT(void *, ctx, elem->attrs.items[0]->element, "%p", (void *)elem);
 
-    YW_TEST_EXPECT(void *, elem->attrs.items[1]->_node.parent, "%p", (void *)elem);
-    YW_TEST_EXPECT_STR(elem->attrs.items[1]->local_name, "name2");
-    YW_TEST_EXPECT_STR(elem->attrs.items[1]->value, "value2");
-    YW_TEST_EXPECT_STR(elem->attrs.items[1]->namespace_, (char *)NULL);
-    YW_TEST_EXPECT_STR(elem->attrs.items[1]->namespace_prefix, (char *)NULL);
-    YW_TEST_EXPECT(void *, elem->attrs.items[1]->element, "%p", (void *)elem);
+    YW_TEST_EXPECT(void *, ctx, elem->attrs.items[1]->_node.parent, "%p", (void *)elem);
+    YW_TEST_EXPECT_STR(ctx, elem->attrs.items[1]->local_name, "name2");
+    YW_TEST_EXPECT_STR(ctx, elem->attrs.items[1]->value, "value2");
+    YW_TEST_EXPECT_STR(ctx, elem->attrs.items[1]->namespace_, (char *)NULL);
+    YW_TEST_EXPECT_STR(ctx, elem->attrs.items[1]->namespace_prefix, (char *)NULL);
+    YW_TEST_EXPECT(void *, ctx, elem->attrs.items[1]->element, "%p", (void *)elem);
 
     yw_gc_heap_deinit(&heap);
 }
@@ -601,16 +600,16 @@ void yw_test_dom_attr_of_element(YW_TestingContext *ctx)
 
     yw_fix_children_parent(&elem->_node);
 
-    YW_TEST_EXPECT_STR(yw_dom_attr_of_element(elem, "ns1", "name1"), "value1");
-    YW_TEST_EXPECT_STR(yw_dom_attr_of_element(elem, "ns1", "name2"), "value2");
-    YW_TEST_EXPECT_STR(yw_dom_attr_of_element(elem, "ns1", "name3"), (char *)NULL);
-    YW_TEST_EXPECT_STR(yw_dom_attr_of_element(elem, "ns2", "name3"), "value3");
-    YW_TEST_EXPECT_STR(yw_dom_attr_of_element(elem, "ns2", "name4"), (char *)NULL);
+    YW_TEST_EXPECT_STR(ctx, yw_dom_attr_of_element(elem, "ns1", "name1"), "value1");
+    YW_TEST_EXPECT_STR(ctx, yw_dom_attr_of_element(elem, "ns1", "name2"), "value2");
+    YW_TEST_EXPECT_STR(ctx, yw_dom_attr_of_element(elem, "ns1", "name3"), (char *)NULL);
+    YW_TEST_EXPECT_STR(ctx, yw_dom_attr_of_element(elem, "ns2", "name3"), "value3");
+    YW_TEST_EXPECT_STR(ctx, yw_dom_attr_of_element(elem, "ns2", "name4"), (char *)NULL);
 
-    YW_TEST_EXPECT_STR(yw_dom_attr_of_element(elem, NULL, "name1"), (char *)NULL);
-    YW_TEST_EXPECT_STR(yw_dom_attr_of_element(elem, NULL, "name2"), (char *)NULL);
-    YW_TEST_EXPECT_STR(yw_dom_attr_of_element(elem, NULL, "name3"), (char *)NULL);
-    YW_TEST_EXPECT_STR(yw_dom_attr_of_element(elem, NULL, "name4"), "value4");
+    YW_TEST_EXPECT_STR(ctx, yw_dom_attr_of_element(elem, NULL, "name1"), (char *)NULL);
+    YW_TEST_EXPECT_STR(ctx, yw_dom_attr_of_element(elem, NULL, "name2"), (char *)NULL);
+    YW_TEST_EXPECT_STR(ctx, yw_dom_attr_of_element(elem, NULL, "name3"), (char *)NULL);
+    YW_TEST_EXPECT_STR(ctx, yw_dom_attr_of_element(elem, NULL, "name4"), "value4");
 
     yw_gc_heap_deinit(&heap);
 }

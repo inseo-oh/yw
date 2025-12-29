@@ -1,8 +1,7 @@
 /*
  * This file is part of YW project. Copyright 2025 Oh Inseo (YJK)
  * SPDX-License-Identifier: BSD-3-Clause
- * See LICENSE for details, and LICENSE_WHATWG_SPECS for WHATWG license
- * information.
+ * See LICENSE for details, and LICENSE_WHATWG_SPECS for WHATWG license information.
  */
 #ifndef YW_COMMON_H_
 #define YW_COMMON_H_
@@ -88,7 +87,7 @@ void *yw_shrink_to_fit_impl(int *cap_inout, int len, void *old_buf, size_t item_
     do                                                               \
     {                                                                \
         YW_GROW(_type, (_cap_inout), (_len_inout), (_buf_inout), 1); \
-        (*(_buf_inout))[*(_len_inout) - 1] = (_value);               \
+        (*(_buf_inout))[*(_len_inout)-1] = (_value);                 \
     } while (0)
 #define YW_ALLOC(_type, _count) (_type *)yw_alloc_impl(sizeof(_type), (_count))
 #define YW_SHRINK_TO_FIT(_type, _cap_inout, _len, _buf_inout) (*(_buf_inout) = (_type *)yw_shrink_to_fit_impl((_cap_inout), (_len), *(_buf_inout), sizeof(_type)))
@@ -98,6 +97,7 @@ void yw_append_str(char **dest, char const *another);
 void yw_append_char(char **dest, YW_Char32 chr);
 /* if s is NULL, this function returns NULL */
 char *yw_duplicate_str(char const *s);
+char *yw_char_to_str(YW_Char32 chr);
 
 #define YW_LIST_INIT(_list)                   \
     do                                        \

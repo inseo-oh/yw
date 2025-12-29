@@ -1,8 +1,7 @@
 /*
  * This file is part of YW project. Copyright 2025 Oh Inseo (YJK)
  * SPDX-License-Identifier: BSD-3-Clause
- * See LICENSE for details, and LICENSE_WHATWG_SPECS for WHATWG license
- * information.
+ * See LICENSE for details, and LICENSE_WHATWG_SPECS for WHATWG license information.
  */
 #include "yw_common.h"
 #include "yw_encoding.h"
@@ -14,11 +13,11 @@
 
 void yw_test_encoding_from_label(YW_TestingContext *ctx)
 {
-    YW_TEST_EXPECT(YW_EncodingType, yw_encoding_from_label("utf8"), "%d", YW_UTF8);
-    YW_TEST_EXPECT(YW_EncodingType, yw_encoding_from_label("shift-jis"), "%d", YW_SHIFT_JIS);
-    YW_TEST_EXPECT(YW_EncodingType, yw_encoding_from_label("ksc5601"), "%d", YW_EUC_KR);
+    YW_TEST_EXPECT(YW_EncodingType, ctx, yw_encoding_from_label("utf8"), "%d", YW_UTF8);
+    YW_TEST_EXPECT(YW_EncodingType, ctx, yw_encoding_from_label("shift-jis"), "%d", YW_SHIFT_JIS);
+    YW_TEST_EXPECT(YW_EncodingType, ctx, yw_encoding_from_label("ksc5601"), "%d", YW_EUC_KR);
 
-    YW_TEST_EXPECT(YW_EncodingType, yw_encoding_from_label("fox"), "%d", YW_INVALID_ENCODING);
+    YW_TEST_EXPECT(YW_EncodingType, ctx, yw_encoding_from_label("fox"), "%d", YW_INVALID_ENCODING);
 }
 
 void yw_test_bom_sniff(YW_TestingContext *ctx)
@@ -29,15 +28,15 @@ void yw_test_bom_sniff(YW_TestingContext *ctx)
     int utf16_le_bom[] = {0xff, 0xfe, 0x00, 0x00};
 
     YW_IO_QUEUE_INIT_FROM_ARRAY(&queue, utf8_bom);
-    YW_TEST_EXPECT(YW_EncodingType, yw_bom_sniff(&queue), "%d", YW_UTF8);
+    YW_TEST_EXPECT(YW_EncodingType, ctx, yw_bom_sniff(&queue), "%d", YW_UTF8);
     yw_io_queue_deinit(&queue);
 
     YW_IO_QUEUE_INIT_FROM_ARRAY(&queue, utf16_be_bom);
-    YW_TEST_EXPECT(YW_EncodingType, yw_bom_sniff(&queue), "%d", YW_UTF16_BE);
+    YW_TEST_EXPECT(YW_EncodingType, ctx, yw_bom_sniff(&queue), "%d", YW_UTF16_BE);
     yw_io_queue_deinit(&queue);
 
     YW_IO_QUEUE_INIT_FROM_ARRAY(&queue, utf16_le_bom);
-    YW_TEST_EXPECT(YW_EncodingType, yw_bom_sniff(&queue), "%d", YW_UTF16_LE);
+    YW_TEST_EXPECT(YW_EncodingType, ctx, yw_bom_sniff(&queue), "%d", YW_UTF16_LE);
     yw_io_queue_deinit(&queue);
 }
 
@@ -56,7 +55,7 @@ void yw_test_io_queue_item_list_to_items(YW_TestingContext *ctx)
     int *items, len;
     yw_io_queue_item_list_to_items(&items, &len, &list);
 
-    YW_TEST_EXPECT_ARRAY(int, items, len, "%d", 123, 456, 789);
+    YW_TEST_EXPECT_ARRAY(int, ctx, items, len, "%d", 123, 456, 789);
 
     YW_LIST_FREE(&list);
     free(items);
@@ -68,7 +67,7 @@ void yw_test_io_queue_from_items(YW_TestingContext *ctx)
     int items[] = {123, 456, 789};
 
     YW_IO_QUEUE_INIT_FROM_ARRAY(&queue, items);
-    YW_TEST_EXPECT_ARRAY(YW_IOQueueItem, queue.item_list.items, queue.item_list.len, "%d", 123, 456, 789, YW_END_OF_IO_QUEUE);
+    YW_TEST_EXPECT_ARRAY(YW_IOQueueItem, ctx, queue.item_list.items, queue.item_list.len, "%d", 123, 456, 789, YW_END_OF_IO_QUEUE);
 
     yw_io_queue_deinit(&queue);
 }
@@ -79,11 +78,11 @@ void yw_test_io_queue_read_one(YW_TestingContext *ctx)
     int items[] = {123, 456, 789};
     YW_IO_QUEUE_INIT_FROM_ARRAY(&queue, items);
 
-    YW_TEST_EXPECT(YW_IOQueueItem, yw_io_queue_read_one(&queue), "%d", 123);
-    YW_TEST_EXPECT(YW_IOQueueItem, yw_io_queue_read_one(&queue), "%d", 456);
-    YW_TEST_EXPECT(YW_IOQueueItem, yw_io_queue_read_one(&queue), "%d", 789);
-    YW_TEST_EXPECT(YW_IOQueueItem, yw_io_queue_read_one(&queue), "%d", YW_END_OF_IO_QUEUE);
-    YW_TEST_EXPECT(YW_IOQueueItem, yw_io_queue_read_one(&queue), "%d", YW_END_OF_IO_QUEUE);
+    YW_TEST_EXPECT(YW_IOQueueItem, ctx, yw_io_queue_read_one(&queue), "%d", 123);
+    YW_TEST_EXPECT(YW_IOQueueItem, ctx, yw_io_queue_read_one(&queue), "%d", 456);
+    YW_TEST_EXPECT(YW_IOQueueItem, ctx, yw_io_queue_read_one(&queue), "%d", 789);
+    YW_TEST_EXPECT(YW_IOQueueItem, ctx, yw_io_queue_read_one(&queue), "%d", YW_END_OF_IO_QUEUE);
+    YW_TEST_EXPECT(YW_IOQueueItem, ctx, yw_io_queue_read_one(&queue), "%d", YW_END_OF_IO_QUEUE);
 
     yw_io_queue_deinit(&queue);
 }
@@ -98,17 +97,17 @@ void yw_test_io_queue_read(YW_TestingContext *ctx)
     int len;
 
     len = yw_io_queue_read(&queue, got_items, 0);
-    YW_TEST_EXPECT(int, len, "%d", 0);
+    YW_TEST_EXPECT(int, ctx, len, "%d", 0);
     len = yw_io_queue_read(&queue, got_items, 1);
-    YW_TEST_EXPECT_ARRAY(int, got_items, len, "%d", 1);
+    YW_TEST_EXPECT_ARRAY(int, ctx, got_items, len, "%d", 1);
     len = yw_io_queue_read(&queue, got_items, 2);
-    YW_TEST_EXPECT_ARRAY(int, got_items, len, "%d", 2, 3);
+    YW_TEST_EXPECT_ARRAY(int, ctx, got_items, len, "%d", 2, 3);
     len = yw_io_queue_read(&queue, got_items, 3);
-    YW_TEST_EXPECT_ARRAY(int, got_items, len, "%d", 4, 5, 6);
+    YW_TEST_EXPECT_ARRAY(int, ctx, got_items, len, "%d", 4, 5, 6);
     len = yw_io_queue_read(&queue, got_items, 5);
-    YW_TEST_EXPECT_ARRAY(int, got_items, len, "%d", 7, 8, 9, 10);
+    YW_TEST_EXPECT_ARRAY(int, ctx, got_items, len, "%d", 7, 8, 9, 10);
     len = yw_io_queue_read(&queue, got_items, 5);
-    YW_TEST_EXPECT(int, len, "%d", 0);
+    YW_TEST_EXPECT(int, ctx, len, "%d", 0);
 
     yw_io_queue_deinit(&queue);
 }
@@ -123,13 +122,13 @@ void yw_test_io_queue_peek(YW_TestingContext *ctx)
     int len;
 
     len = yw_io_queue_peek(&queue, got_items, 0);
-    YW_TEST_EXPECT(int, len, "%d", 0);
+    YW_TEST_EXPECT(int, ctx, len, "%d", 0);
     len = yw_io_queue_peek(&queue, got_items, 1);
-    YW_TEST_EXPECT_ARRAY(int, got_items, len, "%d", 123);
+    YW_TEST_EXPECT_ARRAY(int, ctx, got_items, len, "%d", 123);
     len = yw_io_queue_peek(&queue, got_items, 2);
-    YW_TEST_EXPECT_ARRAY(int, got_items, len, "%d", 123, 456);
+    YW_TEST_EXPECT_ARRAY(int, ctx, got_items, len, "%d", 123, 456);
     len = yw_io_queue_peek(&queue, got_items, 10);
-    YW_TEST_EXPECT_ARRAY(int, got_items, len, "%d", 123, 456, 789);
+    YW_TEST_EXPECT_ARRAY(int, ctx, got_items, len, "%d", 123, 456, 789);
 
     yw_io_queue_deinit(&queue);
 }
@@ -146,7 +145,7 @@ void yw_test_io_queue_push_one(YW_TestingContext *ctx)
     yw_io_queue_push_one(&queue, 147);
     yw_io_queue_push_one(&queue, 258);
     yw_io_queue_push_one(&queue, 369);
-    YW_TEST_EXPECT_ARRAY(YW_IOQueueItem, queue.item_list.items, queue.item_list.len, "%d", 123, 456, 789, 147, 258, 369, YW_END_OF_IO_QUEUE);
+    YW_TEST_EXPECT_ARRAY(YW_IOQueueItem, ctx, queue.item_list.items, queue.item_list.len, "%d", 123, 456, 789, 147, 258, 369, YW_END_OF_IO_QUEUE);
 
     yw_io_queue_deinit(&queue);
 }
@@ -159,7 +158,7 @@ void yw_test_io_queue_push(YW_TestingContext *ctx)
 
     yw_io_queue_init(&queue);
     YW_IO_QUEUE_PUSH_FROM_ARRAY(&queue, items);
-    YW_TEST_EXPECT_ARRAY(YW_IOQueueItem, queue.item_list.items, queue.item_list.len, "%d", 123, 456, 789, 147, 258, 369, YW_END_OF_IO_QUEUE);
+    YW_TEST_EXPECT_ARRAY(YW_IOQueueItem, ctx, queue.item_list.items, queue.item_list.len, "%d", 123, 456, 789, 147, 258, 369, YW_END_OF_IO_QUEUE);
 
     yw_io_queue_deinit(&queue);
 }
@@ -177,7 +176,7 @@ void yw_test_io_queue_restore_one(YW_TestingContext *ctx)
     yw_io_queue_restore_one(&queue, 258);
     yw_io_queue_restore_one(&queue, 369);
     yw_io_queue_push_one(&queue, 2000);
-    YW_TEST_EXPECT_ARRAY(YW_IOQueueItem, queue.item_list.items, queue.item_list.len, "%d", 369, 258, 147, 789, 456, 123, 1000, 2000, YW_END_OF_IO_QUEUE);
+    YW_TEST_EXPECT_ARRAY(YW_IOQueueItem, ctx, queue.item_list.items, queue.item_list.len, "%d", 369, 258, 147, 789, 456, 123, 1000, 2000, YW_END_OF_IO_QUEUE);
 
     yw_io_queue_deinit(&queue);
 }
@@ -199,7 +198,7 @@ void yw_test_io_queue_restore(YW_TestingContext *ctx)
     yw_io_queue_push_one(&queue, 1000);
     YW_IO_QUEUE_RESTORE_FROM_ARRAY(&queue, items);
     yw_io_queue_push_one(&queue, 2000);
-    YW_TEST_EXPECT_ARRAY(YW_IOQueueItem, queue.item_list.items, queue.item_list.len, "%d", 369, 258, 147, 789, 456, 123, 1000, 2000, YW_END_OF_IO_QUEUE);
+    YW_TEST_EXPECT_ARRAY(YW_IOQueueItem, ctx, queue.item_list.items, queue.item_list.len, "%d", 369, 258, 147, 789, 456, 123, 1000, 2000, YW_END_OF_IO_QUEUE);
 
     yw_io_queue_deinit(&queue);
 }
