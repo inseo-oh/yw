@@ -52,6 +52,10 @@ void yw_test_css_parse_number(YW_TestingContext *ctx)
     }
     double num;
 
+    /*
+     * NOTE: Some of these tests may fail due to minor floating point errors.
+     */
+
     YW_TEST_EXPECT(bool, ctx, yw_css_parse_number(&num, &ts), "%d", true);
     YW_TEST_EXPECT(int, ctx, num, "%d", 31);
     yw_expect_token(&ts, YW_CSS_TOKEN_SEMICOLON);
