@@ -155,6 +155,13 @@ char *yw_char_to_str(YW_Char32 chr);
  ******************************************************************************/
 
 /*
+ * Caller owns the returned string.
+ * If an error was encountered, ? is returned instead.
+ * If chr is 0, this function will abort().
+ */
+char *yw_char_to_utf8(YW_Char32 chr);
+
+/*
  * Returns resulting codepoint, or 0 if end was reached.
  * If an error was encountered, U+FFFD is returned instead.
  */

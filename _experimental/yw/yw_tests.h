@@ -13,6 +13,7 @@
     _x(yw_test_grow)                                                           \
     _x(yw_test_shrink_to_fit)                                                  \
     _x(yw_test_list)                                                           \
+    _x(yw_test_char_to_utf8)                                                   \
     _x(yw_test_utf8_next_char)                                                 \
     _x(yw_test_utf8_strlen)                                                    \
     _x(yw_test_utf8_strchr)                                                    \

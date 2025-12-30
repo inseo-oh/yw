@@ -265,13 +265,10 @@ void yw_append_str(char **dest, char const *another)
 }
 void yw_append_char(char **dest, YW_Char32 chr)
 {
-    if (0x7f < chr)
-    {
-        fprintf(stderr, "%s: support unicode characters\n", __func__);
-        chr = '?';
-    }
-    char temp_buf[] = {(char)chr, 0};
-    yw_append_str(dest, temp_buf);
+    char *s = yw_char_to_utf8(chr);
+    yw_append_str(dest, s);
+    free(s);
+    return;
 }
 
 char *yw_duplicate_str(char const *s)
@@ -294,6 +291,62 @@ char *yw_char_to_str(YW_Char32 chr)
 /*******************************************************************************
  * UTF-8 character utility
  ******************************************************************************/
+
+char *yw_char_to_utf8(YW_Char32 chr)
+{
+    if (chr == 0)
+    {
+        fprintf(stderr, "%s: attempted to encode NULL character", __func__);
+        abort();
+    }
+    /*
+     * Encoding algorithm taken from:
+     * https://encoding.spec.whatwg.org/#utf-8-encoder
+     */
+    if (0 <= chr && chr <= 0x7f)
+    {
+        char *dest = NULL;
+        char temp_buf[] = {(char)chr, 0};
+        yw_append_str(&dest, temp_buf);
+        return dest;
+    }
+
+    int count, offset;
+    if (0x0080 <= chr && chr <= 0x07ff)
+    {
+        count = 1;
+        offset = 0xc0;
+    }
+    else if (0x0800 <= chr && chr <= 0xffff)
+    {
+        count = 2;
+        offset = 0xe0;
+    }
+    else if (0x10000 <= chr && chr <= 0x10ffff)
+    {
+        count = 3;
+        offset = 0xf0;
+    }
+    else
+    {
+        /* Out of range */
+        return yw_duplicate_str("?");
+    }
+
+    uint8_t *res = NULL;
+    int res_len = 0;
+    int res_cap = 0;
+    YW_PUSH(uint8_t, &res_cap, &res_len, &res, (chr >> (6 * count)) + offset);
+    for (; 0 < count; count--)
+    {
+        uint8_t temp = chr >> (6 * (count - 1));
+        YW_PUSH(uint8_t, &res_cap, &res_len, &res, 0x80 | (temp & 0x3f));
+    }
+    /* Write NULL terminator */
+    YW_PUSH(uint8_t, &res_cap, &res_len, &res, '\0');
+    YW_SHRINK_TO_FIT(uint8_t, &res_cap, res_len, &res);
+    return (char *)res;
+}
 
 YW_Char32 yw_utf8_next_char(char const **s)
 {

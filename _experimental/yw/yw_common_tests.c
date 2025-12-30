@@ -122,6 +122,61 @@ void yw_test_list(YW_TestingContext *ctx)
  * UTF-8 character utility
  ******************************************************************************/
 
+void yw_test_char_to_utf8(YW_TestingContext *ctx)
+{
+    /* Simple ASCII ***********************************************************/
+    char *s = yw_char_to_utf8('0');
+    YW_TEST_EXPECT_STR(ctx, s, "\x30");
+    free(s);
+
+    s = yw_char_to_utf8('1');
+    YW_TEST_EXPECT_STR(ctx, s, "\x31");
+    free(s);
+
+    s = yw_char_to_utf8('2');
+    YW_TEST_EXPECT_STR(ctx, s, "\x32");
+    free(s);
+
+    s = yw_char_to_utf8('3');
+    YW_TEST_EXPECT_STR(ctx, s, "\x33");
+    free(s);
+
+    /* Two byte characters ****************************************************/
+    s = yw_char_to_utf8(0x00a0);
+    YW_TEST_EXPECT_STR(ctx, s, "\xc2\xa0");
+    free(s);
+
+    s = yw_char_to_utf8(0x07b1);
+    YW_TEST_EXPECT_STR(ctx, s, "\xde\xb1");
+    free(s);
+
+    /* Three byte characters **************************************************/
+    s = yw_char_to_utf8(0x0900);
+    YW_TEST_EXPECT_STR(ctx, s, "\xe0\xa4\x80");
+    free(s);
+
+    s = yw_char_to_utf8(0xd7fb);
+    YW_TEST_EXPECT_STR(ctx, s, "\xed\x9f\xbb");
+    free(s);
+
+    s = yw_char_to_utf8(0xfb4f);
+    YW_TEST_EXPECT_STR(ctx, s, "\xef\xad\x8f");
+    free(s);
+
+    /* Four byte characters ***************************************************/
+    s = yw_char_to_utf8(0x10450);
+    YW_TEST_EXPECT_STR(ctx, s, "\xf0\x90\x91\x90");
+    free(s);
+
+    s = yw_char_to_utf8(0x1f0f5);
+    YW_TEST_EXPECT_STR(ctx, s, "\xf0\x9f\x83\xb5");
+    free(s);
+
+    s = yw_char_to_utf8(0x10128f);
+    YW_TEST_EXPECT_STR(ctx, s, "\xf4\x81\x8a\x8f");
+    free(s);
+}
+
 void yw_test_utf8_next_char(YW_TestingContext *ctx)
 {
 #define YW_RUN_TEST(_name, _input, ...)                                           \
