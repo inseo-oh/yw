@@ -174,13 +174,13 @@ void yw_html_tokenize(
     {
         if (YW_TRACE_TOKENIZER_STATE)
         {
-#define YW_X(_x)                                                  \
-    do                                                            \
-    {                                                             \
-        if (tkr.state == _x)                                      \
-        {                                                         \
+#define YW_X(_x)                                                    \
+    do                                                              \
+    {                                                               \
+        if (tkr.state == _x)                                        \
+        {                                                           \
             fprintf(stderr, "%s: NEXT STATE: %s\n", __func__, #_x); \
-        }                                                         \
+        }                                                           \
     } while (0);
             YW_HTML_ENUMERATE_TOKENIZER_STATE(YW_X);
 #undef YW_X
@@ -1059,7 +1059,7 @@ void yw_html_comment_start_state(YW_HTMLTokenizer *tkr)
         break;
     default:
         tkr->tr.cursor = old_cursor;
-        tkr->state = yw_html_bogus_comment_state;
+        tkr->state = yw_html_comment_state;
         break;
     }
 }
