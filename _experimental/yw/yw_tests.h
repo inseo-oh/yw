@@ -74,6 +74,9 @@
     _x(yw_test_io_queue_restore_one)                                           \
     _x(yw_test_io_queue_restore)                                               \
     _x(yw_test_utf8_decoder)                                                   \
+    /* yw_html_tests */                                                        \
+    _x(yw_test_html_parse_character_reference)                                 \
+    _x(yw_test_html_parse_comment)                                             \
     /* yw_json_tests */                                                        \
     _x(yw_test_json_string_equals)                                             \
     _x(yw_test_json_string_to_c_str)                                           \

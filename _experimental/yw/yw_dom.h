@@ -269,6 +269,7 @@ typedef struct YW_DOMAttrData
 } YW_DOMAttrData;
 
 void yw_dom_attr_data_deinit(YW_DOMAttrData *data);
+void yw_dom_attr_data_clone(YW_DOMAttrData *dest, YW_DOMAttrData const *data);
 
 struct YW_DOMAttr_Rec
 {

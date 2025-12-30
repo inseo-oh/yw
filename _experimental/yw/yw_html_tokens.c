@@ -80,6 +80,33 @@ void yw_html_token_deinit(YW_HTMLToken *tk)
     }
     }
 }
+void yw_html_token_clone(YW_HTMLToken *dest, YW_HTMLToken const *tk)
+{
+    *dest = *tk;
+    switch (tk->type)
+    {
+    case YW_HTML_EOF_TOKEN:
+    case YW_HTML_CHAR_TOKEN:
+        return;
+    case YW_HTML_COMMENT_TOKEN:
+        dest->comment_tk.data = yw_duplicate_str(tk->comment_tk.data);
+        return;
+    case YW_HTML_DOCTYPE_TOKEN:
+        dest->doctype_tk.name = yw_duplicate_str(tk->doctype_tk.name);
+        dest->doctype_tk.public_id = yw_duplicate_str(tk->doctype_tk.public_id);
+        dest->doctype_tk.system_id = yw_duplicate_str(tk->doctype_tk.system_id);
+        return;
+    case YW_HTML_TAG_TOKEN:
+        dest->tag_tk.name = yw_duplicate_str(tk->tag_tk.name);
+        dest->tag_tk.attrs = YW_ALLOC(YW_DOMAttrData, tk->tag_tk.attrs_len);
+        for (int i = 0; i < tk->tag_tk.attrs_len; i++)
+        {
+            yw_dom_attr_data_clone(&dest->tag_tk.attrs[i], &tk->tag_tk.attrs[i]);
+        }
+        return;
+    }
+    YW_UNREACHABLE();
+}
 
 static bool yw_is_start_tag(YW_HTMLToken const *tk)
 {
@@ -129,12 +156,39 @@ static YW_HTMLToken *yw_make_doctype_token(void)
     return res;
 }
 
-void yw_html_tokenizer_init(YW_HTMLTokenizer *out, const uint8_t *chars, int chars_len)
-{
-    memset(out, 0, sizeof(*out));
+static const bool YW_TRACE_TOKENIZER_STATE = true;
 
-    yw_text_reader_init(&out->tr, chars, chars_len);
-    out->state = yw_html_data_state;
+void yw_html_tokenize(
+    uint8_t const *chars, int chars_len,
+    void (*emit_callback)(YW_HTMLToken *token, void *callback_data), void *emit_callback_data)
+{
+    YW_HTMLTokenizer tkr;
+    memset(&tkr, 0, sizeof(tkr));
+
+    yw_text_reader_init(&tkr.tr, chars, chars_len);
+    tkr.state = yw_html_data_state;
+    tkr.emit_callback = emit_callback;
+    tkr.emit_callback_data = emit_callback_data;
+
+    while (!tkr.eof_emitted)
+    {
+        if (YW_TRACE_TOKENIZER_STATE)
+        {
+#define YW_X(_x)                                                  \
+    do                                                            \
+    {                                                             \
+        if (tkr.state == _x)                                      \
+        {                                                         \
+            fprintf(stderr, "%s: NEXT STATE: %s\n", __func__, #_x); \
+        }                                                         \
+    } while (0);
+            YW_HTML_ENUMERATE_TOKENIZER_STATE(YW_X);
+#undef YW_X
+        }
+        tkr.state(&tkr);
+    }
+
+    free(tkr.temp_buf);
 }
 
 static void yw_set_current_token(YW_HTMLTokenizer *tkr, YW_HTMLToken *tk)
@@ -224,6 +278,11 @@ static void yw_emit_token(YW_HTMLTokenizer *tkr, YW_HTMLToken **tk_inout)
             tkr->last_start_tag_name = yw_duplicate_str(tk->tag_tk.name);
         }
     }
+    if (tk->type == YW_HTML_EOF_TOKEN)
+    {
+        tkr->eof_emitted = true;
+    }
+    tkr->emit_callback(tk, tkr->emit_callback_data);
     yw_html_token_deinit(tk);
     free(tk);
     *tk_inout = NULL;
@@ -265,9 +324,15 @@ static void yw_flush_codepoints_consumed_as_char_reference(YW_HTMLTokenizer *tkr
     }
     else
     {
-        for (char const *src = tkr->temp_buf; *src != '\0'; src++)
+        char const *next_char = tkr->temp_buf;
+        while (1)
         {
-            yw_emit_char_token(tkr, *src);
+            YW_Char32 c = yw_utf8_next_char(&next_char);
+            if (c == 0)
+            {
+                break;
+            }
+            yw_emit_char_token(tkr, c);
         }
     }
 }
@@ -1760,7 +1825,7 @@ void yw_html_hexadecimal_character_reference_state(YW_HTMLTokenizer *tkr)
     }
     else if (yw_is_ascii_lowercase_hex_digit(next_char))
     {
-        tkr->character_reference_code = (tkr->character_reference_code * 16) + (next_char - 'A' + 10);
+        tkr->character_reference_code = (tkr->character_reference_code * 16) + (next_char - 'a' + 10);
     }
     else if (next_char == ';')
     {
@@ -1779,7 +1844,7 @@ void yw_html_decimal_character_reference_state(YW_HTMLTokenizer *tkr)
     YW_Char32 next_char = yw_consume_any_char(&tkr->tr);
     if (yw_is_ascii_digit(next_char))
     {
-        tkr->character_reference_code = (tkr->character_reference_code * 16) + (next_char - '0');
+        tkr->character_reference_code = (tkr->character_reference_code * 10) + (next_char - '0');
     }
     else if (next_char == ';')
     {
@@ -1799,7 +1864,7 @@ void yw_html_numeric_character_reference_end_state(YW_HTMLTokenizer *tkr)
         yw_parse_error_encountered(tkr, YW_NULL_CHARACTER_REFERENCE_ERROR);
         tkr->character_reference_code = 0xfffd;
     }
-    else if (0x10fff < tkr->character_reference_code)
+    else if (0x10ffff < tkr->character_reference_code)
     {
         yw_parse_error_encountered(tkr, YW_CHARACTER_REFERENCE_OUTSIDE_UNICODE_RANGE_ERROR);
         tkr->character_reference_code = 0xfffd;

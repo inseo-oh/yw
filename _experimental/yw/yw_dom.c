@@ -903,6 +903,13 @@ void yw_dom_attr_data_deinit(YW_DOMAttrData *data)
     free(data->namespace_);
     free(data->namespace_prefix);
 }
+void yw_dom_attr_data_clone(YW_DOMAttrData *dest, YW_DOMAttrData const *data)
+{
+    dest->local_name = yw_duplicate_str(data->local_name);
+    dest->value = yw_duplicate_str(data->value);
+    dest->namespace_ = yw_duplicate_str(data->namespace_);
+    dest->namespace_prefix = yw_duplicate_str(data->namespace_prefix);
+}
 
 static YW_GcCallbacks yw_attr_gc_callbacks = {
     .visit = yw_attr_visit,
