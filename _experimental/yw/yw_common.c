@@ -256,6 +256,10 @@ void yw_append_str(char **dest, char const *another)
     }
     int new_total_len = a_str_len + (int)b_str_len + 1;
     int add_total_len = new_total_len - len;
+    if (add_total_len == 0)
+    {
+        return;
+    }
     YW_GROW(char, &cap, &len, dest, add_total_len);
     if (was_dest_null)
     {
