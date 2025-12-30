@@ -29,6 +29,13 @@ void yw_json_string_init(YW_JSONString *out, char const *s);
 void yw_json_string_deinit(YW_JSONString *str);
 void yw_json_string_clone(YW_JSONString *dest, YW_JSONString const *str);
 
+/*
+ * NOTE: Embedded zeros will be replaced with U+FFFD character.
+ *
+ * Caller owns the returned array.
+ */
+char *yw_json_string_to_c_str(YW_JSONString const *str);
+
 /* NOTE: It is safe to pass NULL to s. */
 bool yw_json_string_equals(YW_JSONString const *s, char const *str);
 
@@ -122,9 +129,9 @@ bool yw_json_expect_boolean(bool *out, YW_JSONValue const *value);
 bool yw_json_expect_null(YW_JSONValue const *value);
 
 /* Caller owns the returned value. */
-YW_JSONValue *yw_parse_json(uint8_t const *chars, int chars_len);
+YW_JSONValue *yw_json_parse(uint8_t const *chars, int chars_len);
 
 /* Caller owns the returned value. */
-YW_JSONValue *yw_parse_json_from_c_str(char const *s);
+YW_JSONValue *yw_json_parse_from_c_str(char const *s);
 
 #endif /* #ifndef YW_JSON_H_ */

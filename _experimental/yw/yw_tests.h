@@ -75,6 +75,7 @@
     _x(yw_test_utf8_decoder)                                                   \
     /* yw_json_tests */                                                        \
     _x(yw_test_json_string_equals)                                             \
+    _x(yw_test_json_string_to_c_str)                                           \
     _x(yw_test_json_expect_object)                                             \
     _x(yw_test_json_find_object_entry)                                         \
     _x(yw_test_json_expect_array)                                              \

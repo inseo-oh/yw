@@ -39,6 +39,29 @@ void yw_json_string_clone(YW_JSONString *dest, YW_JSONString const *str)
         dest->chars[i] = str->chars[i];
     }
 }
+char *yw_json_string_to_c_str(YW_JSONString const *str)
+{
+    char *chars = NULL;
+    int chars_len = 0;
+    int chars_cap = 0;
+    for (int i = 0; i < str->chars_len; i++)
+    {
+        if (str->chars[i] == '\0')
+        {
+            /* Replace \0 with U+FFFD (Replacement character )*/
+            YW_PUSH(char, &chars_cap, &chars_len, &chars, (char)0xef);
+            YW_PUSH(char, &chars_cap, &chars_len, &chars, (char)0xbf);
+            YW_PUSH(char, &chars_cap, &chars_len, &chars, (char)0xbd);
+        }
+        else
+        {
+            YW_PUSH(char, &chars_cap, &chars_len, &chars, str->chars[i]);
+        }
+    }
+    YW_PUSH(char, &chars_cap, &chars_len, &chars, 0);
+    YW_SHRINK_TO_FIT(char, &chars_cap, chars_len, &chars);
+    return chars;
+}
 bool yw_json_string_equals(YW_JSONString const *s, char const *str)
 {
     if (s == NULL)
@@ -721,7 +744,7 @@ static bool yw_parse_value(YW_JSONValue *out, YW_JSONParser *par)
     return false;
 }
 
-YW_JSONValue *yw_parse_json(uint8_t const *chars, int chars_len)
+YW_JSONValue *yw_json_parse(uint8_t const *chars, int chars_len)
 {
     YW_JSONParser par;
     memset(&par, 0, sizeof(par));
@@ -736,7 +759,7 @@ YW_JSONValue *yw_parse_json(uint8_t const *chars, int chars_len)
     *res = temp;
     return res;
 }
-YW_JSONValue *yw_parse_json_from_c_str(char const *s)
+YW_JSONValue *yw_json_parse_from_c_str(char const *s)
 {
-    return yw_parse_json((uint8_t const *)s, strlen(s));
+    return yw_json_parse((uint8_t const *)s, strlen(s));
 }

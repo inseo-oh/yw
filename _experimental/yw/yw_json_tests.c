@@ -25,6 +25,24 @@ void yw_test_json_string_equals(YW_TestingContext *ctx)
     yw_json_string_deinit(&test_str);
 }
 
+void yw_test_json_string_to_c_str(YW_TestingContext *ctx)
+{
+    YW_JSONString test_str;
+
+    yw_json_string_init(&test_str, "hello");
+    char *str = yw_json_string_to_c_str(&test_str);
+    YW_TEST_EXPECT(int, ctx, strcmp(str, "hello"), "%d", 0);
+    yw_json_string_deinit(&test_str);
+    free(str);
+
+    yw_json_string_init(&test_str, "hel_lo");
+    test_str.chars[3] = '\0';
+    str = yw_json_string_to_c_str(&test_str);
+    YW_TEST_EXPECT(int, ctx, strcmp(str, "hel\xef\xbf\xbdlo"), "%d", 0);
+    yw_json_string_deinit(&test_str);
+    free(str);
+}
+
 void yw_test_json_expect_object(YW_TestingContext *ctx)
 {
     YW_JSONObjectEntry *ents = NULL;
@@ -185,19 +203,19 @@ void yw_test_json_parse(YW_TestingContext *ctx)
     double v_num;
 
     /* null *******************************************************************/
-    YW_JSONValue *v = yw_parse_json_from_c_str("null");
+    YW_JSONValue *v = yw_json_parse_from_c_str("null");
     YW_TEST_EXPECT(bool, ctx, v != NULL, "%d", true);
     YW_TEST_EXPECT(bool, ctx, yw_json_expect_null(v), "%d", true);
     yw_json_value_free(v);
 
     /* boolean values *********************************************************/
-    v = yw_parse_json_from_c_str("true");
+    v = yw_json_parse_from_c_str("true");
     YW_TEST_EXPECT(bool, ctx, v != NULL, "%d", true);
     YW_TEST_EXPECT(bool, ctx, yw_json_expect_boolean(&v_bol, v), "%d", true);
     YW_TEST_EXPECT(bool, ctx, v_bol, "%d", true);
     yw_json_value_free(v);
 
-    v = yw_parse_json_from_c_str("false");
+    v = yw_json_parse_from_c_str("false");
     YW_TEST_EXPECT(bool, ctx, v != NULL, "%d", true);
     YW_TEST_EXPECT(bool, ctx, yw_json_expect_boolean(&v_bol, v), "%d", true);
     YW_TEST_EXPECT(bool, ctx, v_bol, "%d", false);
@@ -208,37 +226,37 @@ void yw_test_json_parse(YW_TestingContext *ctx)
      * NOTE: Some of these tests may fail due to minor floating point errors.
      */
 
-    v = yw_parse_json_from_c_str("31");
+    v = yw_json_parse_from_c_str("31");
     YW_TEST_EXPECT(bool, ctx, v != NULL, "%d", true);
     YW_TEST_EXPECT(bool, ctx, yw_json_expect_number(&v_num, v), "%d", true);
     YW_TEST_EXPECT(int, ctx, v_num, "%d", 31);
     yw_json_value_free(v);
 
-    v = yw_parse_json_from_c_str("3.2");
+    v = yw_json_parse_from_c_str("3.2");
     YW_TEST_EXPECT(bool, ctx, v != NULL, "%d", true);
     YW_TEST_EXPECT(bool, ctx, yw_json_expect_number(&v_num, v), "%d", true);
     YW_TEST_EXPECT(int, ctx, v_num * 10, "%d", 32);
     yw_json_value_free(v);
 
-    v = yw_parse_json_from_c_str("3.4e1;");
+    v = yw_json_parse_from_c_str("3.4e1;");
     YW_TEST_EXPECT(bool, ctx, v != NULL, "%d", true);
     YW_TEST_EXPECT(bool, ctx, yw_json_expect_number(&v_num, v), "%d", true);
     YW_TEST_EXPECT(int, ctx, v_num, "%d", 34);
     yw_json_value_free(v);
 
-    v = yw_parse_json_from_c_str("350e-1;");
+    v = yw_json_parse_from_c_str("350e-1;");
     YW_TEST_EXPECT(bool, ctx, v != NULL, "%d", true);
     YW_TEST_EXPECT(bool, ctx, yw_json_expect_number(&v_num, v), "%d", true);
     YW_TEST_EXPECT(int, ctx, v_num, "%d", 35);
     yw_json_value_free(v);
 
-    v = yw_parse_json_from_c_str("3.6E1;");
+    v = yw_json_parse_from_c_str("3.6E1;");
     YW_TEST_EXPECT(bool, ctx, v != NULL, "%d", true);
     YW_TEST_EXPECT(bool, ctx, yw_json_expect_number(&v_num, v), "%d", true);
     YW_TEST_EXPECT(int, ctx, v_num, "%d", 36);
     yw_json_value_free(v);
 
-    v = yw_parse_json_from_c_str("370e-1");
+    v = yw_json_parse_from_c_str("370e-1");
     YW_TEST_EXPECT(bool, ctx, v != NULL, "%d", true);
     YW_TEST_EXPECT(bool, ctx, yw_json_expect_number(&v_num, v), "%d", true);
     YW_TEST_EXPECT(int, ctx, v_num, "%d", 37);
@@ -246,7 +264,7 @@ void yw_test_json_parse(YW_TestingContext *ctx)
 
     /* string *****************************************************************/
 
-    v = yw_parse_json_from_c_str(
+    v = yw_json_parse_from_c_str(
         "\"" /* Opening char */
         "hello, world!"
         "\\\""      /* \" */
@@ -275,7 +293,7 @@ void yw_test_json_parse(YW_TestingContext *ctx)
     yw_json_value_free(v);
 
     /* array ******************************************************************/
-    v = yw_parse_json_from_c_str("[34, 35]");
+    v = yw_json_parse_from_c_str("[34, 35]");
     YW_TEST_EXPECT(bool, ctx, v != NULL, "%d", true);
     YW_JSONArrayValue const *arr = yw_json_expect_array(v);
     if (arr != NULL)
@@ -293,7 +311,7 @@ void yw_test_json_parse(YW_TestingContext *ctx)
     yw_json_value_free(v);
 
     /* object *****************************************************************/
-    v = yw_parse_json_from_c_str("{ \"x\": 34, \"y\": 35 }");
+    v = yw_json_parse_from_c_str("{ \"x\": 34, \"y\": 35 }");
     YW_TEST_EXPECT(bool, ctx, v != NULL, "%d", true);
 
     YW_TEST_EXPECT(bool, ctx, yw_json_expect_number(&v_num, yw_json_find_object_entry(v, "x")), "%d", true);
