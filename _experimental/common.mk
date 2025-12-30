@@ -16,6 +16,9 @@ ifeq ($(PLATFORM),wasm)
 CC     := emcc
 OUTDIR := $(PROJECTDIR)/out_wasm
 TARGET := $(OUTDIR)/$(TARGET_NAME).html
+ifeq ($(DEBUG),true)
+CFLAGS += -fsanitize=address -g
+endif
 else ifeq ($(PLATFORM),aos68k)
 # AmigaOS 680x0 ################################################################
 CC     := vc
@@ -30,7 +33,9 @@ TARGET := $(OUTDIR)/$(TARGET_NAME)
 CFLAGS += +aosppc -lauto -c99 -lm
 else
 # Linux ########################################################################
+ifeq ($(DEBUG),true)
 CFLAGS += -fsanitize=address -g
+endif
 OUTDIR := $(PROJECTDIR)/out_linux
 TARGET := $(OUTDIR)/$(TARGET_NAME)
 endif
@@ -58,8 +63,11 @@ else
 # Both of these seems to have false positives on vbcc when boolean type is used. 
 CFLAGS += -dontwarn=51,214
 endif
-CFLAGS += -O3
 CFLAGS += -I$(PROJECTDIR)/include
+
+ifneq ($(DEBUG),true)
+CFLAGS += -O3
+endif
 
 ################################################################################
 # Build rules
