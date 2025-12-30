@@ -191,6 +191,11 @@ void yw_html_tokenize(
     free(tkr.temp_buf);
 }
 
+static void yw_set_temp_buf(YW_HTMLTokenizer *tkr, char *buf)
+{
+    free(tkr->temp_buf);
+    tkr->temp_buf = buf;
+}
 static void yw_set_current_token(YW_HTMLTokenizer *tkr, YW_HTMLToken *tk)
 {
     if (tkr->current_token != NULL)
@@ -546,7 +551,7 @@ void yw_html_rcdata_less_than_sign_state(YW_HTMLTokenizer *tkr)
     switch (next_char)
     {
     case '/':
-        tkr->temp_buf = yw_duplicate_str("");
+        yw_set_temp_buf(tkr, yw_duplicate_str(""));
         tkr->state = yw_html_rcdata_end_tag_open_state;
         break;
     default:
@@ -639,7 +644,7 @@ void yw_html_rawtext_less_than_sign_state(YW_HTMLTokenizer *tkr)
     switch (next_char)
     {
     case '/':
-        tkr->temp_buf = yw_duplicate_str("");
+        yw_set_temp_buf(tkr, yw_duplicate_str(""));
         tkr->state = yw_html_rawtext_end_tag_open_state;
         break;
     default:
@@ -1749,7 +1754,7 @@ void yw_html_named_character_reference_state(YW_HTMLTokenizer *tkr)
             {
                 yw_parse_error_encountered(tkr, YW_MISSING_SEMICOLON_AFTER_CHARACTER_REFERENCE_ERROR);
             }
-            tkr->temp_buf = yw_duplicate_str(found_str);
+            yw_set_temp_buf(tkr, yw_duplicate_str(found_str));
             yw_flush_codepoints_consumed_as_char_reference(tkr);
             tkr->state = tkr->return_state;
         }
@@ -1968,8 +1973,7 @@ void yw_html_numeric_character_reference_end_state(YW_HTMLTokenizer *tkr)
             break;
         }
     }
-    free(tkr->temp_buf);
-    tkr->temp_buf = yw_char_to_str(tkr->character_reference_code);
+    yw_set_temp_buf(tkr, yw_char_to_str(tkr->character_reference_code));
     yw_flush_codepoints_consumed_as_char_reference(tkr);
     tkr->state = tkr->return_state;
 }
