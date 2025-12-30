@@ -1638,10 +1638,62 @@ void yw_html_character_reference_state(YW_HTMLTokenizer *tkr)
         }
     }
 }
+
+#include "yw_html_entities_autogen.i"
+
 void yw_html_named_character_reference_state(YW_HTMLTokenizer *tkr)
 {
     (void)tkr;
-    YW_TODO();
+    int entities_count = YW_SIZEOF_ARRAY(yw_html_entities);
+    char const *found_name = NULL;
+    char const *found_str = NULL;
+    YW_TextCursor cursor_after_found;
+    for (int i = 0; i < entities_count; i++)
+    {
+        if (yw_html_entities[i].name[0] != '&')
+        {
+            fprintf(stderr, "%s: internal warning: key %s in yw_html_entities doesn't start with &\n",
+                    __func__, yw_html_entities[i].name);
+            continue;
+        }
+        YW_TextCursor cursor_before_str = tkr->tr.cursor;
+        if (yw_consume_str(&tkr->tr, &yw_html_entities[i].name[1], YW_NO_MATCH_FLAGS))
+        {
+            if (found_name == NULL || strlen(found_name) < strlen(yw_html_entities[i].name))
+            {
+                found_name = yw_html_entities[i].name;
+                found_str = yw_html_entities[i].str;
+                cursor_after_found = tkr->tr.cursor;
+            }
+            tkr->tr.cursor = cursor_before_str;
+        }
+    }
+    if (found_name != NULL)
+    {
+        tkr->tr.cursor = cursor_after_found;
+        if (yw_is_consumed_as_part_of_attr(tkr) &&
+            found_name[strlen(found_name) - 1] != ';' &&
+            (yw_peek_char(&tkr->tr) == '=' || yw_is_ascii_alphanumeric(yw_peek_char(&tkr->tr))))
+        {
+            yw_flush_codepoints_consumed_as_char_reference(tkr);
+            tkr->state = tkr->return_state;
+        }
+        else
+        {
+            if (found_name[strlen(found_name) - 1] != ';')
+            {
+                yw_parse_error_encountered(tkr, YW_MISSING_SEMICOLON_AFTER_CHARACTER_REFERENCE_ERROR);
+            }
+            tkr->temp_buf = yw_duplicate_str(found_str);
+            yw_flush_codepoints_consumed_as_char_reference(tkr);
+            tkr->state = tkr->return_state;
+        }
+    }
+    else
+    {
+        yw_flush_codepoints_consumed_as_char_reference(tkr);
+        tkr->state = tkr->return_state;
+    }
 }
 void yw_html_numeric_character_reference_state(YW_HTMLTokenizer *tkr)
 {

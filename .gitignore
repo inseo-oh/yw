@@ -1,3 +1,5 @@
 .vscode
 /yw
 _experimental/out*
+_experimental/downloads
+*autogen.i
