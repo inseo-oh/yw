@@ -31,6 +31,7 @@ void yw_json_string_clone(YW_JSONString *dest, YW_JSONString const *str);
 
 /*
  * NOTE: Embedded zeros will be replaced with U+FFFD character.
+ * Also, it is safe to pass NULL to str.
  *
  * Caller owns the returned array.
  */

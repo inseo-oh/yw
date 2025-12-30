@@ -41,6 +41,10 @@ void yw_json_string_clone(YW_JSONString *dest, YW_JSONString const *str)
 }
 char *yw_json_string_to_c_str(YW_JSONString const *str)
 {
+    if (str == NULL)
+    {
+        return NULL;
+    }
     char *chars = NULL;
     int chars_len = 0;
     int chars_cap = 0;
