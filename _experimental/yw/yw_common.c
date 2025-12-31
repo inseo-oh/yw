@@ -234,16 +234,16 @@ void *yw_shrink_to_fit_impl(int *cap_inout, int len, void *old_buf, size_t item_
 
 void yw_append_str(char **dest, char const *another)
 {
+    if (another == NULL)
+    {
+        return;
+    }
     if (*dest == NULL)
     {
         int len = strlen(another);
         *dest = YW_ALLOC(char, len + 1);
         memcpy(*dest, another, len * sizeof(char));
         (*dest)[len] = '\0';
-        return;
-    }
-    if (another == NULL)
-    {
         return;
     }
     int len = strlen(*dest) + 1;
