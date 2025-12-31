@@ -240,10 +240,7 @@ void yw_append_str(char **dest, char const *another)
     }
     if (*dest == NULL)
     {
-        int len = strlen(another);
-        *dest = YW_ALLOC(char, len + 1);
-        memcpy(*dest, another, len * sizeof(char));
-        (*dest)[len] = '\0';
+        *dest = yw_duplicate_str(another);
         return;
     }
     int len = strlen(*dest) + 1;
@@ -278,9 +275,11 @@ char *yw_duplicate_str(char const *s)
     {
         return NULL;
     }
-    char *res = NULL;
-    yw_append_str(&res, s);
-    return res;
+    int len = strlen(s);
+    char *new_buf = YW_ALLOC(char, len + 1);
+    memcpy(new_buf, s, len * sizeof(char));
+    new_buf[len] = '\0';
+    return new_buf;
 }
 char *yw_char_to_str(YW_Char32 chr)
 {
