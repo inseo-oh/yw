@@ -4,6 +4,7 @@
  * See LICENSE for details, and LICENSE_WHATWG_SPECS for WHATWG license information.
  */
 #include "yw_common.h"
+#include <assert.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -169,6 +170,7 @@ void *yw_grow_impl(int *cap_inout, int *len_inout, void *old_buf, size_t item_si
     void *new_buf;
     int new_cap, new_len;
 
+    assert(add_len != 0);
     if (*cap_inout < 0 || *len_inout < 0 || item_size == 0 || INT_MAX < item_size || INT_MAX - *len_inout < add_len)
     {
         goto fail;
@@ -177,6 +179,7 @@ void *yw_grow_impl(int *cap_inout, int *len_inout, void *old_buf, size_t item_si
     if (new_len <= *cap_inout)
     {
         *len_inout = new_len;
+        assert(old_buf != NULL);
         return old_buf;
     }
     {
