@@ -231,21 +231,19 @@ void *yw_shrink_to_fit_impl(int *cap_inout, int len, void *old_buf, size_t item_
 
 void yw_append_str(char **dest, char const *another)
 {
-    bool was_dest_null = false;
+    if (*dest == NULL)
+    {
+        int len = strlen(another);
+        *dest = YW_ALLOC(char, len + 1);
+        memcpy(*dest, another, len * sizeof(char));
+        (*dest)[len] = '\0';
+        return;
+    }
     if (another == NULL)
     {
         return;
     }
-    int len = 0;
-    if (*dest != NULL)
-    {
-        len = strlen(*dest) + 1;
-    }
-    else
-    {
-        len = 1;
-        was_dest_null = true;
-    }
+    int len = strlen(*dest) + 1;
     int cap = len;
     int a_str_len = len - 1;
     size_t b_str_len = strlen(another);
@@ -261,10 +259,6 @@ void yw_append_str(char **dest, char const *another)
         return;
     }
     YW_GROW(char, &cap, &len, dest, add_total_len);
-    if (was_dest_null)
-    {
-        (*dest)[0] = '\0';
-    }
     strcat(*dest, another);
 }
 void yw_append_char(char **dest, YW_Char32 chr)
