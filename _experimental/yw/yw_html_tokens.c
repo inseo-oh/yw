@@ -98,10 +98,13 @@ void yw_html_token_clone(YW_HTMLToken *dest, YW_HTMLToken const *tk)
         return;
     case YW_HTML_TAG_TOKEN:
         dest->tag_tk.name = yw_duplicate_str(tk->tag_tk.name);
-        dest->tag_tk.attrs = YW_ALLOC(YW_DOMAttrData, tk->tag_tk.attrs_len);
-        for (int i = 0; i < tk->tag_tk.attrs_len; i++)
+        if (tk->tag_tk.attrs_len != 0)
         {
-            yw_dom_attr_data_clone(&dest->tag_tk.attrs[i], &tk->tag_tk.attrs[i]);
+            dest->tag_tk.attrs = YW_ALLOC(YW_DOMAttrData, tk->tag_tk.attrs_len);
+            for (int i = 0; i < tk->tag_tk.attrs_len; i++)
+            {
+                yw_dom_attr_data_clone(&dest->tag_tk.attrs[i], &tk->tag_tk.attrs[i]);
+            }
         }
         return;
     }
@@ -156,7 +159,7 @@ static YW_HTMLToken *yw_make_doctype_token(void)
     return res;
 }
 
-static const bool YW_TRACE_TOKENIZER_STATE = true;
+static const bool YW_TRACE_TOKENIZER_STATE = false;
 
 void yw_html_tokenize(
     uint8_t const *chars, int chars_len,
@@ -189,6 +192,7 @@ void yw_html_tokenize(
     }
 
     free(tkr.temp_buf);
+    free(tkr.last_start_tag_name);
 }
 
 static void yw_set_temp_buf(YW_HTMLTokenizer *tkr, char *buf)
@@ -196,6 +200,7 @@ static void yw_set_temp_buf(YW_HTMLTokenizer *tkr, char *buf)
     free(tkr->temp_buf);
     tkr->temp_buf = buf;
 }
+/* When setting to a tag token, this will also initialize bad_attrs list and curr_attrs_cap */
 static void yw_set_current_token(YW_HTMLTokenizer *tkr, YW_HTMLToken *tk)
 {
     if (tkr->current_token != NULL)
@@ -203,6 +208,15 @@ static void yw_set_current_token(YW_HTMLTokenizer *tkr, YW_HTMLToken *tk)
         YW_UNREACHABLE();
     }
     tkr->current_token = tk;
+
+    if (tkr->current_token->type == YW_HTML_TAG_TOKEN)
+    {
+        tkr->curr_attrs_cap = 0;
+        free(tkr->bad_attrs);
+        tkr->bad_attrs = NULL;
+        tkr->bad_attrs_cap = 0;
+        tkr->bad_attrs_len = 0;
+    }
 }
 static YW_HTMLTagToken *yw_current_tag_token(YW_HTMLTokenizer *tkr)
 {
@@ -280,6 +294,7 @@ static void yw_emit_token(YW_HTMLTokenizer *tkr, YW_HTMLToken **tk_inout)
         YW_SHRINK_TO_FIT(YW_DOMAttrData, &tkr->curr_attrs_cap, tk->tag_tk.attrs_len, &tk->tag_tk.attrs);
         if (yw_is_start_tag(tk))
         {
+            free(tkr->last_start_tag_name);
             tkr->last_start_tag_name = yw_duplicate_str(tk->tag_tk.name);
         }
     }
@@ -342,16 +357,14 @@ static void yw_flush_codepoints_consumed_as_char_reference(YW_HTMLTokenizer *tkr
     }
 }
 
-static void yw_add_attr_to_current_tag(YW_HTMLTokenizer *tkr, char const *name)
+static void yw_add_attr_to_current_tag(YW_HTMLTokenizer *tkr, char const *name, char const *value)
 {
     YW_HTMLTagToken *tag = yw_current_tag_token(tkr);
     YW_DOMAttrData attr;
     memset(&attr, 0, sizeof(attr));
     attr.local_name = yw_duplicate_str(name);
+    attr.value = yw_duplicate_str(value);
     YW_PUSH(YW_DOMAttrData, &tkr->curr_attrs_cap, &tag->attrs_len, &tag->attrs, attr);
-    assert(tkr->bad_attrs == NULL);
-    assert(tkr->bad_attrs_cap == 0);
-    assert(tkr->bad_attrs_len == 0);
 }
 
 static bool yw_is_appropriate_end_tag_token(YW_HTMLTokenizer const *tkr, YW_HTMLToken const *tk)
@@ -749,14 +762,14 @@ void yw_html_before_attribute_name_state(YW_HTMLTokenizer *tkr)
         break;
     case '=': {
         char *name_str = yw_char_to_str(next_char);
-        yw_add_attr_to_current_tag(tkr, name_str);
+        yw_add_attr_to_current_tag(tkr, name_str, "");
         free(name_str);
         tkr->tr.cursor = old_cursor;
         tkr->state = yw_html_attribute_name_state;
         break;
     }
     default:
-        yw_add_attr_to_current_tag(tkr, "");
+        yw_add_attr_to_current_tag(tkr, "", "");
         tkr->tr.cursor = old_cursor;
         tkr->state = yw_html_attribute_name_state;
         break;
@@ -802,6 +815,10 @@ check_dupliate_attr_name: {
     YW_DOMAttrData const *current_attr = yw_current_attr(tkr);
     for (int i = 0; i < tag->attrs_len; i++)
     {
+        if (&tag->attrs[i] == current_attr)
+        {
+            continue;
+        }
         if (strcmp(current_attr->local_name, tag->attrs[i].local_name) == 0)
         {
             YW_PUSH(int, &tkr->bad_attrs_cap, &tkr->bad_attrs_len, &tkr->bad_attrs, i);
@@ -835,9 +852,9 @@ void yw_html_after_attribute_name_state(YW_HTMLTokenizer *tkr)
         yw_emit_eof_token(tkr);
         break;
     default:
-        yw_add_attr_to_current_tag(tkr, "");
+        yw_add_attr_to_current_tag(tkr, "", "");
         tkr->tr.cursor = old_cursor;
-        tkr->state = yw_html_before_attribute_name_state;
+        tkr->state = yw_html_attribute_name_state;
         break;
     }
 }
@@ -888,7 +905,6 @@ void yw_html_attribute_value_double_quoted_state(YW_HTMLTokenizer *tkr)
         yw_emit_eof_token(tkr);
         break;
     default:
-        yw_parse_error_encountered(tkr, YW_UNEXPECTED_NULL_CHARACTER_ERROR);
         yw_append_char(&yw_current_attr(tkr)->value, next_char);
         break;
     }
@@ -914,7 +930,6 @@ void yw_html_attribute_value_single_quoted_state(YW_HTMLTokenizer *tkr)
         yw_emit_eof_token(tkr);
         break;
     default:
-        yw_parse_error_encountered(tkr, YW_UNEXPECTED_NULL_CHARACTER_ERROR);
         yw_append_char(&yw_current_attr(tkr)->value, next_char);
         break;
     }
@@ -947,7 +962,6 @@ void yw_html_attribute_value_unquoted_state(YW_HTMLTokenizer *tkr)
         yw_emit_eof_token(tkr);
         break;
     default:
-        yw_parse_error_encountered(tkr, YW_UNEXPECTED_NULL_CHARACTER_ERROR);
         yw_append_char(&yw_current_attr(tkr)->value, next_char);
         break;
     }

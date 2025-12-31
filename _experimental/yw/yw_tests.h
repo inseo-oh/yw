@@ -77,6 +77,8 @@
     /* yw_html_tests */                                                        \
     _x(yw_test_html_parse_character_reference)                                 \
     _x(yw_test_html_parse_comment)                                             \
+    _x(yw_test_html_parse_doctype)                                             \
+    _x(yw_test_html_parse_tag)                                                 \
     /* yw_json_tests */                                                        \
     _x(yw_test_json_string_equals)                                             \
     _x(yw_test_json_string_to_c_str)                                           \
