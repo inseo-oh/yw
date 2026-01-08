@@ -569,7 +569,7 @@ func (tb treeBuilder) isElementBlockLevel(parentFctx layout.FormattingContext, d
 
 	panic("unreachable")
 }
-func (tb treeBuilder) layoutText(txt dom.Text, boxParent layout.Box, bfc *layout.BlockFormattingContext, ifc *layout.InlineFormattingContext, textDecors []gfx.TextDecorOptions) []layout.Node {
+func (tb treeBuilder) layoutText(txt dom.Text, boxParent layout.Box, bfc *layout.BlockFormattingContext, ifc *layout.InlineFormattingContext, textDecors []gfx.TextDecorOptions) []any {
 	parentElem := closestDomElementForBox(boxParent)
 	parentBcon := closestParentBlockContainer(boxParent)
 	parentStyleSetSrc := cssom.ComputedStyleSetSourceOf(parentElem)
@@ -592,7 +592,7 @@ func (tb treeBuilder) layoutText(txt dom.Text, boxParent layout.Box, bfc *layout
 	metrics := tb.font.Metrics()
 
 	fragmentRemaining := str
-	textNodes := []layout.Node{}
+	textNodes := []any{}
 
 	for 0 < len(fragmentRemaining) {
 		// https://www.w3.org/TR/css-text-3/#white-space-phase-2
