@@ -5,8 +5,8 @@
 package layout
 
 type formattingContext interface {
-	naturalPos() float64
-	incrementNaturalPos(inc float64)
+	naturalPos() LogicalPos
+	incrementNaturalPos(inc LogicalPos)
 	contextOwnerBox() Box
 }
 

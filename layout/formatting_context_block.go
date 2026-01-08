@@ -13,40 +13,40 @@ import "log"
 // https://www.w3.org/TR/CSS2/visuren.html#block-formatting
 type blockFormattingContext struct {
 	formattingContextCommon
-	currentNaturalPos  float64
+	currentNaturalPos  LogicalPos
 	leftFloatingBoxes  []Box
 	rightFloatingBoxes []Box
 }
 
-func (bfc blockFormattingContext) naturalPos() float64 {
+func (bfc blockFormattingContext) naturalPos() LogicalPos {
 	return bfc.currentNaturalPos
 }
-func (bfc *blockFormattingContext) incrementNaturalPos(pos float64) {
+func (bfc *blockFormattingContext) incrementNaturalPos(pos LogicalPos) {
 	bfc.currentNaturalPos += pos
 	if pos < 0 {
 		log.Printf("warning: attempted to increment natural position with negative value %g", pos)
 	}
 }
-func (bfc *blockFormattingContext) leftFloatWidth(forBlockPos float64) float64 {
-	sum := 0.0
+func (bfc *blockFormattingContext) leftFloatWidth(forLogicalY LogicalPos) LogicalPos {
+	sum := LogicalPos(0.0)
 	for _, bx := range bfc.leftFloatingBoxes {
 		mRect := bx.boxMarginRect()
-		if mRect.blockPos <= forBlockPos && forBlockPos <= (mRect.blockPos+mRect.logicalHeight) {
+		if mRect.logicalY <= forLogicalY && forLogicalY <= (mRect.logicalY+mRect.logicalHeight) {
 			sum += bx.logicalWidth()
 		}
 	}
 	return sum
 }
-func (bfc *blockFormattingContext) rightFloatWidth(forBlockPos float64) float64 {
-	sum := 0.0
+func (bfc *blockFormattingContext) rightFloatWidth(forLogicalY LogicalPos) LogicalPos {
+	sum := LogicalPos(0.0)
 	for _, bx := range bfc.rightFloatingBoxes {
 		mRect := bx.boxMarginRect()
-		if mRect.blockPos <= forBlockPos && forBlockPos <= (mRect.blockPos+mRect.logicalHeight) {
+		if mRect.logicalY <= forLogicalY && forLogicalY <= (mRect.logicalY+mRect.logicalHeight) {
 			sum += bx.logicalWidth()
 		}
 	}
 	return sum
 }
-func (bfc *blockFormattingContext) floatWidth(forBlockPos float64) float64 {
-	return bfc.leftFloatWidth(forBlockPos) + bfc.rightFloatWidth(forBlockPos)
+func (bfc *blockFormattingContext) floatWidth(forLogicalY LogicalPos) LogicalPos {
+	return bfc.leftFloatWidth(forLogicalY) + bfc.rightFloatWidth(forLogicalY)
 }

@@ -17,8 +17,8 @@ type inlineFormattingContext struct {
 
 	bcon                  *blockContainer // Block container containing this inline node
 	lineBoxes             []lineBox       // List of line boxes
-	initialAvailableWidth float64
-	initialBlockPos       float64
+	initialAvailableWidth LogicalPos
+	initialLogicalY       LogicalPos
 	writtenText           string
 }
 
@@ -27,21 +27,21 @@ func (ifc *inlineFormattingContext) addLineBox(lineHeight float64) {
 	lb.currentLineHeight = lineHeight
 	if len(ifc.lineBoxes) != 0 {
 		lastLb := ifc.currentLineBox()
-		lb.initialBlockPos = lastLb.initialBlockPos + lastLb.currentLineHeight
+		lb.initialLogicalY = lastLb.initialLogicalY + LogicalPos(lastLb.currentLineHeight)
 	} else {
-		lb.initialBlockPos = ifc.initialBlockPos
+		lb.initialLogicalY = ifc.initialLogicalY
 	}
-	lb.availableWidth = ifc.initialAvailableWidth - ifc.bcon.bfc.floatWidth(lb.initialBlockPos)
-	lb.leftOffset = ifc.bcon.bfc.leftFloatWidth(lb.initialBlockPos)
+	lb.availableWidth = ifc.initialAvailableWidth - ifc.bcon.bfc.floatWidth(lb.initialLogicalY)
+	lb.leftOffset = PhysicalPos(ifc.bcon.bfc.leftFloatWidth(lb.initialLogicalY))
 	ifc.lineBoxes = append(ifc.lineBoxes, lb)
 }
 func (ifc *inlineFormattingContext) currentLineBox() *lineBox {
 	return &ifc.lineBoxes[len(ifc.lineBoxes)-1]
 }
-func (ifc inlineFormattingContext) naturalPos() float64 {
-	return ifc.currentLineBox().currentNaturalPos + ifc.currentLineBox().leftOffset
+func (ifc inlineFormattingContext) naturalPos() LogicalPos {
+	return ifc.currentLineBox().currentNaturalPos + LogicalPos(ifc.currentLineBox().leftOffset)
 }
-func (ifc *inlineFormattingContext) incrementNaturalPos(pos float64) {
+func (ifc *inlineFormattingContext) incrementNaturalPos(pos LogicalPos) {
 	if len(ifc.lineBoxes) == 0 {
 		panic("attempted to increment natural position without creating lineBox")
 	}
@@ -57,9 +57,9 @@ func (ifc *inlineFormattingContext) incrementNaturalPos(pos float64) {
 //
 // https://www.w3.org/TR/css-inline-3/#line-box
 type lineBox struct {
-	leftOffset        float64
-	availableWidth    float64
-	currentNaturalPos float64
+	leftOffset        PhysicalPos
+	availableWidth    LogicalPos
+	currentNaturalPos LogicalPos
 	currentLineHeight float64
-	initialBlockPos   float64
+	initialLogicalY   LogicalPos
 }

@@ -20,10 +20,10 @@ type blockContainer struct {
 	isAnonymous      bool
 	isInlineFlowRoot bool
 
-	accumulatedMarginLeft   float64
-	accumulatedPaddingLeft  float64
-	accumulatedMarginRight  float64
-	accumulatedPaddingRight float64
+	accumulatedMarginLeft   PhysicalPos
+	accumulatedPaddingLeft  PhysicalPos
+	accumulatedMarginRight  PhysicalPos
+	accumulatedPaddingRight PhysicalPos
 }
 
 func (bcon blockContainer) String() string {

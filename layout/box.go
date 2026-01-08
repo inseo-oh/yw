@@ -30,12 +30,12 @@ type Box interface {
 	boxContentRect() logicalRect
 	boxMargin() physicalEdges
 	boxPadding() physicalEdges
-	logicalWidth() float64
-	logicalHeight() float64
+	logicalWidth() LogicalPos
+	logicalHeight() LogicalPos
 	isWidthAuto() bool
 	isHeightAuto() bool
-	incrementSize(logicalWidth, logicalHeight float64)
-	incrementIfNeeded(logicalWidth, logicalHeight float64) (logicalWidthDiff, logicalHeightDiff float64)
+	incrementSize(logicalWidth, logicalHeight LogicalPos)
+	incrementIfNeeded(minLogicalWidth, minLogicalHeight LogicalPos) (logicalWidthDiff, logicalHeightDiff LogicalPos)
 }
 type boxCommon struct {
 	parent             Box
@@ -58,12 +58,12 @@ func (bx boxCommon) boxMargin() physicalEdges    { return bx.margin }
 func (bx boxCommon) boxPadding() physicalEdges   { return bx.padding }
 
 // https://www.w3.org/TR/css-writing-modes-4/#logical-width
-func (bx boxCommon) logicalWidth() float64 {
+func (bx boxCommon) logicalWidth() LogicalPos {
 	return bx.boxContentRect().logicalWidth
 }
 
 // https://www.w3.org/TR/css-writing-modes-4/#logical-height
-func (bx boxCommon) logicalHeight() float64 {
+func (bx boxCommon) logicalHeight() LogicalPos {
 	return bx.boxContentRect().logicalHeight
 }
 
@@ -76,7 +76,7 @@ func (bx boxCommon) ChildTexts() []*text {
 func (bx boxCommon) isWidthAuto() bool  { return bx.physicalWidthAuto }
 func (bx boxCommon) isHeightAuto() bool { return bx.physicalHeightAuto }
 
-func (bx *boxCommon) incrementSize(logicalWidth, logicalHeight float64) {
+func (bx *boxCommon) incrementSize(logicalWidth, logicalHeight LogicalPos) {
 	if logicalWidth == 0 && logicalHeight == 0 {
 		return
 	}
@@ -95,7 +95,7 @@ func (bx *boxCommon) incrementSize(logicalWidth, logicalHeight float64) {
 		parent.incrementSize(w, h)
 	}
 }
-func (bx *boxCommon) incrementIfNeeded(minLogicalWidth, minLogicalHeight float64) (logicalWidthDiff, logicalHeightDiff float64) {
+func (bx *boxCommon) incrementIfNeeded(minLogicalWidth, minLogicalHeight LogicalPos) (logicalWidthDiff, logicalHeightDiff LogicalPos) {
 	wDiff := max(minLogicalWidth-bx.boxContentRect().logicalWidth, 0)
 	hDiff := max(minLogicalHeight-bx.boxContentRect().logicalHeight, 0)
 	bx.incrementSize(wDiff, hDiff)
