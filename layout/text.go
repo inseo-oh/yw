@@ -13,27 +13,27 @@ import (
 	"github.com/inseo-oh/yw/gfx/paint"
 )
 
-type text struct {
-	rect     physicalRect
-	text     string
-	font     gfx.Font
-	fontSize float64
-	color    color.Color
-	decors   []gfx.TextDecorOptions
+type Text struct {
+	Rect     PhysicalRect
+	Text     string
+	Font     gfx.Font
+	FontSize float64
+	Color    color.Color
+	Decors   []gfx.TextDecorOptions
 }
 
-func (txt text) String() string {
-	return fmt.Sprintf("text %s at [%v]", strconv.Quote(txt.text), txt.rect)
+func (txt Text) String() string {
+	return fmt.Sprintf("text %s at [%v]", strconv.Quote(txt.Text), txt.Rect)
 }
-func (txt text) MakePaintNode() paint.Node {
+func (txt Text) MakePaintNode() paint.Node {
 	return paint.TextPaint{
-		Left:   int(txt.rect.Left),
-		Top:    int(txt.rect.Top),
-		Text:   txt.text,
-		Font:   txt.font,
-		Size:   txt.fontSize,
-		Color:  txt.color,
-		Decors: txt.decors,
+		Left:   int(txt.Rect.Left),
+		Top:    int(txt.Rect.Top),
+		Text:   txt.Text,
+		Font:   txt.Font,
+		Size:   txt.FontSize,
+		Color:  txt.Color,
+		Decors: txt.Decors,
 	}
 }
-func (txt text) isBlockLevel() bool { return false }
+func (txt Text) isBlockLevel() bool { return false }

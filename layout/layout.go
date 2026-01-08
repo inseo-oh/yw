@@ -8,10 +8,6 @@ package layout
 import (
 	"fmt"
 	"strings"
-
-	"github.com/inseo-oh/yw/dom"
-	"github.com/inseo-oh/yw/gfx"
-	"github.com/inseo-oh/yw/platform"
 )
 
 // LogicalPos represents logical position(i.e. inline/block position)
@@ -19,17 +15,6 @@ type LogicalPos float64
 
 // PhysicalPos represents physical position(i.e. location on physical screen)
 type PhysicalPos float64
-
-// Build builds the layout starting from the DOM node root.
-func Build(root dom.Element, viewportWidth, viewportHeight float64, fontProvider platform.FontProvider) Box {
-	// https://www.w3.org/TR/css-display-3/#initial-containing-block
-	tb := treeBuilder{}
-	tb.font = fontProvider.OpenFont("this_is_not_real_filename.ttf")
-	tb.font.SetTextSize(32)
-	boxRect := logicalRect{logicalX: 0, logicalY: 0, logicalWidth: LogicalPos(viewportWidth), logicalHeight: LogicalPos(viewportHeight)}
-	icb := tb.newBlockContainer(nil, nil, nil, nil, nil, boxRect, physicalEdges{}, physicalEdges{}, true, true, false, []dom.Node{root}, []gfx.TextDecorOptions{})
-	return icb
-}
 
 // PrintTree prints the layout tree to standard output.
 func PrintTree(bx Box, indentLevel int) {

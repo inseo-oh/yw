@@ -12,44 +12,44 @@ package layout
 //
 // https://www.w3.org/TR/CSS2/visuren.html#inline-formatting
 // https://www.w3.org/TR/css-inline-3/#inline-formatting-context
-type inlineFormattingContext struct {
+type InlineFormattingContext struct {
 	formattingContextCommon
 
-	bcon                  *blockContainer // Block container containing this inline node
-	lineBoxes             []lineBox       // List of line boxes
-	initialAvailableWidth LogicalPos
-	initialLogicalY       LogicalPos
-	writtenText           string
+	BlockContainer        *BlockContainerBox // Block container containing this inline node
+	LineBoxes             []lineBox          // List of line boxes
+	InitialAvailableWidth LogicalPos
+	InitialLogicalY       LogicalPos
+	WrittenText           string
 }
 
-func (ifc *inlineFormattingContext) addLineBox(lineHeight float64) {
+func (ifc *InlineFormattingContext) AddLineBox(lineHeight float64) {
 	lb := lineBox{}
-	lb.currentLineHeight = lineHeight
-	if len(ifc.lineBoxes) != 0 {
-		lastLb := ifc.currentLineBox()
-		lb.initialLogicalY = lastLb.initialLogicalY + LogicalPos(lastLb.currentLineHeight)
+	lb.CurrentLineHeight = lineHeight
+	if len(ifc.LineBoxes) != 0 {
+		lastLb := ifc.CurrentLineBox()
+		lb.InitialLogicalY = lastLb.InitialLogicalY + LogicalPos(lastLb.CurrentLineHeight)
 	} else {
-		lb.initialLogicalY = ifc.initialLogicalY
+		lb.InitialLogicalY = ifc.InitialLogicalY
 	}
-	lb.availableWidth = ifc.initialAvailableWidth - ifc.bcon.bfc.floatWidth(lb.initialLogicalY)
-	lb.leftOffset = PhysicalPos(ifc.bcon.bfc.leftFloatWidth(lb.initialLogicalY))
-	ifc.lineBoxes = append(ifc.lineBoxes, lb)
+	lb.AvailableWidth = ifc.InitialAvailableWidth - ifc.BlockContainer.Bfc.floatWidth(lb.InitialLogicalY)
+	lb.leftOffset = PhysicalPos(ifc.BlockContainer.Bfc.leftFloatWidth(lb.InitialLogicalY))
+	ifc.LineBoxes = append(ifc.LineBoxes, lb)
 }
-func (ifc *inlineFormattingContext) currentLineBox() *lineBox {
-	return &ifc.lineBoxes[len(ifc.lineBoxes)-1]
+func (ifc *InlineFormattingContext) CurrentLineBox() *lineBox {
+	return &ifc.LineBoxes[len(ifc.LineBoxes)-1]
 }
-func (ifc inlineFormattingContext) naturalPos() LogicalPos {
-	return ifc.currentLineBox().currentNaturalPos + LogicalPos(ifc.currentLineBox().leftOffset)
+func (ifc InlineFormattingContext) NaturalPos() LogicalPos {
+	return ifc.CurrentLineBox().CurrentNaturalPos + LogicalPos(ifc.CurrentLineBox().leftOffset)
 }
-func (ifc *inlineFormattingContext) incrementNaturalPos(pos LogicalPos) {
-	if len(ifc.lineBoxes) == 0 {
+func (ifc *InlineFormattingContext) IncrementNaturalPos(pos LogicalPos) {
+	if len(ifc.LineBoxes) == 0 {
 		panic("attempted to increment natural position without creating lineBox")
 	}
-	lb := ifc.currentLineBox()
-	if lb.availableWidth < lb.currentNaturalPos+pos {
+	lb := ifc.CurrentLineBox()
+	if lb.AvailableWidth < lb.CurrentNaturalPos+pos {
 		panic("content overflow")
 	}
-	lb.currentNaturalPos += pos
+	lb.CurrentNaturalPos += pos
 }
 
 // Line box holds state needed for placing inline contents, such as next inline
@@ -58,8 +58,8 @@ func (ifc *inlineFormattingContext) incrementNaturalPos(pos LogicalPos) {
 // https://www.w3.org/TR/css-inline-3/#line-box
 type lineBox struct {
 	leftOffset        PhysicalPos
-	availableWidth    LogicalPos
-	currentNaturalPos LogicalPos
-	currentLineHeight float64
-	initialLogicalY   LogicalPos
+	AvailableWidth    LogicalPos
+	CurrentNaturalPos LogicalPos
+	CurrentLineHeight float64
+	InitialLogicalY   LogicalPos
 }

@@ -11,42 +11,42 @@ import "log"
 // (English uses X-axis for writing text, so BFC's position grows Y-axis)
 //
 // https://www.w3.org/TR/CSS2/visuren.html#block-formatting
-type blockFormattingContext struct {
+type BlockFormattingContext struct {
 	formattingContextCommon
-	currentNaturalPos  LogicalPos
-	leftFloatingBoxes  []Box
-	rightFloatingBoxes []Box
+	CurrentNaturalPos  LogicalPos
+	LeftFloatingBoxes  []Box
+	RightFloatingBoxes []Box
 }
 
-func (bfc blockFormattingContext) naturalPos() LogicalPos {
-	return bfc.currentNaturalPos
+func (bfc BlockFormattingContext) NaturalPos() LogicalPos {
+	return bfc.CurrentNaturalPos
 }
-func (bfc *blockFormattingContext) incrementNaturalPos(pos LogicalPos) {
-	bfc.currentNaturalPos += pos
+func (bfc *BlockFormattingContext) IncrementNaturalPos(pos LogicalPos) {
+	bfc.CurrentNaturalPos += pos
 	if pos < 0 {
 		log.Printf("warning: attempted to increment natural position with negative value %g", pos)
 	}
 }
-func (bfc *blockFormattingContext) leftFloatWidth(forLogicalY LogicalPos) LogicalPos {
+func (bfc *BlockFormattingContext) leftFloatWidth(forLogicalY LogicalPos) LogicalPos {
 	sum := LogicalPos(0.0)
-	for _, bx := range bfc.leftFloatingBoxes {
-		mRect := bx.boxMarginRect()
-		if mRect.logicalY <= forLogicalY && forLogicalY <= (mRect.logicalY+mRect.logicalHeight) {
-			sum += bx.logicalWidth()
+	for _, bx := range bfc.LeftFloatingBoxes {
+		mRect := bx.BoxMarginRect()
+		if mRect.LogicalY <= forLogicalY && forLogicalY <= (mRect.LogicalY+mRect.LogicalHeight) {
+			sum += bx.LogicalWidth()
 		}
 	}
 	return sum
 }
-func (bfc *blockFormattingContext) rightFloatWidth(forLogicalY LogicalPos) LogicalPos {
+func (bfc *BlockFormattingContext) rightFloatWidth(forLogicalY LogicalPos) LogicalPos {
 	sum := LogicalPos(0.0)
-	for _, bx := range bfc.rightFloatingBoxes {
-		mRect := bx.boxMarginRect()
-		if mRect.logicalY <= forLogicalY && forLogicalY <= (mRect.logicalY+mRect.logicalHeight) {
-			sum += bx.logicalWidth()
+	for _, bx := range bfc.RightFloatingBoxes {
+		mRect := bx.BoxMarginRect()
+		if mRect.LogicalY <= forLogicalY && forLogicalY <= (mRect.LogicalY+mRect.LogicalHeight) {
+			sum += bx.LogicalWidth()
 		}
 	}
 	return sum
 }
-func (bfc *blockFormattingContext) floatWidth(forLogicalY LogicalPos) LogicalPos {
+func (bfc *BlockFormattingContext) floatWidth(forLogicalY LogicalPos) LogicalPos {
 	return bfc.leftFloatWidth(forLogicalY) + bfc.rightFloatWidth(forLogicalY)
 }

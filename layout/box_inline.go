@@ -9,19 +9,19 @@ import (
 )
 
 // https://www.w3.org/TR/css-display-3/#inline-box
-type inlineBox struct {
+type InlineBox struct {
 	boxCommon
-	parentBcon *blockContainer
+	ParentBcon *BlockContainerBox
 }
 
-func (bx inlineBox) String() string {
-	physMarginRect := bx.marginRect.toPhysicalRect()
-	leftStr := fmt.Sprintf("%g+%g+%g", physMarginRect.Left, bx.margin.left, bx.padding.left)
-	topStr := fmt.Sprintf("%g+%g+%g", physMarginRect.Top, bx.margin.top, bx.padding.top)
-	rightStr := fmt.Sprintf("%g-%g-%g", physMarginRect.right(), bx.margin.right, bx.padding.right)
-	bottomStr := fmt.Sprintf("%g-%g-%g", physMarginRect.bottom(), bx.margin.bottom, bx.padding.bottom)
+func (bx InlineBox) String() string {
+	physMarginRect := bx.MarginRect.ToPhysicalRect()
+	leftStr := fmt.Sprintf("%g+%g+%g", physMarginRect.Left, bx.Margin.Left, bx.Padding.Left)
+	topStr := fmt.Sprintf("%g+%g+%g", physMarginRect.Top, bx.Margin.Top, bx.Padding.Top)
+	rightStr := fmt.Sprintf("%g-%g-%g", physMarginRect.right(), bx.Margin.Right, bx.Padding.Right)
+	bottomStr := fmt.Sprintf("%g-%g-%g", physMarginRect.bottom(), bx.Margin.Bottom, bx.Padding.Bottom)
 	return fmt.Sprintf(
 		"inline-box [elem %v] at [LTRB %s %s %s %s (%gx%g)]",
-		bx.elem, leftStr, topStr, rightStr, bottomStr, physMarginRect.Width, physMarginRect.Height)
+		bx.Elem, leftStr, topStr, rightStr, bottomStr, physMarginRect.Width, physMarginRect.Height)
 }
-func (bx inlineBox) isBlockLevel() bool { return false }
+func (bx InlineBox) isBlockLevel() bool { return false }

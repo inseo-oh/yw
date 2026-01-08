@@ -4,36 +4,36 @@
 
 package layout
 
-type physicalEdges struct{ top, right, bottom, left PhysicalPos }
+type PhysicalEdges struct{ Top, Right, Bottom, Left PhysicalPos }
 
-func (e physicalEdges) verticalSum() PhysicalPos   { return e.top + e.bottom }
-func (e physicalEdges) horizontalSum() PhysicalPos { return e.left + e.right }
+func (e PhysicalEdges) VerticalSum() PhysicalPos   { return e.Top + e.Bottom }
+func (e PhysicalEdges) HorizontalSum() PhysicalPos { return e.Left + e.Right }
 
-type logicalRect struct{ logicalX, logicalY, logicalWidth, logicalHeight LogicalPos }
+type LogicalRect struct{ LogicalX, LogicalY, LogicalWidth, LogicalHeight LogicalPos }
 
-func (r logicalRect) addPadding(edges physicalEdges) logicalRect {
+func (r LogicalRect) addPadding(edges PhysicalEdges) LogicalRect {
 	// TODO: Support vertical writing mode
-	r.logicalY += LogicalPos(edges.top)
-	r.logicalX += LogicalPos(edges.left)
-	r.logicalWidth -= LogicalPos(edges.left + edges.right)
-	r.logicalHeight -= LogicalPos(edges.top + edges.bottom)
+	r.LogicalY += LogicalPos(edges.Top)
+	r.LogicalX += LogicalPos(edges.Left)
+	r.LogicalWidth -= LogicalPos(edges.Left + edges.Right)
+	r.LogicalHeight -= LogicalPos(edges.Top + edges.Bottom)
 	return r
 }
-func (r logicalRect) toPhysicalRect() physicalRect {
+func (r LogicalRect) ToPhysicalRect() PhysicalRect {
 	// TODO: Support vertical writing mode
-	return physicalRect{
-		Left:   PhysicalPos(r.logicalX),
-		Top:    PhysicalPos(r.logicalY),
-		Width:  PhysicalPos(r.logicalWidth),
-		Height: PhysicalPos(r.logicalHeight),
+	return PhysicalRect{
+		Left:   PhysicalPos(r.LogicalX),
+		Top:    PhysicalPos(r.LogicalY),
+		Width:  PhysicalPos(r.LogicalWidth),
+		Height: PhysicalPos(r.LogicalHeight),
 	}
 }
 
-type physicalRect struct{ Left, Top, Width, Height PhysicalPos }
+type PhysicalRect struct{ Left, Top, Width, Height PhysicalPos }
 
-func (r physicalRect) right() PhysicalPos  { return r.Left + r.Width - 1 }
-func (r physicalRect) bottom() PhysicalPos { return r.Top + r.Height - 1 }
-func physicalSizeToLogical(physicalWidth, physicalHeight PhysicalPos) (logicalWidth, logicalHeight LogicalPos) {
+func (r PhysicalRect) right() PhysicalPos  { return r.Left + r.Width - 1 }
+func (r PhysicalRect) bottom() PhysicalPos { return r.Top + r.Height - 1 }
+func PhysicalSizeToLogical(physicalWidth, physicalHeight PhysicalPos) (logicalWidth, logicalHeight LogicalPos) {
 	// TODO: Support vertical writing mode
 	return LogicalPos(physicalWidth), LogicalPos(physicalHeight)
 }

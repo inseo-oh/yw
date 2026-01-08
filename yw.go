@@ -21,6 +21,7 @@ import (
 	"github.com/inseo-oh/yw/gfx/paint"
 	"github.com/inseo-oh/yw/html/htmlparser"
 	"github.com/inseo-oh/yw/layout"
+	"github.com/inseo-oh/yw/layout/builder"
 	"github.com/inseo-oh/yw/namespaces"
 	"github.com/inseo-oh/yw/platform"
 )
@@ -109,7 +110,7 @@ func (b *Browser) Run(urlStr string, fontProvider platform.FontProvider, viewpor
 	}
 
 	htmlElem := doc.FilterElementChildrenByLocalName(dom.NamePair{Namespace: namespaces.Html, LocalName: "html"})[0]
-	icb := layout.Build(htmlElem, float64(viewportSize.X), float64(viewportSize.Y), fontProvider)
+	icb := builder.BuildLayout(htmlElem, float64(viewportSize.X), float64(viewportSize.Y), fontProvider)
 	if b.DumpLayout {
 		layout.PrintTree(icb, 0)
 	}

@@ -9,38 +9,38 @@ import (
 )
 
 // https://www.w3.org/TR/css-display-3/#block-container
-type blockContainer struct {
+type BlockContainerBox struct {
 	boxCommon
-	bfc              *blockFormattingContext
-	ifc              *inlineFormattingContext
-	parentFctx       formattingContext
-	parentBcon       *blockContainer
-	ownsBfc          bool
-	ownsIfc          bool
-	isAnonymous      bool
-	isInlineFlowRoot bool
+	Bfc              *BlockFormattingContext
+	Ifc              *InlineFormattingContext
+	ParentFctx       FormattingContext
+	ParentBcon       *BlockContainerBox
+	OwnsBfc          bool
+	OwnsIfc          bool
+	IsAnonymous      bool
+	IsInlineFlowRoot bool
 
-	accumulatedMarginLeft   PhysicalPos
-	accumulatedPaddingLeft  PhysicalPos
-	accumulatedMarginRight  PhysicalPos
-	accumulatedPaddingRight PhysicalPos
+	AccumulatedMarginLeft   PhysicalPos
+	AccumulatedPaddingLeft  PhysicalPos
+	AccumulatedMarginRight  PhysicalPos
+	AccumulatedPaddingRight PhysicalPos
 }
 
-func (bcon blockContainer) String() string {
+func (bcon BlockContainerBox) String() string {
 	fcStr := ""
-	if bcon.ownsBfc {
+	if bcon.OwnsBfc {
 		fcStr += "[BFC]"
 	}
-	if bcon.ownsIfc {
+	if bcon.OwnsIfc {
 		fcStr += "[IFC]"
 	}
-	physMarginRect := bcon.marginRect.toPhysicalRect()
-	leftStr := fmt.Sprintf("%g+%g+%g", physMarginRect.Left, bcon.margin.left, bcon.padding.left)
-	topStr := fmt.Sprintf("%g+%g+%g", physMarginRect.Top, bcon.margin.top, bcon.padding.top)
-	rightStr := fmt.Sprintf("%g-%g-%g", physMarginRect.right(), bcon.margin.right, bcon.padding.right)
-	bottomStr := fmt.Sprintf("%g-%g-%g", physMarginRect.bottom(), bcon.margin.bottom, bcon.padding.bottom)
+	physMarginRect := bcon.MarginRect.ToPhysicalRect()
+	leftStr := fmt.Sprintf("%g+%g+%g", physMarginRect.Left, bcon.Margin.Left, bcon.Padding.Left)
+	topStr := fmt.Sprintf("%g+%g+%g", physMarginRect.Top, bcon.Margin.Top, bcon.Padding.Top)
+	rightStr := fmt.Sprintf("%g-%g-%g", physMarginRect.right(), bcon.Margin.Right, bcon.Padding.Right)
+	bottomStr := fmt.Sprintf("%g-%g-%g", physMarginRect.bottom(), bcon.Margin.Bottom, bcon.Padding.Bottom)
 	return fmt.Sprintf(
 		"block-container [elem %v] at [LTRB %s %s %s %s (%gx%g)] %s",
-		bcon.elem, leftStr, topStr, rightStr, bottomStr, physMarginRect.Width, physMarginRect.Height, fcStr)
+		bcon.Elem, leftStr, topStr, rightStr, bottomStr, physMarginRect.Width, physMarginRect.Height, fcStr)
 }
-func (bcon blockContainer) isBlockLevel() bool { return true }
+func (bcon BlockContainerBox) isBlockLevel() bool { return true }

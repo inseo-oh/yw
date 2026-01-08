@@ -4,16 +4,16 @@
 
 package layout
 
-type formattingContext interface {
-	naturalPos() LogicalPos
-	incrementNaturalPos(inc LogicalPos)
-	contextOwnerBox() Box
+type FormattingContext interface {
+	NaturalPos() LogicalPos
+	IncrementNaturalPos(inc LogicalPos)
+	ContextOwnerBox() Box
 }
 
 type formattingContextCommon struct {
-	ownerBox Box
+	OwnerBox Box
 }
 
-func (fc formattingContextCommon) contextOwnerBox() Box {
-	return fc.ownerBox
+func (fc formattingContextCommon) ContextOwnerBox() Box {
+	return fc.OwnerBox
 }
